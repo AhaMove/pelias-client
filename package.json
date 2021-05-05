@@ -1,0 +1,34 @@
+{
+  "name": "pelias-client",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:AhaMove/pelias-client.git",
+  "author": "linrium <linrium@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@turf/helpers": "^6.3.0",
+    "@turf/turf": "^6.3.0",
+    "elasticsearch": "^16.7.2",
+    "escape-string-regexp": "^5.0.0",
+    "got": "^11.8.2",
+    "lodash": "^4.17.21",
+    "zod": "^1.11.16"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.13.16",
+    "@babel/preset-env": "^7.13.15",
+    "@babel/preset-typescript": "^7.13.0",
+    "@types/elasticsearch": "^5.0.37",
+    "@types/jest": "^26.0.22",
+    "@types/lodash": "^4.14.168",
+    "babel-jest": "^26.6.3",
+    "jest": "^26.6.3",
+    "prettier": "^2.2.1",
+    "typedoc": "^0.20.36",
+    "typescript": "^4.2.4"
+  },
+  "scripts": {
+    "test": "jest",
+    "build": "tsc"
+  }
+}

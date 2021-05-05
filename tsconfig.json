@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "skipLibCheck": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "resolveJsonModule": true,
+    "target": "es2017",
+    "sourceMap": true,
+    "outDir": "./lib",
+    "baseUrl": "./",
+    "incremental": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "typedocOptions": {
+    "out": "docs",
+    "entryPoints": "src",
+    "exclude": ["**/*.test.ts"]
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "lib", "src/**/*.test.ts"]
+}

@@ -1,4 +1,4 @@
-import 'module-alias/register'
+import "module-alias/register"
 import { ElasticTransform } from "src/transforms/elastic.transform"
 import { PeliasTransform } from "src/transforms/pelias.transform"
 import { NearbyParams } from "src/resources/nearby.params"
@@ -11,10 +11,14 @@ import { DocumentTransform } from "src/transforms/document.transform"
 import { DocumentModel } from "src/models/document.model"
 import { CreateParams } from "src/resources/create.params"
 import { PeliasResponse } from "src/resources/pelias.resouce"
-import { Client, ClientOptions } from "@elastic/elasticsearch";
-import * as RequestParams from "@elastic/elasticsearch/api/requestParams";
-import { ApiResponse, Context, TransportRequestPromise } from "@elastic/elasticsearch/lib/Transport";
-import { HitsModel } from "src/models/hits.model";
+import { Client, ClientOptions } from "@elastic/elasticsearch"
+import * as RequestParams from "@elastic/elasticsearch/api/requestParams"
+import {
+  ApiResponse,
+  Context,
+  TransportRequestPromise,
+} from "@elastic/elasticsearch/lib/Transport"
+import { HitsModel } from "src/models/hits.model"
 
 interface ClientConfig extends ClientOptions {
   /**
@@ -32,7 +36,11 @@ interface ClientConfig extends ClientOptions {
   extract?(text: string): AddressParts
 }
 
-export class PeliasClient<TModel extends DocumentModel, TResponse extends HitsModel<TModel>, TContext = Context> {
+export class PeliasClient<
+  TModel extends DocumentModel,
+  TResponse extends HitsModel<TModel>,
+  TContext = Context
+> {
   private esClient: Client
   private format = format
   private extract = extract
@@ -48,7 +56,9 @@ export class PeliasClient<TModel extends DocumentModel, TResponse extends HitsMo
     }
   }
 
-  ping(params: RequestParams.Ping): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
+  ping(
+    params: RequestParams.Ping
+  ): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
     return this.esClient.ping(params)
   }
 
@@ -75,10 +85,7 @@ export class PeliasClient<TModel extends DocumentModel, TResponse extends HitsMo
    * @param params
    * @param geocode
    */
-  async search(
-    params: SearchParams,
-    geocode = false
-  ): Promise<PeliasResponse> {
+  async search(params: SearchParams, geocode = false): Promise<PeliasResponse> {
     const { text, minimumShouldMatch = "90%", size = "10" } = params
     const {
       body,
@@ -181,7 +188,9 @@ export class PeliasClient<TModel extends DocumentModel, TResponse extends HitsMo
     }
   }
 
-  create(params: CreateParams): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
+  create(
+    params: CreateParams
+  ): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
     const idData =
       params.name.default + params.center_point.lat + params.center_point.lon
     const sourceId = crypto.createHash("md5").update(idData).digest("hex")
@@ -195,7 +204,9 @@ export class PeliasClient<TModel extends DocumentModel, TResponse extends HitsMo
     })
   }
 
-  delete(id: string): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
+  delete(
+    id: string
+  ): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
     return this.esClient.delete({
       id,
       index: "pelias",
@@ -203,7 +214,10 @@ export class PeliasClient<TModel extends DocumentModel, TResponse extends HitsMo
     })
   }
 
-  update(id: string, params: UpdateParams): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
+  update(
+    id: string,
+    params: UpdateParams
+  ): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
     return this.esClient.update({
       id,
       index: "pelias",
@@ -214,7 +228,9 @@ export class PeliasClient<TModel extends DocumentModel, TResponse extends HitsMo
     })
   }
 
-  searchByName(params: SearchByNameParams): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
+  searchByName(
+    params: SearchByNameParams
+  ): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
     return this.esClient.search({
       index: "pelias",
       body: DocumentTransform.queryBuilder(params),

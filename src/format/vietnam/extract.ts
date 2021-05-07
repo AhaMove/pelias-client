@@ -135,7 +135,7 @@ const extractAddressParts = (arr: string[]) => {
   let street = ""
 
   arr.forEach((value) => {
-    const data = /^([Số|Ngõ\s0-9/\-]+)(\s)(.*)/gi.exec(value.trim())
+    const data = /^([Số|Ngõ\s0-9/-]+)(\s)(.*)/gi.exec(value.trim())
 
     if (data) {
       number = data[1]
@@ -155,12 +155,13 @@ const extractAddress = (text: string) => {
   let street: string
   let address = arr[0] || ""
 
-  const data = /^([0-9A-Ha-h/\-]+)(,|\s)((?:.)*?(?=,))/g.exec(text)
+  const data = /^([0-9A-Ha-h/-]+)(,|\s)((?:.)*?(?=,))/g.exec(text)
 
   if (data) {
     number = data[1]
     street = data[3]
   } else {
+    // eslint-disable-next-line no-use-before-define
     let addressParts: any = /Phố((?:(?!Phố).)*?(\s{2}|(?=,)))/.exec(text)
 
     if (addressParts) {
@@ -205,12 +206,12 @@ const extractAddress = (text: string) => {
 //   return /^[0-9a-h/]+/gi.test(text)
 // }
 
-export const isAddress = (text: string) => {
+export const isAddress = (text: string): RegExpMatchArray | null => {
   const firstPart = text.split(",")[0]
-  return firstPart.match(/^[0-9]+[a-zA-Z\-\/0-9]*[\s]+/)
+  return firstPart.match(/^[0-9]+[a-zA-Z\-/0-9]*[\s]+/)
 }
 
-export const isVenue = (text: string) => {
+export const isVenue = (text: string): boolean => {
   return !isAddress(text)
 }
 

@@ -2,7 +2,7 @@ import { UpdateParams } from "src/resources/update.params"
 import { SearchByNameParams } from "src/resources/search.params"
 
 export class DocumentTransform {
-  static queryBuilder(params: SearchByNameParams) {
+  static queryBuilder(params: SearchByNameParams): any {
     const query: any = {
       query: {
         bool: {

@@ -1,9 +1,9 @@
-import Mock from "@elastic/elasticsearch-mock"
-import addressMock from "../test/address.mock.json"
-import searchResultsMock from "../test/search-results.mock.json"
+// import Mock from "@elastic/elasticsearch-mock"
+// import addressMock from "../test/address.mock.json"
+// import searchResultsMock from "../test/search-results.mock.json"
 import { PeliasClient } from "src/index"
 
-const mock = new Mock()
+// const mock = new Mock()
 
 const client = new PeliasClient({
   node: "https://pes7.ahamove.com/es/",
@@ -71,18 +71,11 @@ describe("test api", () => {
       const resp = await client.search({
         text: "41b Xã Đàn, Đống Đa, Hà Nội, Việt Nam",
       })
-      console.log('resp', JSON.stringify(resp))
+      console.log("resp", JSON.stringify(resp))
     } catch (e) {
       console.log(e)
     }
 
     expect(1).toBe(1)
-  })
-})
-
-
-describe("findByIds", () => {
-  test("should response", async () => {
-
   })
 })

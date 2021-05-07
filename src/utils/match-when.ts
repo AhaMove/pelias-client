@@ -26,10 +26,10 @@ export function match(...args: any[]) {
   const obj = args[args.length - 1]
 
   // pre-compute matchers
-  let matchers: any[] = []
+  const matchers: any[] = []
 
-  for (let key in obj) {
-    if (obj.hasOwnProperty(key)) {
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       matchers.push(when.unserialize(key, obj[key]))
     }
   }
@@ -131,8 +131,11 @@ function _match(props: any[]) {
     }
 
     if (typeof input === "object") {
-      for (let prop in props) {
-        if (props.hasOwnProperty(prop) && input[prop] !== props[prop]) {
+      for (const prop in props) {
+        if (
+          Object.prototype.hasOwnProperty.call(props, prop) &&
+          input[prop] !== props[prop]
+        ) {
           return false
         }
       }

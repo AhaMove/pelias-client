@@ -6,7 +6,7 @@ import { PeliasClient } from "src/index"
 // const mock = new Mock()
 
 const client = new PeliasClient({
-  node: "https://pes7.ahamove.com/es/",
+  node: "http://localhost:9200",
 })
 
 // mock.add(

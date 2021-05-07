@@ -14,8 +14,11 @@
     "sourceMap": true,
     "esModuleInterop": true,
     "outDir": "./lib",
-    "baseUrl": "./",
+    "baseUrl": ".",
     "incremental": true,
+    "paths": {
+      "src/*": ["src/*"]
+    },
     "allowSyntheticDefaultImports": true
   },
   "typedocOptions": {

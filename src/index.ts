@@ -1,10 +1,4 @@
-import {
-  Client,
-  ConfigOptions,
-  CreateDocumentResponse,
-  DeleteDocumentResponse,
-  SearchResponse,
-} from "elasticsearch"
+import 'module-alias/register'
 import { ElasticTransform } from "src/transforms/elastic.transform"
 import { PeliasTransform } from "src/transforms/pelias.transform"
 import { NearbyParams } from "src/resources/nearby.params"
@@ -17,8 +11,12 @@ import { DocumentTransform } from "src/transforms/document.transform"
 import { DocumentModel } from "src/models/document.model"
 import { CreateParams } from "src/resources/create.params"
 import { PeliasResponse } from "src/resources/pelias.resouce"
+import { Client, ClientOptions } from "@elastic/elasticsearch";
+import * as RequestParams from "@elastic/elasticsearch/api/requestParams";
+import { ApiResponse, Context, TransportRequestPromise } from "@elastic/elasticsearch/lib/Transport";
+import { HitsModel } from "src/models/hits.model";
 
-interface ClientConfig extends ConfigOptions {
+interface ClientConfig extends ClientOptions {
   /**
    * Standardized address text
    * TODO: improve later
@@ -34,7 +32,7 @@ interface ClientConfig extends ConfigOptions {
   extract?(text: string): AddressParts
 }
 
-export class PeliasClient<T extends DocumentModel> {
+export class PeliasClient<TModel extends DocumentModel, TResponse extends HitsModel<TModel>, TContext = Context> {
   private esClient: Client
   private format = format
   private extract = extract
@@ -48,6 +46,10 @@ export class PeliasClient<T extends DocumentModel> {
     if (params.extract) {
       this.extract = params.extract
     }
+  }
+
+  ping(params: RequestParams.Ping): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
+    return this.esClient.ping(params)
   }
 
   /**
@@ -75,7 +77,7 @@ export class PeliasClient<T extends DocumentModel> {
    */
   async search(
     params: SearchParams,
-    geocode: boolean
+    geocode = false
   ): Promise<PeliasResponse> {
     const { text, minimumShouldMatch = "90%", size = "10" } = params
     const {
@@ -89,12 +91,12 @@ export class PeliasClient<T extends DocumentModel> {
       minimumShouldMatch,
     })
 
-    const result = await this.esClient.search<T>({
+    const result = await this.esClient.search<TResponse>({
       index: "pelias",
       body,
     })
 
-    const hits = result.hits.hits
+    const hits = result.body.hits.hits
 
     const points = {
       "focus.point.lat": parseFloat(params["focus.point.lat"] || "0"),
@@ -125,7 +127,7 @@ export class PeliasClient<T extends DocumentModel> {
   }
 
   async findByIds(ids: string): Promise<PeliasResponse> {
-    const result = await this.esClient.search<T>({
+    const result = await this.esClient.search<TResponse>({
       index: "pelias",
       body: {
         query: {
@@ -146,8 +148,8 @@ export class PeliasClient<T extends DocumentModel> {
       },
     })
 
-    const hits = result.hits.hits
-    const data = PeliasTransform.getHits<T>(hits, false)
+    const hits = result.body.hits.hits
+    const data = PeliasTransform.getHits(hits, false)
 
     return {
       geocoding: {
@@ -162,12 +164,12 @@ export class PeliasClient<T extends DocumentModel> {
     params: NearbyParams,
     geocode: boolean
   ): Promise<PeliasResponse> {
-    const result = await this.esClient.search<T>({
+    const result = await this.esClient.search<TResponse>({
       index: "pelias",
       body: ElasticTransform.createNearByBody(params),
     })
 
-    const hits = result.hits.hits
+    const hits = result.body.hits.hits
     const data = PeliasTransform.getHits(hits, geocode)
 
     return {
@@ -179,7 +181,7 @@ export class PeliasClient<T extends DocumentModel> {
     }
   }
 
-  async create(params: CreateParams): Promise<CreateDocumentResponse> {
+  create(params: CreateParams): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
     const idData =
       params.name.default + params.center_point.lat + params.center_point.lon
     const sourceId = crypto.createHash("md5").update(idData).digest("hex")
@@ -193,7 +195,7 @@ export class PeliasClient<T extends DocumentModel> {
     })
   }
 
-  async delete(id: string): Promise<DeleteDocumentResponse> {
+  delete(id: string): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
     return this.esClient.delete({
       id,
       index: "pelias",
@@ -201,7 +203,7 @@ export class PeliasClient<T extends DocumentModel> {
     })
   }
 
-  async update(id: string, params: UpdateParams): Promise<any> {
+  update(id: string, params: UpdateParams): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
     return this.esClient.update({
       id,
       index: "pelias",
@@ -212,7 +214,7 @@ export class PeliasClient<T extends DocumentModel> {
     })
   }
 
-  async searchByName(params: SearchByNameParams): Promise<SearchResponse<T>> {
+  searchByName(params: SearchByNameParams): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
     return this.esClient.search({
       index: "pelias",
       body: DocumentTransform.queryBuilder(params),

@@ -1,3 +1,7 @@
-import { SearchResponse } from "elasticsearch"
+import { ResponseModel } from "src/models/response.model";
 
-export type HitsModel<T> = SearchResponse<T>["hits"]["hits"]
+export interface HitsModel<T> {
+  hits: {
+    hits: Array<ResponseModel<T>>
+  }
+}

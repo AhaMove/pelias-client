@@ -4,6 +4,7 @@ import * as _ from "lodash/fp"
 import { HitsModel } from "src/models/hits.model"
 import { PeliasFeatureModel } from "src/models/pelias-feature.model"
 import { DocumentModel } from "src/models/document.model"
+import { ResponseModel } from "src/models/response.model";
 
 type FeatureOps = {
   points?: Position
@@ -26,9 +27,9 @@ export class PeliasTransform {
   }
 
   static getHits<T extends DocumentModel>(
-    hits: HitsModel<T>,
+    hits: Array<ResponseModel<T>>,
     geocode: boolean
-  ): HitsModel<T> {
+  ): Array<ResponseModel<T>> {
     if (geocode) {
       if (hits.length > 0) {
         return [hits[0]]
@@ -39,7 +40,7 @@ export class PeliasTransform {
   }
 
   static toFeatures<T extends DocumentModel>(
-    hits: HitsModel<T>,
+    hits: Array<ResponseModel<T>>,
     opts: FeatureOps = {
       points: undefined,
     }

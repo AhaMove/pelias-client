@@ -3,8 +3,8 @@ import regex from "src/data/vietnam/regex.json"
 import abbreviations from "src/data/vietnam/abbreviations.json"
 import dictionary from "src/data/vietnam/dictionary.json"
 import deaccents from "src/format/vietnam/deaccents"
-import escapeStringRegexp from "escape-string-regexp"
 import { match, when } from "src/utils/match-when"
+import escapeStringRegexp from "src/utils/escape-string-regexp"
 
 const dedupSpaces = _.replace(/\s+/g, " ")
 

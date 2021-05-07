@@ -1,0 +1,10 @@
+node_modules
+docs
+.idea
+src
+.prettierrc
+babel.config.js
+jest.config.ts
+webpack.config.js
+tsconfig.json
+test

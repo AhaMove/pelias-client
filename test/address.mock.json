@@ -1,0 +1,102 @@
+[
+  {
+    "_index" : "pelias",
+    "_type" : "_doc",
+    "_id" : "openaddresses:address:4f56ee8599bac054c020fb0d90298e89",
+    "_score" : 1.0,
+    "_source" : {
+      "center_point" : {
+        "lon" : 106.685173,
+        "lat" : 10.747718
+      },
+      "parent" : {
+        "region" : [
+          "Thành phố Hồ Chí Minh"
+        ],
+        "region_id" : [
+          "79"
+        ],
+        "region_a" : [
+          "TPHCM"
+        ],
+        "county" : [
+          "Quận 8"
+        ],
+        "county_id" : [
+          "79776"
+        ],
+        "county_a" : [
+          "Q8"
+        ],
+        "locality" : [
+          "Phường 3"
+        ],
+        "locality_id" : [
+          "7977627397"
+        ],
+        "locality_a" : [
+          "P3"
+        ]
+      },
+      "popularity" : 1602028800,
+      "name" : {
+        "default" : "41b Dạ Nam, Quận 08, Hồ Chí Minh, Việt Nam"
+      },
+      "source" : "openaddresses",
+      "source_id" : "4f56ee8599bac054c020fb0d90298e89",
+      "layer" : "address"
+    }
+  },
+  {
+    "_index" : "pelias",
+    "_type" : "_doc",
+    "_id" : "openaddresses:address:e3427fd0f0507aac12a008904a4951b1",
+    "_score" : 1.0,
+    "_source" : {
+      "center_point" : {
+        "lon" : 106.723935,
+        "lat" : 10.755331
+      },
+      "parent" : {
+        "region" : [
+          "Thành phố Hồ Chí Minh"
+        ],
+        "region_id" : [
+          "79"
+        ],
+        "region_a" : [
+          "TPHCM"
+        ],
+        "county" : [
+          "Quận 7"
+        ],
+        "county_id" : [
+          "79778"
+        ],
+        "county_a" : [
+          "Q7"
+        ],
+        "locality" : [
+          "Phường Tân Thuận Đông"
+        ],
+        "locality_id" : [
+          "7977827466"
+        ],
+        "locality_a" : [
+          "PTTĐ"
+        ]
+      },
+      "popularity" : 1602028800,
+      "name" : {
+        "default" : "179 Huỳnh Tấn Phát, Tân Thuận Đông, Quận 07, Hồ Chí Minh, Việt Nam"
+      },
+      "address_parts" : {
+        "street" : "Huỳnh Tấn Phát",
+        "number" : "179"
+      },
+      "source" : "openaddresses",
+      "source_id" : "e3427fd0f0507aac12a008904a4951b1",
+      "layer" : "address"
+    }
+  }
+]

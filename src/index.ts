@@ -1,4 +1,3 @@
-import "module-alias/register"
 import { ElasticTransform } from "src/transforms/elastic.transform"
 import { PeliasTransform } from "src/transforms/pelias.transform"
 import { NearbyParams } from "src/resources/nearby.params"

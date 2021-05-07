@@ -1,6 +1,6 @@
 {
   "name": "@ahamove/pelias-client",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "private": false,
@@ -15,8 +15,7 @@
     "@elastic/elasticsearch": "^7.12.0",
     "@turf/helpers": "^6.3.0",
     "@turf/turf": "^6.3.0",
-    "lodash": "^4.17.21",
-    "module-alias": "^2.2.2"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@babel/core": "^7.13.16",
@@ -33,6 +32,7 @@
     "prettier": "^2.2.1",
     "ts-jest": "^26.5.6",
     "ts-node": "^9.1.1",
+    "tscpaths": "^0.0.9",
     "typedoc": "^0.20.36",
     "typescript": "^4.2.4"
   },
@@ -42,7 +42,7 @@
     "version": "yarn format && git add -A src",
     "postversion": "git push && git push --tags",
     "test": "jest",
-    "build": "tsc",
+    "build": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./lib",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""
   },
@@ -57,8 +57,5 @@
   "bugs": {
     "url": "https://github.com/AhaMove/pelias-client/issues"
   },
-  "homepage": "https://github.com/AhaMove/pelias-client#readme",
-  "_moduleAliases": {
-    "src": "lib/"
-  }
+  "homepage": "https://github.com/AhaMove/pelias-client#readme"
 }

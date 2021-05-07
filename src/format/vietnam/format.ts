@@ -157,7 +157,8 @@ const createMatchFactory = (source: { [key: string]: string }) => (
   const matcher = Object.keys(source).reduce<any>((acc, key) => {
     const flag = matchFlags ? matchFlags : flags
     const re = new RegExp(source[key] + pattern, flag)
-    const matching = _.replace(re, !!replacement ? replacement(key) : key)
+    const hasReplacement = !!replacement
+    const matching = _.replace(re, hasReplacement ? replacement!(key) : key)
     acc[when(re)] = matchCallback ? matchCallback(re, key) : matching
 
     return acc

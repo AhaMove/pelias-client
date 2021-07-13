@@ -1,4 +1,4 @@
-### Lightweight Pelias Client
+### Kelper Query Language
 #### Why?
 Similar SQL language but it query from multiple resources such as tile38, metabase, RESTful API
 

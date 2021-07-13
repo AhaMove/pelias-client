@@ -1,10 +1,10 @@
 ### Lightweight Pelias Client
 #### Why?
-This is another pelias client with simple logic, but it can handle all logic like search, extract
+Similar SQL language but it query from multiple resources such as tile38, metabase, RESTful API
 
 #### Install
 ```shell
-yarn add @ahamove/pelias-client
+yarn add @ahamove/kql
 ```
 
 #### Build

@@ -1,25 +1,22 @@
-### Kelper Query Language
+### Lightweight Pelias Client
 #### Why?
-Similar SQL language but it query from multiple resources such as tile38, metabase, RESTful API
+This is another pelias client with simple logic, but it can handle all logic like search, extract
 
 #### Install
 ```shell
-yarn add @ahamove/kql
+yarn add @ahamove/pelias-client
 ```
 
 #### Build
 ```shell
 yarn build
 ```
-
 #### Test
 ```shell
 yarn test
 ```
-
 #### Publish to npm
 ```shell
 yarn version && npm publish
 ```
-
 You can write more test in `index.test.ts` to verify address

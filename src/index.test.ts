@@ -1,81 +1,40 @@
-// import Mock from "@elastic/elasticsearch-mock"
-// import addressMock from "../test/address.mock.json"
-// import searchResultsMock from "../test/search-results.mock.json"
 import { PeliasClient } from "src/index"
 
-// const mock = new Mock()
-
 const client = new PeliasClient({
-  node: "http://localhost:9200",
+  node: "",
+  auth: {
+    username: "",
+    password: ""
+  }
 })
-
-// mock.add(
-//   {
-//     method: "POST",
-//     path: "/:index/_search",
-//   },
-//   () => {
-//     return {
-//       hits: {
-//         total: { value: 1, relation: "eq" },
-//         hits: addressMock,
-//       },
-//     }
-//   }
-// )
-//
-// mock.add(
-//   {
-//     method: "POST",
-//     path: "/:index/_search",
-//     body: {
-//       query: {
-//         bool: {
-//           must: [
-//             {
-//               match: {
-//                 "name.default": {
-//                   analyzer: "peliasQuery",
-//                   boost: 1,
-//                   query: "41b Xã Đàn, Đống Đa, Hà Nội, Việt Nam",
-//                   minimum_should_match: "90%",
-//                 },
-//               },
-//             },
-//           ],
-//           should: [],
-//         },
-//       },
-//       size: 10,
-//       track_scores: true,
-//       sort: ["_score"],
-//     }
-//   },
-//   () => {
-//     return {
-//       hits: {
-//         total: { value: 1, relation: "eq" },
-//         hits: searchResultsMock,
-//       },
-//     }
-//   }
-// )
 
 describe("test api", () => {
   beforeEach(() => {
     jest.useFakeTimers()
   })
 
-  test("should response", async () => {
-    try {
-      const resp = await client.search({
-        text: "41b Xã Đàn, Đống Đa, Hà Nội, Việt Nam",
-      })
-      console.log("resp", JSON.stringify(resp))
-    } catch (e) {
-      console.log(e)
-    }
+  test("should ping success", async () => {
+    const resp = await client.ping({})
+    expect(resp.statusCode).toBe(200)
+  })
 
-    expect(1).toBe(1)
+  test("should search success", async () => {
+    const resp = await client.search({
+      "focus.point.lat": "10.76989",
+      "focus.point.lon": "106.6640",
+      text: "7/28 thanh thai",
+      size: "2",
+    })
+
+    const features = resp.features
+    console.log(features[0])
+    expect(features[0].properties.name).toBe("7/28 Thành Thái, Tòa Nhà Rivera Park Thành Thái")
+    expect(features[1].properties.name).toBe("7/28 Thành Thái, Phường 14")
+  })
+
+  test("should find by ids success", async () => {
+    const resp = await client.findByIds("openaddresses:address:4f56ee8599bac054c020fb0d90298e89,openaddresses:address:e3427fd0f0507aac12a008904a4951b1")
+    expect(resp.features[0].properties.id).toBe("4f56ee8599bac054c020fb0d90298e89")
+    expect(resp.features[1].properties.id).toBe("e3427fd0f0507aac12a008904a4951b1")
   })
 })

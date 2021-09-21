@@ -55,6 +55,14 @@ export class PeliasClient<
     }
   }
 
+  formatAddress(address: string): string {
+    return format(address)
+  }
+
+  extractAddress(address: string): AddressParts {
+    return extract(address)
+  }
+
   ping(
     params: RequestParams.Ping
   ): TransportRequestPromise<ApiResponse<TResponse, TContext>> {

@@ -162,7 +162,8 @@ export class ElasticTransform {
     size = 20,
     minimumShouldMatch,
   }: CreateSearchBodyQuery) {
-    const formatted = format(text)
+    // const formatted = format(text)
+    const formatted = text
     const parsedText = extract(formatted)
     const layer = !parsedText.street ? "venue" : ""
 

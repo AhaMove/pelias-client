@@ -1,10 +1,10 @@
 import { PeliasClient } from "src/index"
 
 const client = new PeliasClient({
-  node: "",
+  node: "http://pes7.ahamove.net:9200",
   auth: {
-    username: "",
-    password: "",
+    username: "admin1996",
+    password: "03091996@",
   },
 })
 
@@ -29,9 +29,11 @@ describe("test api", () => {
     const features = resp.features
     console.log(features[0])
     expect(features[0].properties.name).toBe(
-      "7/28 Thành Thái, Tòa Nhà Rivera Park Thành Thái"
+      "7/28 Chung Cư Rivera Park 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
     )
-    expect(features[1].properties.name).toBe("7/28 Thành Thái, Phường 14")
+    expect(features[1].properties.name).toBe(
+      "7/28 Thành Thái, Phường 14, Quận 10 Tòa Nhà Rivera Park, 76000"
+    )
   })
 
   test("should find by ids success", async () => {

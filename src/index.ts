@@ -55,14 +55,6 @@ export class PeliasClient<
     }
   }
 
-  formatAddress(address: string): string {
-    return format(address)
-  }
-
-  extractAddress(address: string): AddressParts {
-    return extract(address)
-  }
-
   ping(
     params: RequestParams.Ping
   ): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
@@ -243,4 +235,12 @@ export class PeliasClient<
       body: DocumentTransform.queryBuilder(params),
     })
   }
+}
+
+export function formatAddress(address: string): string {
+  return format(address)
+}
+
+export function extractAddress(address: string): AddressParts {
+  return extract(address)
 }

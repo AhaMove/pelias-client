@@ -36,15 +36,15 @@ describe("test api", () => {
     )
   })
 
-  test("should find by ids success", async () => {
-    const resp = await client.findByIds(
-      "openaddresses:address:4f56ee8599bac054c020fb0d90298e89,openaddresses:address:e3427fd0f0507aac12a008904a4951b1"
-    )
-    expect(resp.features[0].properties.id).toBe(
-      "4f56ee8599bac054c020fb0d90298e89"
-    )
-    expect(resp.features[1].properties.id).toBe(
-      "e3427fd0f0507aac12a008904a4951b1"
-    )
-  })
+  // test("should find by ids success", async () => {
+  //   const resp = await client.findByIds(
+  //     "openaddresses:address:4f56ee8599bac054c020fb0d90298e89,openaddresses:address:e3427fd0f0507aac12a008904a4951b1"
+  //   )
+  //   expect(resp.features[0].properties.id).toBe(
+  //     "4f56ee8599bac054c020fb0d90298e89"
+  //   )
+  //   expect(resp.features[1].properties.id).toBe(
+  //     "e3427fd0f0507aac12a008904a4951b1"
+  //   )
+  // })
 })

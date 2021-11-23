@@ -392,7 +392,7 @@ export const format = _.flow([
   cleanPostalCode,
   trimAll,
   cleanWildcard,
-  cleanSuffix,
+  // cleanSuffix,
   trimAll,
   dedupLocality(),
   dedupCounty(),

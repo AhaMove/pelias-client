@@ -177,16 +177,37 @@ const fixAccent = match(
   })
 )
 
-const cleanSuffix = match({
+const handleCleanSuffix = match({
   [when(/Vietnam|Việt Nam/i)]: _.replace(/Vietnam|Việt Nam.*/i, ""),
   [when()]: match(
     cleanCityNameFactory({
       pattern: ".*",
       flags: "i",
-      replacement: (key) => ", " + key + ", Việt Nam",
+      replacement: (key) => key + ", Việt Nam",
     })
   ),
 })
+
+const cleanSuffix = function (data: string) {
+  const splitData = data
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item !== "")
+  if (splitData.length > 1) {
+    const first = splitData.shift()
+    let i = splitData.length - 1
+    for (i; i >= 0; i--) {
+      const result = handleCleanSuffix(splitData[i])
+      if (result !== splitData[i]) {
+        splitData[i] = result
+        splitData.splice(i + 1, splitData.length)
+        break
+      }
+    }
+    return `${first}, ${splitData.join(", ")}`
+  }
+  return data
+}
 
 const cleanWildcard = _.flow([
   _.replace(/^([0-9/]+)(,?)(\s-)?/, "$1"), // xoa dau , ke so
@@ -392,7 +413,7 @@ export const format = _.flow([
   cleanPostalCode,
   trimAll,
   cleanWildcard,
-  // cleanSuffix,
+  cleanSuffix,
   trimAll,
   dedupLocality(),
   dedupCounty(),

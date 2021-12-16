@@ -30,6 +30,8 @@ const findCounty = (text: string) => {
   let county = ""
   let index = -1
 
+  if (!hasCountry(text)) length = length + 2
+
   if (arr.length === 10) {
     county = arr[7]
     index = 7

@@ -30,7 +30,7 @@ const findCounty = (text: string) => {
   let county = ""
   let index = -1
 
-  let length = arr.length;
+  let length = arr.length
   if (!hasCountry(text)) length = length + 2
 
   if (length === 10) {

@@ -78,6 +78,8 @@ export class PeliasTransform {
           locality: "",
           locality_a: "",
           locality_gid: "",
+          entrances: source?.addendum?.entrances ?? "",
+          polygon: source?.addendum?.polygon ?? "",
         },
       }
 

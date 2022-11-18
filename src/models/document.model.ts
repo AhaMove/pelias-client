@@ -28,6 +28,11 @@ export interface CenterPoint {
   lat: number
 }
 
+interface Addendum {
+  entrances: string
+  polygon: string
+}
+
 export interface DocumentModel {
   center_point: CenterPoint
   name: Name
@@ -36,4 +41,5 @@ export interface DocumentModel {
   source: string
   source_id: string
   layer: string
+  addendum: Addendum
 }

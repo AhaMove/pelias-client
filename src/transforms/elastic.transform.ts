@@ -201,7 +201,7 @@ export class ElasticTransform {
         bool: {
           filter: {
             geo_distance: {
-              distance: params["boundary.circle.radius"] ?? "20m",
+              distance: params["boundary.circle.radius"] ?? "50m",
               center_point: {
                 lat: parseFloat(params["point.lat"]),
                 lon: parseFloat(params["point.lon"]),
@@ -212,6 +212,15 @@ export class ElasticTransform {
         },
       },
       size: parseInt(size),
+      sort: {
+        _geo_distance: {
+          center_point: {
+            lat: parseFloat(params["point.lat"]),
+            lon: parseFloat(params["point.lon"]),
+          },
+          order: "asc",
+        },
+      },
     }
 
     if (params.sources) {

@@ -1,6 +1,6 @@
 export interface PeliasGeometry {
   type: string
-  coordinates: number[]
+  coordinates: [number, number]
 }
 
 export interface PeliasProperties {

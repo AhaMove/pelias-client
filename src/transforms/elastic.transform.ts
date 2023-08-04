@@ -6,6 +6,8 @@ interface CreateSearchBodyQuery {
   text: string
   size: number
   minimumShouldMatch: string
+  lat?: number
+  lon?: number
 }
 
 interface CreateSearchShouldQuery {
@@ -161,13 +163,15 @@ export class ElasticTransform {
     text,
     size = 20,
     minimumShouldMatch,
+    lat,
+    lon
   }: CreateSearchBodyQuery) {
     // const formatted = format(text)
     const formatted = text
     const parsedText = extract(formatted)
     const layer = !parsedText.street ? "venue" : ""
 
-    const body = {
+    const body: Record<string, any> = {
       query: {
         bool: {
           must: ElasticTransform.createSearchMustQuery({
@@ -184,8 +188,34 @@ export class ElasticTransform {
       size: size ?? 20,
       track_scores: true,
       sort: ["_score"],
-    }
+    };
 
+    if (lat !== undefined && lon !== undefined) {
+      body.query = {
+        function_score: {
+          query: body.query,
+          functions: [
+            {
+              weight: 2,
+              gauss: {
+                center_point: {
+                  origin: {
+                    lat: lat,
+                    lon: lon,
+                  },
+                  offset: "0km",
+                  scale: "100km",
+                  decay: 0.5,
+                },
+              },
+            },
+          ],
+          score_mode: "avg",
+          boost_mode: "replace",
+        },
+      };
+    }
+    
     return {
       body,
       formatted,

@@ -85,7 +85,7 @@ export class PeliasClient<
    * @param geocode
    */
   async search(params: SearchParams, geocode = false): Promise<PeliasResponse> {
-    const { text, minimumShouldMatch = "90%", size = "10" } = params
+    const { text, minimumShouldMatch = "3<-20%", size = "10" } = params
     const {
       body,
       formatted,
@@ -94,7 +94,9 @@ export class PeliasClient<
     } = ElasticTransform.createSearchBodyQuery({
       text,
       size: parseInt(size),
-      minimumShouldMatch,
+      minimumShouldMatch: minimumShouldMatch,
+      lat: params["focus.point.lat"] ? parseFloat(params["focus.point.lat"]) : undefined,
+      lon: params["focus.point.lon"] ? parseFloat(params["focus.point.lon"]) : undefined,
     })
 
     const result = await this.esClient.search<TResponse>({

@@ -8,6 +8,7 @@ interface CreateSearchBodyQuery {
   minimumShouldMatch: string
   lat?: number
   lon?: number
+  geocode: boolean
 }
 
 interface CreateSearchShouldQuery {
@@ -164,13 +165,15 @@ export class ElasticTransform {
     size = 20,
     minimumShouldMatch,
     lat,
-    lon
+    lon,
+    geocode = false
   }: CreateSearchBodyQuery) {
     // const formatted = format(text)
     const formatted = text
     const parsedText = extract(formatted)
     const layer = !parsedText.street ? "venue" : ""
 
+    // create default query body
     const body: Record<string, any> = {
       query: {
         bool: {
@@ -190,6 +193,20 @@ export class ElasticTransform {
       sort: ["_score"],
     };
 
+    // In case CreateSearchBodyQuery is for geocoding, if parsedText has "number" (house number), add condition "must" "match_phrase_prefix" for it
+    if (geocode && parsedText.number) {
+      body.query.bool.must.push({
+        match_phrase_prefix: {
+          "address_parts.number": {
+            analyzer: "peliasQuery",
+            boost: 1,
+            query: parsedText.number,
+          },
+        },
+      });
+    }
+    
+    // if focus lat lon is provided, add function score to boost score of result that near focus point
     if (lat !== undefined && lon !== undefined) {
       body.query = {
         function_score: {
@@ -214,7 +231,7 @@ export class ElasticTransform {
           boost_mode: "replace",
         },
       };
-    }
+    }    
     
     return {
       body,

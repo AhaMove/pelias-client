@@ -1,7 +1,7 @@
-import { PeliasClient } from "src/index"
+import { PeliasClient } from "./index"
 
 const client = new PeliasClient({
-  node: "http://pes7.ahamove.net:9200",
+  node: "http://pes7.ahamove.com:9200",
   auth: {
     username: "admin1996",
     password: "03091996@",
@@ -18,7 +18,7 @@ describe("test api", () => {
     expect(resp.statusCode).toBe(200)
   })
 
-  test("should search success", async () => {
+  test("should search (w/o geocode) success", async () => {
     const resp = await client.search({
       "focus.point.lat": "10.76989",
       "focus.point.lon": "106.6640",
@@ -27,12 +27,24 @@ describe("test api", () => {
     })
 
     const features = resp.features
-    console.log(features[0])
     expect(features[0].properties.name).toBe(
-      "7/28 Chung Cư Rivera Park 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
+      "7/28 Thanh Thai Cc Riverapark, Quận 10, Hồ Chí Minh, Việt Nam"
     )
     expect(features[1].properties.name).toBe(
-      "7/28 Thành Thái, Phường 14, Quận 10 Tòa Nhà Rivera Park, 76000"
+      "7/28 Đường Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
+    )
+  })
+
+  test("should search (with geocode) success", async () => {
+    const resp = await client.search({
+      "focus.point.lat": "10.76989",
+      "focus.point.lon": "106.6640",
+      text: "7/28 thanh thai",
+    }, true)
+
+    const features = resp.features
+    expect(features[0].properties.name).toBe(
+      "7/28 Thanh Thai Cc Riverapark, Quận 10, Hồ Chí Minh, Việt Nam"
     )
   })
 

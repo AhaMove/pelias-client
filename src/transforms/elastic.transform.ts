@@ -11,7 +11,7 @@ interface CreateSearchBodyQuery {
   geocode: boolean
 }
 
-interface CreateSubQuery1 {
+interface CreateClauseQueries {
   parsedText: any
   minimumShouldMatch: string
 }
@@ -21,13 +21,11 @@ interface CreateSearchShouldQueryNotAnalyze {
   minimumShouldMatch: string
 }
 
-interface CreateSubQuery2 {
+interface CreateSearchMustQueryNotAnalyze {
   minimumShouldMatch: string
   formatted: string
   layer: string | string[]
 }
-
-type CreateSearchMustQueryNotAnalyze = CreateSubQuery2
 
 export class ElasticTransform {
   static createSearchShouldQueryNotAnalyze({
@@ -94,10 +92,10 @@ export class ElasticTransform {
     return results
   }
 
-  static createSubQuery1({
+  static createClauseQueries({
     parsedText,
     minimumShouldMatch = "90%",
-  }: CreateSubQuery1) {
+  }: CreateClauseQueries) {
     return _.flow([
       _.toPairs,
       _.map(([key, value]) => {
@@ -111,6 +109,9 @@ export class ElasticTransform {
           case "number":
           case "street":
             newKey = `address_parts.${key}`
+            break
+          case "venue":
+            newKey = "name.default"
             break
           default:
             return null
@@ -135,36 +136,6 @@ export class ElasticTransform {
     ])(parsedText)
   }
 
-  static createSubQuery2({
-    minimumShouldMatch = "90%",
-    formatted,
-    layer,
-  }: CreateSubQuery2) {
-    const result: any[] = [
-      {
-        match: {
-          "name.default": {
-            analyzer: "peliasQuery",
-            boost: 1,
-            query: formatted,
-            minimum_should_match: minimumShouldMatch,
-            // minimum_should_match: '1<-1 3<-25%',
-          },
-        },
-      },
-    ]
-
-    if (layer === "venue") {
-      result.push({
-        term: {
-          layer: "venue",
-        },
-      })
-    }
-
-    return result
-  }
-
   static createSearchBodyQuery({
     text,
     size = 20,
@@ -176,18 +147,17 @@ export class ElasticTransform {
     // const formatted = format(text)
     const formatted = text
     const parsedText = extract(formatted)
-    // console.log(JSON.stringify(parsedText, null, 2))
+    if (!parsedText.venue) {
+      parsedText.venue = formatted
+    }
+    // console.log("parsedText:\n", JSON.stringify(parsedText, null, 2))
     const layer = !parsedText.street ? "venue" : ""
-
-    // create default query body
+    
+    // create basic query body
     const body: Record<string, any> = {
       query: {
         bool: {
-          must: ElasticTransform.createSubQuery2({
-            formatted,
-            layer: ["address", "venue"],
-            minimumShouldMatch,
-          }),
+          must: [],
           should: [],
         },
       },
@@ -197,12 +167,14 @@ export class ElasticTransform {
     };
 
     if (geocode) {
-      body.query.bool.must = body.query.bool.must.concat(ElasticTransform.createSubQuery1({
+      // in case of geocoding, the relevance requirement will be stricter
+      body.query.bool.must = body.query.bool.must.concat(ElasticTransform.createClauseQueries({
         parsedText,
         minimumShouldMatch,
       }));
     } else {
-      body.query.bool.should = body.query.bool.should.concat(ElasticTransform.createSubQuery1({
+      // in case of autocomplete, the relevance requirement will be looser
+      body.query.bool.should = body.query.bool.should.concat(ElasticTransform.createClauseQueries({
         parsedText,
         minimumShouldMatch,
       }));
@@ -229,11 +201,13 @@ export class ElasticTransform {
               },
             },
           ],
-          score_mode: "avg",
+          score_mode: "sum",
           boost_mode: "replace",
         },
       };
     }    
+
+    // console.log("SearchBodyQuery:\n", JSON.stringify(body, null, 2))
 
     return {
       body,

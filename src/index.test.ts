@@ -18,7 +18,7 @@ describe("test api", () => {
     expect(resp.statusCode).toBe(200)
   })
 
-  test("autocomplete should success", async () => {
+  test("autocomplete should success 1", async () => {
     const resp = await client.search({
       "focus.point.lat": "10.76989",
       "focus.point.lon": "106.6640",
@@ -27,12 +27,28 @@ describe("test api", () => {
     })
 
     const features = resp.features
-    // console.log(JSON.stringify(features, null, 2))
     expect(features[0].properties.name).toBe(
-      "7/28 Thanh Thai Cc Riverapark, Quận 10, Hồ Chí Minh, Việt Nam"
+      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
     )
     expect(features[1].properties.name).toBe(
       "7/28 Đường Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
+    )
+  })
+
+  test("autocomplete should success 2", async () => {
+    const resp = await client.search({
+      "focus.point.lat": "10.76989",
+      "focus.point.lon": "106.6640",
+      text: "Circle K",
+      size: "2",
+    })
+
+    const features = resp.features
+    expect(features[0].properties.name).toBe(
+      "Circle K, 75 Đường Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
+    )
+    expect(features[1].properties.name).toBe(
+      "Circle K, Tô Hiến Thành, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
     )
   })
 
@@ -44,7 +60,6 @@ describe("test api", () => {
     }, true)
 
     const features = resp.features
-    // console.log(JSON.stringify(features, null, 2))
     expect(features[0].properties.name).toBe(
       "7/28 Đường Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
     )
@@ -54,11 +69,10 @@ describe("test api", () => {
     const resp = await client.search({
       "focus.point.lat": "10.76989",
       "focus.point.lon": "106.6640",
-      text: "135, Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một, Bình Dương, Việt Nam",
+      text: "135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một, Bình Dương, Việt Nam",
     }, true)
 
     const features = resp.features
-    // console.log(JSON.stringify(features, null, 2))
     expect(features.length).toBe(0)
   })
 

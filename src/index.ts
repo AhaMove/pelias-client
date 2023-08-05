@@ -114,6 +114,8 @@ export class PeliasClient<
 
     const data = PeliasTransform.getHits(hits, geocode)
 
+    // console.log("Hits:\n", JSON.stringify(data, null, 2))
+
     return {
       geocoding: {
         version: "0.1",

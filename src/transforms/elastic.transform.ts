@@ -121,13 +121,25 @@ export class ElasticTransform {
           return null
         }
 
+        if (newKey == 'name.default') {
+          return {
+            match: {
+              [newKey]: {
+                analyzer: "peliasQuery",
+                boost: 1,
+                query: value,
+                minimum_should_match: minimumShouldMatch,
+              },
+            },
+          }
+        }
+
         return {
-          match: {
+          match_phrase: {
             [newKey]: {
               analyzer: "peliasQuery",
               boost: 1,
               query: value,
-              minimum_should_match: minimumShouldMatch,
             },
           },
         }

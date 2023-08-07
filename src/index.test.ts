@@ -28,7 +28,7 @@ describe("test api", () => {
 
     const features = resp.features
     expect(features[0].properties.name).toBe(
-      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
+      "7/28 Thanh Thai Cc Riverapark, Quận 10, Hồ Chí Minh, Việt Nam"
     )
     expect(features[1].properties.name).toBe(
       "7/28 Đường Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
@@ -52,24 +52,48 @@ describe("test api", () => {
     )
   })
 
-  test("geocoding should success", async () => {
+  test("geocoding should success 1", async () => {
     const resp = await client.search({
       "focus.point.lat": "10.76989",
       "focus.point.lon": "106.6640",
-      text: "7/28 Đường Thành Thái, Phường 14, Quận 10",
+      text: "Bitexco",
     }, true)
 
     const features = resp.features
     expect(features[0].properties.name).toBe(
-      "7/28 Đường Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
+      "Tòa Nhà Bitexco Nam Long, 63a Võ Văn Tần, Phường 06, Quận 03, Hồ Chí Minh, Việt Nam"
     )
   })
 
-  test("search (with geocode) should not found", async () => {
+  test("geocoding should success 2", async () => {
+    const resp = await client.search({
+      "focus.point.lat": "10.76989",
+      "focus.point.lon": "106.6640",
+      text: "28/7 Thành Thái, Phường 14, Quận 10, Hồ Chi Minh, Việt Nam",
+    }, true)
+
+    const features = resp.features
+    expect(features[0].properties.name).toBe(
+      "28/7 Đường Thành Thái, Phường 10 (Quận 10), Quận 10, Hồ Chí Minh, Việt Nam" //this case still work due to its registered locality is still "Phường 14" 
+    )
+  })
+
+  test("geocoding should not found 1", async () => {
     const resp = await client.search({
       "focus.point.lat": "10.76989",
       "focus.point.lon": "106.6640",
       text: "135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một, Bình Dương, Việt Nam",
+    }, true)
+
+    const features = resp.features
+    expect(features.length).toBe(0)
+  })
+
+  test("geocoding should not found 2", async () => {
+    const resp = await client.search({
+      "focus.point.lat": "10.76989",
+      "focus.point.lon": "106.6640",
+      text: "phòng chứa bí mật",
     }, true)
 
     const features = resp.features

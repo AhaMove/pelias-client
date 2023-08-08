@@ -8,12 +8,10 @@ interface CreateSearchBodyQuery {
   minimumShouldMatch: string
   lat?: number
   lon?: number
-  geocode: boolean
 }
 
 interface CreateClauseQueries {
   parsedText: any
-  minimumShouldMatch: string
 }
 
 interface CreateSearchShouldQueryNotAnalyze {
@@ -94,7 +92,6 @@ export class ElasticTransform {
 
   static createClauseQueries({
     parsedText,
-    minimumShouldMatch = "90%",
   }: CreateClauseQueries) {
     return _.flow([
       _.toPairs,
@@ -121,24 +118,10 @@ export class ElasticTransform {
           return null
         }
 
-        if (newKey == 'name.default') {
-          return {
-            match: {
-              [newKey]: {
-                analyzer: "peliasQuery",
-                boost: 1,
-                query: value,
-                minimum_should_match: minimumShouldMatch,
-              },
-            },
-          }
-        }
-
         return {
           match_phrase: {
             [newKey]: {
               analyzer: "peliasQuery",
-              boost: 1,
               query: value,
             },
           },
@@ -150,47 +133,32 @@ export class ElasticTransform {
 
   static createSearchBodyQuery({
     text,
-    size = 20,
+    size,
     minimumShouldMatch,
     lat,
     lon,
-    geocode = false
   }: CreateSearchBodyQuery) {
     // const formatted = format(text)
     const formatted = text
     const parsedText = extract(formatted)
-    if (!parsedText.venue) {
-      parsedText.venue = formatted
-    }
     // console.log("parsedText:\n", JSON.stringify(parsedText, null, 2))
-    const layer = !parsedText.street ? "venue" : ""
+    const layer = parsedText.venue ? "venue" : ""
     
     // create basic query body
     const body: Record<string, any> = {
       query: {
         bool: {
-          must: [],
-          should: [],
+          should: ElasticTransform.createClauseQueries({
+            parsedText,
+          }),
+          minimum_should_match: minimumShouldMatch,
+          boost: 1,
         },
       },
-      size: size ?? 20,
+      size: size,
       track_scores: true,
       sort: ["_score"],
     };
-
-    if (geocode) {
-      // in case of geocoding, the relevance requirement will be stricter
-      body.query.bool.must = body.query.bool.must.concat(ElasticTransform.createClauseQueries({
-        parsedText,
-        minimumShouldMatch,
-      }));
-    } else {
-      // in case of autocomplete, the relevance requirement will be looser
-      body.query.bool.should = body.query.bool.should.concat(ElasticTransform.createClauseQueries({
-        parsedText,
-        minimumShouldMatch,
-      }));
-    }
 
     // if focus lat lon is provided, add function score to boost score of result that near focus point
     if (lat !== undefined && lon !== undefined) {
@@ -199,7 +167,7 @@ export class ElasticTransform {
           query: body.query,
           functions: [
             {
-              weight: 2,
+              weight: 25,
               gauss: {
                 center_point: {
                   origin: {
@@ -207,14 +175,14 @@ export class ElasticTransform {
                     lon: lon,
                   },
                   offset: "0km",
-                  scale: "100km",
+                  scale: "50km",
                   decay: 0.5,
                 },
               },
             },
           ],
           score_mode: "sum",
-          boost_mode: "replace",
+          boost_mode: "avg",
         },
       };
     }    

@@ -28,10 +28,10 @@ describe("test api", () => {
 
     const features = resp.features
     expect(features[0].properties.name).toBe(
-      "7/28 Thanh Thai Cc Riverapark, Quận 10, Hồ Chí Minh, Việt Nam"
+      "7/28 Thành Thái, 7/28 Thành TháI, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
     )
     expect(features[1].properties.name).toBe(
-      "7/28 Đường Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
+      "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
     )
   })
 
@@ -45,10 +45,27 @@ describe("test api", () => {
 
     const features = resp.features
     expect(features[0].properties.name).toBe(
-      "Circle K, 75 Đường Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
+      "Circle K, Đường A4, Phường 12, Quận Tân Bình"
     )
     expect(features[1].properties.name).toBe(
-      "Circle K, Tô Hiến Thành, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
+      "Circle K, Đường Nguyễn Kiệm, Phường 03, Quận Gò Vấp"
+    )
+  })
+
+  test("autocomplete should success 3", async () => {
+    const resp = await client.search({
+      "focus.point.lat": "10.76989",
+      "focus.point.lon": "106.6640",
+      text: "41 Bàu Cát, Phường 14, Quận Tân Bình, Hồ Chí Minh, Việt Nam",
+      size: "2",
+    })
+
+    const features = resp.features
+    expect(features[0].properties.name).toBe(
+      "41 Bàu Cát, Phường 14, Tân Bình, Hồ Chí Minh, Việt Nam"
+    )
+    expect(features[1].properties.name).toBe(
+      "41 Bàu Cát, Phường 13, Tân Bình, Hồ Chí Minh, Việt Nam"
     )
   })
 
@@ -61,7 +78,7 @@ describe("test api", () => {
 
     const features = resp.features
     expect(features[0].properties.name).toBe(
-      "Tòa Nhà Bitexco Nam Long, 63a Võ Văn Tần, Phường 06, Quận 03, Hồ Chí Minh, Việt Nam"
+      "Bitexco Financial Tower, Tòa Nhà Tài Chính Bitexco, Ngô Đức Kế, Bến Nghé, Quận 01, Hồ Chí Minh, Việt Nam"
     )
   })
 

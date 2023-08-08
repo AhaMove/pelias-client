@@ -211,11 +211,21 @@ const extractAddress = (text: string) => {
 
 export const isAddress = (text: string): RegExpMatchArray | null => {
   const firstPart = text.split(",")[0]
-  return firstPart.match(/^[0-9]+[a-zA-Z\-/0-9]*[\s]+/)
+  return firstPart.match(/^[0-9]+[a-zA-Z\-/0-9]*(?:[ ]|$)/)
 }
 
-export const isVenue = (text: string): boolean => {
-  return !isAddress(text)
+export const extractVenue = (text: string): string => {
+  if (isAddress(text)) {
+    return ""
+  }
+
+  const firstPart = text.split(",")[0]
+  const venue = firstPart.match(/^[^\d]+(?:\s+\d{1,})?(?:[ ]|$)/)
+  if (!venue) {
+    return ""
+  }
+
+  return venue[0].trim()
 }
 
 export const extract = (text: string): AddressParts => {
@@ -225,7 +235,10 @@ export const extract = (text: string): AddressParts => {
   const { name: county, index: countyIndex } = findCounty(text)
   const { name: locality, index: localityIndex } = findLocality(text)
 
-  const index = localityIndex > -1 ? localityIndex : countyIndex
+  let index = localityIndex > -1 ? localityIndex : countyIndex
+  if (index === -1) {
+    index = arr.length
+  }
 
   const result: AddressParts = {
     country,
@@ -235,7 +248,7 @@ export const extract = (text: string): AddressParts => {
   }
 
   const addressParams = arr.slice(0, index).join(",")
-  const venue = isVenue(text) ? addressParams : ""
+  const venue = extractVenue(text)
   const { number, street, address } = extractAddress(addressParams)
 
   if (number) {

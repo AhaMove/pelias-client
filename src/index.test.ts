@@ -1,4 +1,4 @@
-import { PeliasClient } from "./index"
+import { PeliasClient, formatAddress } from "./index"
 
 const client = new PeliasClient({
   node: "http://pes7.ahamove.com:9200",
@@ -41,7 +41,7 @@ describe("test api", () => {
     const resp = await client.search({
       "focus.point.lat": "10.76989",
       "focus.point.lon": "106.6640",
-      text,
+      text: formatAddress(text),
       size: "10",
     })
 
@@ -72,7 +72,7 @@ describe("test api", () => {
     ],
   ])("autocomplete w/o focus should success: '%s'", async (text, result1, result2, result3) => {
     const resp = await client.search({
-      text,
+      text: formatAddress(text),
       size: "10",
     })
 
@@ -92,14 +92,14 @@ describe("test api", () => {
       "Bitexco Nam Long, Võ Văn Tần, Phường 06, Quận 03, Hồ Chí Minh, Việt Nam"
     ],
     [
-      "28/7 Thành Thái, Phường 14, Quận 10, Hồ Chi Minh, Việt Nam",
+      "28/7 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
       "28/7 Đường Thành Thái, Phường 10 (Quận 10), Quận 10, Hồ Chí Minh, Việt Nam"
     ]
   ])("geocoding with focus should success: '%s'", async (text, name) => {
     const resp = await client.search({
       "focus.point.lat": "10.76989",
       "focus.point.lon": "106.6640",
-      text,
+      text: formatAddress(text),
     }, true)
 
     const features = resp.features
@@ -116,12 +116,52 @@ describe("test api", () => {
       "Bitexco Financial Tower, Tòa Nhà Tài Chính Bitexco, Ngô Đức Kế, Bến Nghé, Quận 01, Hồ Chí Minh, Việt Nam"
     ],
     [
-      "28/7 Thành Thái, Phường 14, Quận 10, Hồ Chi Minh, Việt Nam",
+      "28/7 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
       "28/7 Đường Thành Thái, Phường 10 (Quận 10), Quận 10, Hồ Chí Minh, Việt Nam"
+    ],
+    [
+      "246/41 Lê Văn Quới,  Bình Hưng Hòa A,  Bình Tân,  Hồ Chí Minh",
+      "246/41 Lê Văn Quới, Bình Hưng Hòa A, Bình Tân, Hồ Chí Minh, Việt Nam"
+    ],
+    [
+      "93 Huỳnh Mẫn Đạt, P. 7, Q. 5, TP. Hồ Chí Minh, Việt Nam",
+      "93 Huỳnh Mẫn Đạt, Phường 07, Quận 05, Hồ Chí Minh, Việt Nam"
+    ],
+    [
+      "222 Lê Văn Sỹ, P. 1, Q. Tân Bình, TP. Hồ Chí Minh",
+      "222 Lê Văn Sỹ, Phường 01, Tân Bình, Hồ Chí Minh, Việt Nam"
+    ],
+    [
+      "157/38/24 Mai Xuân Thưởng, Phường 04, Quận 06, Hồ Chí Minh",
+      "157/38/24 Mai Xuân Thưởng, Phường 04, Quận 06, Hồ Chí Minh, Việt Nam"
+    ],
+    [
+      "Làng Nem 79, 611/52 Đường Điện Biên Phủ, Phường 01, Quận 03, Hồ Chí Minh, Việt Nam",
+      "Làng Nem 79, 611/52 Đường Điện Biên Phủ, Phường 01, Quận 03, Hồ Chí Minh, Việt Nam"
+    ],
+    [
+      "182/10/11/2 Đường Hồ Văn Long, Phường Bình Hưng Hòa B, Quận Bình Tân, Hồ Chí Minh",
+      "182/10/11/2 Đường Hồ Văn Long, Phường Bình Hưng Hòa B, Quận Bình Tân, Hồ Chí Minh, Việt Nam"
+    ],
+    [
+      "8a/a1 thái văn lung , phường bến nghé , Quận 1",
+      "8A/A11 Thái Văn Lung, 8a/a11 TháI Văn Lung, Phường Bến Nghé, Quận 01, Hồ Chí Minh, Việt Nam"
+    ],
+    [
+      "Lô B chung cư bình thới,  Phường 08,  Quận 11",
+      "Lo B Chung Cư Bình Thới, Phường 08, Quận 11, Hồ Chí Minh, Việt Nam"
+    ],
+    [
+      "ben xe my dinh",
+      "Bến Xe Mỹ Dình, Bến Xe, Mỹ Đình 2, Từ Liêm, Hà Nội, Việt Nam"
+    ],
+    [
+      "Bãi Xe 39, Đường Số 18, Phường Bình Hưng Hòa, Quận Bình Tân, TPHCM",
+      "Bãi Xe 39, Đường Số 18, Phường Bình Hưng Hòa, Quận Bình Tân"
     ]
   ])("geocoding w/o focus should success: '%s'", async (text, name) => {
     const resp = await client.search({
-      text,
+      text: formatAddress(text),
     }, true)
 
     const features = resp.features
@@ -137,10 +177,13 @@ describe("test api", () => {
     ],
     [
       "135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một, Bình Dương, Việt Nam",
+    ],
+    [
+      "Bãi Xe 39, Đường Số 18, Phường Bình Hưng Hòa, Quận Bình Tân"
     ]
-  ])("geocoding should not foundl: '%s'", async (text) => {
+  ])("geocoding should not found: '%s'", async (text) => {
     const resp = await client.search({
-      text,
+      text: formatAddress(text),
     }, true)
 
     const features = resp.features

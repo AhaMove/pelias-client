@@ -18,114 +18,132 @@ describe("test api", () => {
     expect(resp.statusCode).toBe(200)
   })
 
-  test("autocomplete should success 1", async () => {
+  test.each([
+    [
+      "7/28 thanh thai",
+      "7/28 Thành Thái, 7/28 Thành TháI, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park Saigon, 7/28 Thành Thái, Phường 14",
+      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+    ],
+    [
+      "Circle K",
+      "Circle K, Lữ Gia, Phường 15, Quận 11, Hồ Chí Minh, Việt Nam",
+      "Circle K, Hoà Hảo, Phường 03, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Circle K, Tô Hiến Thành, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+    ],
+    [
+      "41 Bàu Cát, Phường 14, Quận Tân Bình, Hồ Chí Minh, Việt Nam",
+      "41 Bàu Cát 7, Tân Bình, Hồ Chí Minh, Việt Nam",
+      "41 Bàu Cát 8, Phường 13, Tân Bình, Hồ Chí Minh, Việt Nam",
+      "41 Bàu Cát 8, Phường 14, Tân Bình, Hồ Chí Minh, Việt Nam",
+    ],
+  ])("autocomplete with focus should success: '%s'", async (text, result1, result2, result3) => {
     const resp = await client.search({
       "focus.point.lat": "10.76989",
       "focus.point.lon": "106.6640",
-      text: "7/28 thanh thai",
-      size: "2",
+      text,
+      size: "10",
     })
 
     const features = resp.features
-    expect(features[0].properties.name).toBe(
-      "7/28 Thành Thái, 7/28 Thành TháI, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
-    )
-    expect(features[1].properties.name).toBe(
-      "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
-    )
+    expect(features[0].properties.name).toBe(result1)
+    expect(features[1].properties.name).toBe(result2)
+    expect(features[2].properties.name).toBe(result3)
   })
 
-  test("autocomplete should success 2", async () => {
+  test.each([
+    [
+      "7/28 thanh thai",
+      "7/28 Thành Thái, 7/28 Thành TháI, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "7/28 Thành Thái, Phường 14, Quận 10",
+      "Rivera Park Saigon, 7/28 Thành Thái, Phường 14",
+    ],
+    [
+      "Circle K",
+      "Circle K, Đường A4, Phường 12, Quận Tân Bình",
+      "Circle K, 7 Thanh Niên, Trúc Bạch, Ba Đình",
+      "Circle K, 3 Xuân Diệu, Quảng An, Tây Hồ",
+    ],
+    [
+      "41 Bàu Cát, Phường 14, Quận Tân Bình, Hồ Chí Minh, Việt Nam",
+      "41 Bàu Cát, Phường 13, Tân Bình, Hồ Chí Minh, Việt Nam",
+      "41 Bàu Cát, Phường 14, Tân Bình, Hồ Chí Minh, Việt Nam",
+      "41 Bàu Cát 7, Tân Bình, Hồ Chí Minh, Việt Nam",
+    ],
+  ])("autocomplete w/o focus should success: '%s'", async (text, result1, result2, result3) => {
     const resp = await client.search({
-      "focus.point.lat": "10.76989",
-      "focus.point.lon": "106.6640",
-      text: "Circle K",
-      size: "2",
+      text,
+      size: "10",
     })
 
     const features = resp.features
-    expect(features[0].properties.name).toBe(
-      "Circle K, Đường A4, Phường 12, Quận Tân Bình"
-    )
-    expect(features[1].properties.name).toBe(
-      "Circle K, Đường Nguyễn Kiệm, Phường 03, Quận Gò Vấp"
-    )
+    expect(features[0].properties.name).toBe(result1)
+    expect(features[1].properties.name).toBe(result2)
+    expect(features[2].properties.name).toBe(result3)
   })
 
-  test("autocomplete should success 3", async () => {
+  test.each([
+    [
+      "13 tú xương",
+      "13 Tú Xương, Quận 03, Hồ Chí Minh, Việt Nam"
+    ],
+    [
+      "Bitexco",
+      "Bitexco Nam Long, Võ Văn Tần, Phường 06, Quận 03, Hồ Chí Minh, Việt Nam"
+    ],
+    [
+      "28/7 Thành Thái, Phường 14, Quận 10, Hồ Chi Minh, Việt Nam",
+      "28/7 Đường Thành Thái, Phường 10 (Quận 10), Quận 10, Hồ Chí Minh, Việt Nam"
+    ]
+  ])("geocoding with focus should success: '%s'", async (text, name) => {
     const resp = await client.search({
       "focus.point.lat": "10.76989",
       "focus.point.lon": "106.6640",
-      text: "41 Bàu Cát, Phường 14, Quận Tân Bình, Hồ Chí Minh, Việt Nam",
-      size: "2",
-    })
-
-    const features = resp.features
-    expect(features[0].properties.name).toBe(
-      "41 Bàu Cát, Phường 14, Tân Bình, Hồ Chí Minh, Việt Nam"
-    )
-    expect(features[1].properties.name).toBe(
-      "41 Bàu Cát, Phường 13, Tân Bình, Hồ Chí Minh, Việt Nam"
-    )
-  })
-
-  test("geocoding should success 1", async () => {
-    const resp = await client.search({
-      "focus.point.lat": "10.76989",
-      "focus.point.lon": "106.6640",
-      text: "Bitexco",
+      text,
     }, true)
 
     const features = resp.features
-    expect(features[0].properties.name).toBe(
+    expect(features[0].properties.name).toBe(name)
+  })
+
+  test.each([
+    [
+      "13 tú xương",
+      "13 Tú Xương, Quận 03, Hồ Chí Minh, Việt Nam"
+    ],
+    [
+      "Bitexco",
       "Bitexco Financial Tower, Tòa Nhà Tài Chính Bitexco, Ngô Đức Kế, Bến Nghé, Quận 01, Hồ Chí Minh, Việt Nam"
-    )
-  })
-
-  test("geocoding should success 2", async () => {
+    ],
+    [
+      "28/7 Thành Thái, Phường 14, Quận 10, Hồ Chi Minh, Việt Nam",
+      "28/7 Đường Thành Thái, Phường 10 (Quận 10), Quận 10, Hồ Chí Minh, Việt Nam"
+    ]
+  ])("geocoding w/o focus should success: '%s'", async (text, name) => {
     const resp = await client.search({
-      "focus.point.lat": "10.76989",
-      "focus.point.lon": "106.6640",
-      text: "28/7 Thành Thái, Phường 14, Quận 10, Hồ Chi Minh, Việt Nam",
+      text,
     }, true)
 
     const features = resp.features
-    expect(features[0].properties.name).toBe(
-      "28/7 Đường Thành Thái, Phường 10 (Quận 10), Quận 10, Hồ Chí Minh, Việt Nam" //this case still work due to its registered locality is still "Phường 14" 
-    )
+    expect(features[0].properties.name).toBe(name)
   })
 
-  test("geocoding should not found 1", async () => {
+  test.each([
+    [
+      "9696 Trân Hưng Đạo",
+    ],
+    [
+      "phòng chứa bí mật",
+    ],
+    [
+      "135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một, Bình Dương, Việt Nam",
+    ]
+  ])("geocoding should not foundl: '%s'", async (text) => {
     const resp = await client.search({
-      "focus.point.lat": "10.76989",
-      "focus.point.lon": "106.6640",
-      text: "135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một, Bình Dương, Việt Nam",
-    }, true)
-
-    const features = resp.features
-    expect(features.length).toBe(0)
-  })
-
-  test("geocoding should not found 2", async () => {
-    const resp = await client.search({
-      "focus.point.lat": "10.76989",
-      "focus.point.lon": "106.6640",
-      text: "phòng chứa bí mật",
+      text,
     }, true)
 
     const features = resp.features
     expect(features.length).toBe(0)
   })
-
-  // test("should find by ids success", async () => {
-  //   const resp = await client.findByIds(
-  //     "openaddresses:address:4f56ee8599bac054c020fb0d90298e89,openaddresses:address:e3427fd0f0507aac12a008904a4951b1"
-  //   )
-  //   expect(resp.features[0].properties.id).toBe(
-  //     "4f56ee8599bac054c020fb0d90298e89"
-  //   )
-  //   expect(resp.features[1].properties.id).toBe(
-  //     "e3427fd0f0507aac12a008904a4951b1"
-  //   )
-  // })
 })

@@ -108,6 +108,7 @@ export class ElasticTransform {
             newKey = `address_parts.${key}`
             break
           case "venue":
+          case "address":
             newKey = "name.default"
             break
           default:
@@ -160,31 +161,21 @@ export class ElasticTransform {
       sort: ["_score"],
     };
 
-    // if focus lat lon is provided, add function score to boost score of result that near focus point
+    // if focus lat lon is provided, sort the results from near to far without affecting the relevance _score
     if (lat !== undefined && lon !== undefined) {
-      body.query = {
-        function_score: {
-          query: body.query,
-          functions: [
-            {
-              weight: 25,
-              gauss: {
-                center_point: {
-                  origin: {
-                    lat: lat,
-                    lon: lon,
-                  },
-                  offset: "0km",
-                  scale: "50km",
-                  decay: 0.5,
-                },
-              },
+      body.sort = [
+        {
+          _geo_distance: {
+            center_point: {
+              lat: lat,
+              lon: lon,
             },
-          ],
-          score_mode: "sum",
-          boost_mode: "avg",
+            order: "asc",
+            unit: "m",
+            distance_type: "plane",
+          },
         },
-      };
+      ];
     }    
 
     // console.log("SearchBodyQuery:\n", JSON.stringify(body, null, 2))

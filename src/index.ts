@@ -105,6 +105,8 @@ export class PeliasClient<
     })
 
     const hits = result.body.hits.hits
+    //sort hits by _score in desc order. This make sure the most term relevant results are returned first
+    hits.sort((a, b) => b._score - a._score)
 
     const points = {
       "focus.point.lat": parseFloat(params["focus.point.lat"] || "0"),

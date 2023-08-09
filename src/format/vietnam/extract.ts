@@ -247,8 +247,8 @@ export const extract = (text: string): AddressParts => {
     locality,
   }
 
-  const addressParams = arr.slice(0, index).join(",")
   const venue = extractVenue(text)
+  const addressParams = arr.slice(0, index).join(",")
   const { number, street, address } = extractAddress(addressParams)
 
   if (number) {

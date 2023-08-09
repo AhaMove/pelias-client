@@ -37,6 +37,12 @@ describe("test api", () => {
       "41 Bàu Cát 8, Phường 13, Tân Bình, Hồ Chí Minh, Việt Nam",
       "41 Bàu Cát 8, Phường 14, Tân Bình, Hồ Chí Minh, Việt Nam",
     ],
+    [
+      "Đường Trúc Đường",
+      "15A Đường Trúc Đường, Phường Thảo Điền, Hồ Chí Minh, Việt Nam",
+      "6 Đường Trúc Đường, Phường Thảo Điền, Quận 02, Hồ Chí Minh, Việt Nam",
+      "5 Đường Trúc Đường, Phường Thảo Điền, Quận 02, Hồ Chí Minh, Việt Nam"
+    ]
   ])("autocomplete with focus should success: '%s'", async (text, result1, result2, result3) => {
     const resp = await client.search({
       "focus.point.lat": "10.76989",
@@ -70,6 +76,12 @@ describe("test api", () => {
       "41 Bàu Cát, Phường 14, Tân Bình, Hồ Chí Minh, Việt Nam",
       "41 Bàu Cát 7, Tân Bình, Hồ Chí Minh, Việt Nam",
     ],
+    [
+      "Đường Trúc Đường",
+      "15A Đường Trúc Đường, Phường Thảo Điền, Hồ Chí Minh, Việt Nam",
+      "29 Đường Trúc Đường, Phường Thảo Điền, Hồ Chí Minh, Việt Nam",
+      "46 Đường Trúc Đường, Phường Thảo Điền, Quận 02, Hồ Chí Minh, Việt Nam"
+    ]
   ])("autocomplete w/o focus should success: '%s'", async (text, result1, result2, result3) => {
     const resp = await client.search({
       text: formatAddress(text),
@@ -94,6 +106,10 @@ describe("test api", () => {
     [
       "28/7 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
       "28/7 Đường Thành Thái, Phường 10 (Quận 10), Quận 10, Hồ Chí Minh, Việt Nam"
+    ],
+    [
+      "Đường Trúc Đường",
+      "15A Đường Trúc Đường, Phường Thảo Điền, Hồ Chí Minh, Việt Nam"
     ]
   ])("geocoding with focus should success: '%s'", async (text, name) => {
     const resp = await client.search({
@@ -158,7 +174,12 @@ describe("test api", () => {
     [
       "Bãi Xe 39, Đường Số 18, Phường Bình Hưng Hòa, Quận Bình Tân, TPHCM",
       "Bãi Xe 39, Đường Số 18, Phường Bình Hưng Hòa, Quận Bình Tân"
+    ],
+    [
+      "Đường Trúc Đường",
+      "15A Đường Trúc Đường, Phường Thảo Điền, Hồ Chí Minh, Việt Nam"
     ]
+    
   ])("geocoding w/o focus should success: '%s'", async (text, name) => {
     const resp = await client.search({
       text: formatAddress(text),

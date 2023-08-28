@@ -149,6 +149,11 @@ export class ElasticTransform {
     const body: Record<string, any> = {
       query: {
         bool: {
+          must: layer != "" ? {
+            term: {
+              layer: layer,
+            },
+          } : {},
           should: ElasticTransform.createClauseQueries({
             parsedText,
           }),

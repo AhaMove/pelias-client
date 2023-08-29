@@ -95,8 +95,12 @@ export class PeliasClient<
       text,
       size: parseInt(size),
       minimumShouldMatch: minimumShouldMatch,
-      lat: params["focus.point.lat"] ? parseFloat(params["focus.point.lat"]) : undefined,
-      lon: params["focus.point.lon"] ? parseFloat(params["focus.point.lon"]) : undefined,
+      lat: params["focus.point.lat"]
+        ? parseFloat(params["focus.point.lat"])
+        : undefined,
+      lon: params["focus.point.lon"]
+        ? parseFloat(params["focus.point.lon"])
+        : undefined,
     })
 
     const result = await this.esClient.search<TResponse>({

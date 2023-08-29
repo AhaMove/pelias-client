@@ -90,9 +90,7 @@ export class ElasticTransform {
     return results
   }
 
-  static createClauseQueries({
-    parsedText,
-  }: CreateClauseQueries) {
+  static createClauseQueries({ parsedText }: CreateClauseQueries) {
     return _.flow([
       _.toPairs,
       _.map(([key, value]) => {
@@ -148,21 +146,24 @@ export class ElasticTransform {
     const body: Record<string, any> = {
       query: {
         bool: {
-          must: layer != "" ? [
-            {
-              term: {
-                layer: layer,
-              },
-            }
-          ] : [],
-          should: ElasticTransform.createClauseQueries({parsedText}),
+          must:
+            layer != ""
+              ? [
+                  {
+                    term: {
+                      layer: layer,
+                    },
+                  },
+                ]
+              : [],
+          should: ElasticTransform.createClauseQueries({ parsedText }),
           minimum_should_match: minimumShouldMatch,
         },
       },
       size: size,
       track_scores: true,
       sort: ["_score"],
-    };
+    }
 
     // if parsedText has venue, filter for addresses which have that venue in the beginning of "name.default"
     if (parsedText.venue) {
@@ -173,12 +174,15 @@ export class ElasticTransform {
               query: parsedText.venue,
               filter: {
                 script: {
-                  source: "interval.start >= 0 && interval.end <= " + (parsedText.venue.split(" ").length + 1) + " && interval.gaps == 0"
-                }
-              }
-            }
-          }
-        }
+                  source:
+                    "interval.start >= 0 && interval.end <= " +
+                    (parsedText.venue.split(" ").length + 1) +
+                    " && interval.gaps == 0",
+                },
+              },
+            },
+          },
+        },
       })
     }
 
@@ -196,7 +200,7 @@ export class ElasticTransform {
             distance_type: "plane",
           },
         },
-      ];
+      ]
     }
 
     // console.log("SearchBodyQuery:\n", JSON.stringify(body, null, 2))

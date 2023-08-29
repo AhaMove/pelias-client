@@ -55,10 +55,7 @@ describe("test api", () => {
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
       "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
-    [
-      "Thao Dien",
-      "Masteri Thao Dien, Quận 04, Hồ Chí Minh, Việt Nam",
-    ]
+    ["Thao Dien", "Masteri Thao Dien, Quận 04, Hồ Chí Minh, Việt Nam"],
   ])("autocomplete with focus should success: '%s'", async (text, result1) => {
     const resp = await client.search({
       "focus.point.lat": "10.76989",
@@ -72,10 +69,7 @@ describe("test api", () => {
   })
 
   test.each([
-    [
-      "7/28 Thành Thái",
-      "Chung Cu Rivera Park, 7/28 Thanh Thai, Phường 14",
-    ],
+    ["7/28 Thành Thái", "Chung Cu Rivera Park, 7/28 Thanh Thai, Phường 14"],
     [
       "7/28 Thành Thái, Phường 14, Quận 10",
       "Chung Cu Rivera Park, 7/28 Thanh Thai, Phường 14",
@@ -108,10 +102,7 @@ describe("test api", () => {
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
       "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
-    [
-      "Thao Dien",
-      "Starbucks Thao Dien, Thảo Điền, Hồ Chí Minh, Việt Nam",
-    ]
+    ["Thao Dien", "Starbucks Thao Dien, Thảo Điền, Hồ Chí Minh, Việt Nam"],
   ])("autocomplete w/o focus should success: '%s'", async (text, result1) => {
     const resp = await client.search({
       text: formatAddress(text),
@@ -159,26 +150,23 @@ describe("test api", () => {
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
       "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
-    [
-      "Thao Dien",
-      "Masteri Thao Dien, Quận 04, Hồ Chí Minh, Việt Nam",
-    ]
+    ["Thao Dien", "Masteri Thao Dien, Quận 04, Hồ Chí Minh, Việt Nam"],
   ])("geocoding with focus should success: '%s'", async (text, name) => {
-    const resp = await client.search({
-      "focus.point.lat": "10.76989",
-      "focus.point.lon": "106.6640",
-      text: formatAddress(text),
-    }, true)
+    const resp = await client.search(
+      {
+        "focus.point.lat": "10.76989",
+        "focus.point.lon": "106.6640",
+        text: formatAddress(text),
+      },
+      true
+    )
 
     const features = resp.features
     expect(features[0].properties.name).toBe(name)
   })
 
   test.each([
-    [
-      "7/28 Thành Thái",
-      "Chung Cu Rivera Park, 7/28 Thanh Thai, Phường 14",
-    ],
+    ["7/28 Thành Thái", "Chung Cu Rivera Park, 7/28 Thanh Thai, Phường 14"],
     [
       "7/28 Thành Thái, Phường 14, Quận 10",
       "Chung Cu Rivera Park, 7/28 Thanh Thai, Phường 14",
@@ -211,38 +199,26 @@ describe("test api", () => {
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
       "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
-    [
-      "Thao Dien",
-      "Starbucks Thao Dien, Thảo Điền, Hồ Chí Minh, Việt Nam",
-    ]
+    ["Thao Dien", "Starbucks Thao Dien, Thảo Điền, Hồ Chí Minh, Việt Nam"],
   ])("geocoding w/o focus should success: '%s'", async (text, name) => {
-    const resp = await client.search({
-      text: formatAddress(text),
-    }, true)
+    const resp = await client.search(
+      {
+        text: formatAddress(text),
+      },
+      true
+    )
 
     const features = resp.features
     expect(features[0].properties.name).toBe(name)
   })
 
   test.each([
-    [
-      "9696 Trân Hưng Đạo",
-    ],
-    [
-      "135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một",
-    ],
-    [
-      "135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một, Bình Dương",
-    ],
-    [
-      "135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một, Bình Dương, Việt Nam",
-    ],
-    [
-      "Phòng chứa bí mật",
-    ],
-    [
-      "Phòng chứa bí mật, 135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một",
-    ],
+    ["9696 Trân Hưng Đạo"],
+    ["135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một"],
+    ["135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một, Bình Dương"],
+    ["135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một, Bình Dương, Việt Nam"],
+    ["Phòng chứa bí mật"],
+    ["Phòng chứa bí mật, 135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một"],
     [
       "Phòng chứa bí mật, 135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một, Bình Dương",
     ],
@@ -250,9 +226,12 @@ describe("test api", () => {
       "Phòng chứa bí mật, 135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một, Bình Dương, Việt Nam",
     ],
   ])("geocoding should not found: '%s'", async (text) => {
-    const resp = await client.search({
-      text: formatAddress(text),
-    }, true)
+    const resp = await client.search(
+      {
+        text: formatAddress(text),
+      },
+      true
+    )
 
     const features = resp.features
     expect(features.length).toBe(0)

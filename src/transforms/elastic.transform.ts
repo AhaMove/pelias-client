@@ -107,7 +107,6 @@ export class ElasticTransform {
           case "street":
             newKey = `address_parts.${key}`
             break
-          case "venue":
           case "address":
             newKey = "name.default"
             break
@@ -144,22 +143,44 @@ export class ElasticTransform {
     const parsedText = extract(formatted)
     // console.log("parsedText:\n", JSON.stringify(parsedText, null, 2))
     const layer = parsedText.venue ? "venue" : ""
-    
+
     // create basic query body
     const body: Record<string, any> = {
       query: {
         bool: {
-          should: ElasticTransform.createClauseQueries({
-            parsedText,
-          }),
+          must: layer != "" ? [
+            {
+              term: {
+                layer: layer,
+              },
+            }
+          ] : [],
+          should: ElasticTransform.createClauseQueries({parsedText}),
           minimum_should_match: minimumShouldMatch,
-          boost: 1,
         },
       },
       size: size,
       track_scores: true,
       sort: ["_score"],
     };
+
+    // if parsedText has venue, filter for addresses which have that venue in the beginning of "name.default"
+    if (parsedText.venue) {
+      body.query.bool.must.push({
+        intervals: {
+          "name.default": {
+            match: {
+              query: parsedText.venue,
+              filter: {
+                script: {
+                  source: "interval.start >= 0 && interval.end <= " + (parsedText.venue.split(" ").length + 1) + " && interval.gaps == 0"
+                }
+              }
+            }
+          }
+        }
+      })
+    }
 
     // if focus lat lon is provided, sort the results from near to far without affecting the relevance _score
     if (lat !== undefined && lon !== undefined) {
@@ -176,7 +197,7 @@ export class ElasticTransform {
           },
         },
       ];
-    }    
+    }
 
     // console.log("SearchBodyQuery:\n", JSON.stringify(body, null, 2))
 

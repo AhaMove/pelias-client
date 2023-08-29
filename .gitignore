@@ -4,3 +4,4 @@ docs
 lib
 .vscode
 .yarn/*
+temp.test.ts

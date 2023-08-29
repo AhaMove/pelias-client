@@ -110,10 +110,6 @@ const findLocality = (text: string) => {
       index = 1
     }
 
-    if (arr.length === 3) {
-      locality = ""
-    }
-
     return {
       index,
       name: locality.trim(),
@@ -220,7 +216,8 @@ export const extractVenue = (text: string): string => {
   }
 
   const firstPart = text.split(",")[0]
-  const venue = firstPart.match(/^[^\d]+(?:\s+\d{1,})?(?:[ ]|$)/)
+  // const venue = firstPart.match(/^[^\d]+(?:\s+\d{1,})?(?:[ ]|$)/)
+  const venue = firstPart.match(/^[^\d]*/)
   if (!venue) {
     return ""
   }

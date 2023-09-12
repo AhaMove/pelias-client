@@ -1,10 +1,6 @@
 export interface SearchParams {
   text: string
-  size?: string
-  /**
-   * The minimum percent will match these addresses, default is 80%
-   */
-  minimumShouldMatch?: string
+  size?: number
   "focus.point.lat"?: string
   "focus.point.lon"?: string
 }

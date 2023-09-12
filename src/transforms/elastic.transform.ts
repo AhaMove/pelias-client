@@ -1,17 +1,34 @@
 import * as _ from "lodash/fp"
 import { extract, format } from "src/format/vietnam"
 import { NearbyParams } from "src/resources/nearby.params"
+import { CountModel } from "src/models/count.model"
+import { AddressParts } from "src/models/address-parts.model"
 
-interface CreateSearchBodyQuery {
+interface CreateSearchBody {
   text: string
   size: number
-  minimumShouldMatch: string
   lat?: number
   lon?: number
+  countFunc: (queryBody: Record<string, any>) => Promise<CountModel>
 }
 
-interface CreateClauseQueries {
-  parsedText: any
+interface CreateShouldClauses {
+  parsedText: AddressParts
+}
+
+interface CreateQuery {
+  layer: string
+  parsedText: AddressParts
+}
+
+interface RescoreQuery {
+  query: Record<string, any>
+}
+
+interface CreateSort {
+  sortScore: boolean
+  lat?: number
+  lon?: number
 }
 
 interface CreateSearchShouldQueryNotAnalyze {
@@ -90,7 +107,7 @@ export class ElasticTransform {
     return results
   }
 
-  static createClauseQueries({ parsedText }: CreateClauseQueries) {
+  static createShouldClauses({ parsedText }: CreateShouldClauses) {
     return _.flow([
       _.toPairs,
       _.map(([key, value]) => {
@@ -129,45 +146,27 @@ export class ElasticTransform {
     ])(parsedText)
   }
 
-  static createSearchBodyQuery({
-    text,
-    size,
-    minimumShouldMatch,
-    lat,
-    lon,
-  }: CreateSearchBodyQuery) {
-    // const formatted = format(text)
-    const formatted = text
-    const parsedText = extract(formatted)
-    // console.log("parsedText:\n", JSON.stringify(parsedText, null, 2))
-    const layer = parsedText.venue ? "venue" : ""
-
-    // create basic query body
-    const body: Record<string, any> = {
-      query: {
-        bool: {
-          must:
-            layer != ""
-              ? [
-                  {
-                    term: {
-                      layer: layer,
-                    },
-                  },
-                ]
-              : [],
-          should: ElasticTransform.createClauseQueries({ parsedText }),
-          minimum_should_match: minimumShouldMatch,
-        },
+  static createQuery({ layer, parsedText }: CreateQuery): Record<string, any> {
+    const result: any = {
+      bool: {
+        must: [],
+        should: ElasticTransform.createShouldClauses({ parsedText }),
+        minimum_should_match: "3<-1",
       },
-      size: size,
-      track_scores: true,
-      sort: ["_score"],
     }
 
-    // if parsedText has venue, filter for addresses which have that venue in the beginning of "name.default"
+    // if layer is provided, filter for records which have that layer
+    if (layer != "") {
+      result.bool.must.push({
+        term: {
+          layer: layer
+        }
+      })
+    }
+
+    // if parsedText has venue, filter for records which have that venue in the beginning of "name.default"
     if (parsedText.venue) {
-      body.query.bool.must.push({
+      result.bool.must.push({
         intervals: {
           "name.default": {
             match: {
@@ -175,34 +174,106 @@ export class ElasticTransform {
               filter: {
                 script: {
                   source:
-                    "interval.start >= 0 && interval.end <= " +
-                    (parsedText.venue.split(" ").length + 1) +
+                    "interval.start >= 0 && interval.end < " +
+                    (parsedText.venue.trim().split(/\s+/).length + 2) +
                     " && interval.gaps == 0",
                 },
               },
+              ordered: true,
             },
           },
         },
       })
     }
 
-    // if focus lat lon is provided, sort the results from near to far without affecting the relevance _score
-    if (lat !== undefined && lon !== undefined) {
-      body.sort = [
-        {
-          _geo_distance: {
-            center_point: {
-              lat: lat,
-              lon: lon,
-            },
-            order: "asc",
-            unit: "m",
-            distance_type: "plane",
-          },
+    return result
+  }
+
+  static rescoreQuery({ query }: RescoreQuery): Record<string, any> {
+    return {
+      function_score: {
+        query: query,
+        script_score: {
+          script: {
+            source: "try {params._source.addendum.entrances.length()} catch (Exception e) {2}"
+          }
         },
-      ]
+        boost_mode: "replace"
+      }
+    }
+  }
+
+  static createSort({ sortScore, lat, lon }: CreateSort) {
+    const result: any = []
+    
+    if (sortScore) {
+      result.push({
+        _score: "desc"
+      })
     }
 
+    // if focus lat lon is provided, after sorting by _score, we sort the results from near to far
+    if (lat !== undefined && lon !== undefined) {
+      result.push({
+        _geo_distance: {
+          center_point: {
+            lat: lat,
+            lon: lon,
+          },
+          order: "asc",
+          unit: "m",
+          distance_type: "plane",
+        },
+      })
+    }
+
+    // if result is empty array, we default to sort by index order
+    if (result.length === 0) {
+      result.push({
+        _doc: "desc"
+      })
+    }
+
+    return result
+  }
+
+  static async createSearchBody({
+    text,
+    size,
+    lat,
+    lon,
+    countFunc,
+  }: CreateSearchBody) {
+    // const formatted = format(text)
+    const formatted = text
+    const parsedText = extract(formatted)
+    // console.log("parsedText:\n", JSON.stringify(parsedText, null, 2))
+    const layer = parsedText.venue ? "venue" : ""
+    let sortScore= true
+
+    // create query
+    let query = ElasticTransform.createQuery({ layer, parsedText })
+
+    if (layer == "venue") {
+      // count the number of records that match the query. If return terminated_early == true, we won't recalculate the score
+      const countResult = await countFunc({
+        query: query,
+      })
+
+      if (!countResult.terminated_early) {
+        query = ElasticTransform.rescoreQuery({ query })
+      } else {
+        sortScore = false
+      }
+    }
+    
+    // create search query body
+    const body: Record<string, any> = {
+      query: query,
+      size: size,
+      track_scores: true,
+      sort: ElasticTransform.createSort({ sortScore, lat, lon }),
+    }
     // console.log("SearchBodyQuery:\n", JSON.stringify(body, null, 2))
 
     return {

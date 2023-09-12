@@ -89,7 +89,9 @@ export class PeliasClient<
   async search(params: SearchParams, geocode = false): Promise<PeliasResponse> {
     const { text, size = 10 } = params
 
-    const countFunc = async (queryBody: Record<string, any>): Promise<CountModel> => {
+    const countFunc = async (
+      queryBody: Record<string, any>
+    ): Promise<CountModel> => {
       const result = await this.esClient.count<TCountResponse>({
         index: "pelias",
         terminate_after: 100,

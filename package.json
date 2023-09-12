@@ -1,6 +1,6 @@
 {
   "name": "@ahamove/pelias-client",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "files": [
@@ -38,7 +38,7 @@
   "scripts": {
     "prepare": "yarn build",
     "prepublishOnly": "yarn test && yarn lint",
-    "version": "yarn format && git add -A src",
+    "version": "yarn format && git add -A src && git reset src/index.test.ts",
     "postversion": "git push && git push --tags",
     "test": "jest",
     "build": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./lib",

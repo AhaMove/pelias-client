@@ -159,8 +159,8 @@ export class ElasticTransform {
     if (layer != "") {
       result.bool.must.push({
         term: {
-          layer: layer
-        }
+          layer: layer,
+        },
       })
     }
 
@@ -195,20 +195,21 @@ export class ElasticTransform {
         query: query,
         script_score: {
           script: {
-            source: "try {params._source.addendum.entrances.length()} catch (Exception e) {2}"
-          }
+            source:
+              "try {params._source.addendum.entrances.length()} catch (Exception e) {2}",
+          },
         },
-        boost_mode: "replace"
-      }
+        boost_mode: "replace",
+      },
     }
   }
 
   static createSort({ sortScore, lat, lon }: CreateSort) {
     const result: any = []
-    
+
     if (sortScore) {
       result.push({
-        _score: "desc"
+        _score: "desc",
       })
     }
 
@@ -230,7 +231,7 @@ export class ElasticTransform {
     // if result is empty array, we default to sort by index order
     if (result.length === 0) {
       result.push({
-        _doc: "desc"
+        _doc: "desc",
       })
     }
 
@@ -249,7 +250,7 @@ export class ElasticTransform {
     const parsedText = extract(formatted)
     // console.log("parsedText:\n", JSON.stringify(parsedText, null, 2))
     const layer = parsedText.venue ? "venue" : ""
-    let sortScore= true
+    let sortScore = true
 
     // create query
     let query = ElasticTransform.createQuery({ layer, parsedText })
@@ -266,7 +267,7 @@ export class ElasticTransform {
         sortScore = false
       }
     }
-    
+
     // create search query body
     const body: Record<string, any> = {
       query: query,

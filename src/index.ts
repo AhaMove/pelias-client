@@ -18,6 +18,7 @@ import {
   TransportRequestPromise,
 } from "@elastic/elasticsearch/lib/Transport"
 import { HitsModel } from "src/models/hits.model"
+import { CountModel } from "src/models/count.model"
 
 interface ClientConfig extends ClientOptions {
   /**
@@ -38,6 +39,7 @@ interface ClientConfig extends ClientOptions {
 export class PeliasClient<
   TModel extends DocumentModel,
   TResponse extends HitsModel<TModel>,
+  TCountResponse extends CountModel,
   TContext = Context
 > {
   private esClient: Client
@@ -85,22 +87,35 @@ export class PeliasClient<
    * @param geocode
    */
   async search(params: SearchParams, geocode = false): Promise<PeliasResponse> {
-    const { text, minimumShouldMatch = "3<-1", size = "10" } = params
+    const { text, size = 10, count_terminate_after = 500 } = params
+
+    const countFunc = async (
+      queryBody: Record<string, any>
+    ): Promise<CountModel> => {
+      const result = await this.esClient.count<TCountResponse>({
+        index: "pelias",
+        terminate_after: count_terminate_after,
+        body: queryBody,
+      })
+
+      return result.body
+    }
+
     const {
       body,
       formatted,
       parsedText,
       layer,
-    } = ElasticTransform.createSearchBodyQuery({
+    } = await ElasticTransform.createSearchBody({
       text,
-      size: parseInt(size),
-      minimumShouldMatch: minimumShouldMatch,
+      size: size,
       lat: params["focus.point.lat"]
         ? parseFloat(params["focus.point.lat"])
         : undefined,
       lon: params["focus.point.lon"]
         ? parseFloat(params["focus.point.lon"])
         : undefined,
+      countFunc,
     })
 
     const result = await this.esClient.search<TResponse>({
@@ -127,7 +142,7 @@ export class PeliasClient<
         query: {
           text,
           size: hits.length,
-          querySize: parseInt(size),
+          querySize: size,
           parser: "pelias",
           parsed_text: parsedText,
           formatted,

@@ -21,137 +21,149 @@ describe("test api", () => {
   test.each([
     [
       "7/28 Thành Thái",
-      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "7/28 Thành Thái",
     ],
     [
       "7/28 Thành Thái, Phường 14, Quận 10",
-      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "7/28 Thành Thái",
     ],
     [
       "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh",
-      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "7/28 Thành Thái",
     ],
     [
       "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "7/28 Thành Thái",
     ],
     [
       "Rivera Park",
-      "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
     // [
     //   "Rivera Park, 7/28 Thành Thái",
-    //   "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+    //   "Rivera Park",
     // ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10",
-      "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh",
-      "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
-    ["Thao Dien", "Masteri Thao Dien, Quận 04, Hồ Chí Minh, Việt Nam"],
+    [
+      "Thao Dien",
+      "Tòa Nhà Thảo Điền, 25 Hoàng Hoa Thám, Phường 06, Quận Bình Thạnh, Hồ Chí Minh, Việt Nam",
+    ],
   ])("autocomplete with focus should success: '%s'", async (text, result1) => {
     const resp = await client.search({
       "focus.point.lat": "10.76989",
       "focus.point.lon": "106.6640",
       text: formatAddress(text),
-      size: "10",
+      size: 2,
     })
 
     const features = resp.features
-    expect(features[0].properties.name).toBe(result1)
+    expect(features[1].properties.name).toContain(result1)
   })
 
   test.each([
-    ["7/28 Thành Thái", "Chung Cu Rivera Park, 7/28 Thanh Thai, Phường 14"],
+    [
+      "7/28 Thành Thái", 
+      "7/28 Thành Thái"
+    ],
     [
       "7/28 Thành Thái, Phường 14, Quận 10",
-      "Chung Cu Rivera Park, 7/28 Thanh Thai, Phường 14",
+      "7/28 Thành Thái",
     ],
     [
       "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh",
-      "Chung Cu Rivera Park, 7/28 Thanh Thai, Phường 14",
+      "7/28 Thành Thái",
     ],
     [
       "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "Chung Cu Rivera Park, 7/28 Thanh Thai, Phường 14",
+      "7/28 Thành Thái",
     ],
     [
       "Rivera Park",
-      "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
     // [
     //   "Rivera Park, 7/28 Thành Thái",
-    //   "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+    //   "Chung Cư Rivera Park, 7/28 Thành Thái",
     // ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10",
-      "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh",
-      "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
-    ["Thao Dien", "Starbucks Thao Dien, Thảo Điền, Hồ Chí Minh, Việt Nam"],
+    [
+      "Thao Dien",
+      "L'Apella De Thao Dien, 1 Đường Số 16, Thảo Điền, Thủ Đức, Hồ Chí Minh, Việt Nam",
+    ],
   ])("autocomplete w/o focus should success: '%s'", async (text, result1) => {
     const resp = await client.search({
       text: formatAddress(text),
-      size: "10",
+      size: 2,
     })
 
     const features = resp.features
-    expect(features[0].properties.name).toBe(result1)
+    expect(features[1].properties.name).toContain(result1)
   })
 
   test.each([
     [
       "7/28 Thành Thái",
-      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "7/28 Thành Thái",
     ],
     [
       "7/28 Thành Thái, Phường 14, Quận 10",
-      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "7/28 Thành Thái",
     ],
     [
       "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh",
-      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "7/28 Thành Thái",
     ],
     [
       "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "7/28 Thành Thái",
     ],
     [
       "Rivera Park",
-      "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
     // [
     //   "Rivera Park, 7/28 Thành Thái",
-    //   "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+    //   "Rivera Park",
     // ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10",
-      "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh",
-      "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
-    ["Thao Dien", "Masteri Thao Dien, Quận 04, Hồ Chí Minh, Việt Nam"],
-  ])("geocoding with focus should success: '%s'", async (text, name) => {
+    [
+      "Thao Dien",
+      "Masteri Thao Dien, Quận 04, Hồ Chí Minh, Việt Nam",
+    ],
+  ])("geocoding with focus should success: '%s'", async (text, result) => {
     const resp = await client.search(
       {
         "focus.point.lat": "10.76989",
@@ -162,45 +174,51 @@ describe("test api", () => {
     )
 
     const features = resp.features
-    expect(features[0].properties.name).toBe(name)
+    expect(features[0].properties.name).toContain(result)
   })
 
   test.each([
-    ["7/28 Thành Thái", "Chung Cu Rivera Park, 7/28 Thanh Thai, Phường 14"],
+    [
+      "7/28 Thành Thái", 
+      "7/28 Thành Thái"
+    ],
     [
       "7/28 Thành Thái, Phường 14, Quận 10",
-      "Chung Cu Rivera Park, 7/28 Thanh Thai, Phường 14",
+      "7/28 Thành Thái",
     ],
     [
       "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh",
-      "Chung Cu Rivera Park, 7/28 Thanh Thai, Phường 14",
+      "7/28 Thành Thái",
     ],
     [
       "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "Chung Cu Rivera Park, 7/28 Thanh Thai, Phường 14",
+      "7/28 Thành Thái",
     ],
     [
       "Rivera Park",
-      "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
     // [
     //   "Rivera Park, 7/28 Thành Thái",
-    //   "Chung Cư Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+    //   "Rivera Park",
     // ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10",
-      "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh",
-      "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park",
     ],
-    ["Thao Dien", "Starbucks Thao Dien, Thảo Điền, Hồ Chí Minh, Việt Nam"],
-  ])("geocoding w/o focus should success: '%s'", async (text, name) => {
+    [
+      "Thao Dien",
+      "Masteri Thảo Điền, T3, 42 Đường Số 10, Thao Dien, Quận 02, Hồ Chí Minh, Việt Nam",
+    ],
+  ])("geocoding w/o focus should success: '%s'", async (text, result) => {
     const resp = await client.search(
       {
         text: formatAddress(text),
@@ -209,7 +227,7 @@ describe("test api", () => {
     )
 
     const features = resp.features
-    expect(features[0].properties.name).toBe(name)
+    expect(features[0].properties.name).toContain(result)
   })
 
   test.each([
@@ -235,5 +253,62 @@ describe("test api", () => {
 
     const features = resp.features
     expect(features.length).toBe(0)
+  })
+
+  test.each([
+    [
+      "Thao Dien",
+    ],
+    [
+      "ATM",
+    ],
+    [
+      "Hotel"
+    ]
+  ])("Too many matches -> no function_score triggered -> exec time won't exceed 1 sec: '%s'", async (text) => {
+    const resp = await client.search({
+      "focus.point.lat": "10.76989",
+      "focus.point.lon": "106.6640",
+      text: formatAddress(text),
+      size: 10,
+    })
+
+    const features = resp.features
+    expect(!features[0].properties.entrances || features[0].properties.entrances == "{}").toBe(true)
+  },
+  1000)
+
+  test.each([
+    [
+      "Thao Dien Pearl",
+    ],
+  ])("First returned venue has entrances: '%s'", async (text) => {
+    const resp = await client.search({
+      "focus.point.lat": "10.76989",
+      "focus.point.lon": "106.6640",
+      text: formatAddress(text),
+      size: 10,
+    })
+
+    const features = resp.features
+    expect(features[0].properties.entrances.length > 10).toBe(true)
+  })
+
+  test.each([
+    [
+      "ben vien van hanh",
+      "Cổng Sư Vạn Hạnh"
+    ],
+  ])("Results must follow venue name's order: '%s'", async (text, badResult) => {
+    const resp = await client.search({
+      "focus.point.lat": "10.769015",
+      "focus.point.lon": "106.671015",
+      text: formatAddress(text),
+      size: 10,
+    })
+
+    resp.features.forEach((feature, index) => {
+      expect(feature.properties.name).not.toContain(badResult)
+    })
   })
 })

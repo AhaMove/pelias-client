@@ -87,14 +87,14 @@ export class PeliasClient<
    * @param geocode
    */
   async search(params: SearchParams, geocode = false): Promise<PeliasResponse> {
-    const { text, size = 10 } = params
+    const { text, size = 10, count_terminate_after = 500 } = params
 
     const countFunc = async (
       queryBody: Record<string, any>
     ): Promise<CountModel> => {
       const result = await this.esClient.count<TCountResponse>({
         index: "pelias",
-        terminate_after: 100,
+        terminate_after: count_terminate_after,
         body: queryBody,
       })
 

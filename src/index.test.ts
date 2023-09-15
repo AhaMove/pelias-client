@@ -61,7 +61,7 @@ describe("test api", () => {
     ],
   ])("autocomplete with focus should success: '%s'", async (text, result1) => {
     const resp = await client.search({
-      "focus.point.lat": "10.76989",
+      "focus.point.lat": "10.76989", //Ahamove
       "focus.point.lon": "106.6640",
       text: formatAddress(text),
       size: 2,
@@ -166,7 +166,7 @@ describe("test api", () => {
   ])("geocoding with focus should success: '%s'", async (text, result) => {
     const resp = await client.search(
       {
-        "focus.point.lat": "10.76989",
+        "focus.point.lat": "10.76989", //Ahamove
         "focus.point.lon": "106.6640",
         text: formatAddress(text),
       },
@@ -267,7 +267,7 @@ describe("test api", () => {
     ]
   ])("Too many matches -> no function_score triggered -> exec time won't exceed 1 sec: '%s'", async (text) => {
     const resp = await client.search({
-      "focus.point.lat": "10.76989",
+      "focus.point.lat": "10.76989", //Ahamove
       "focus.point.lon": "106.6640",
       text: formatAddress(text),
       size: 10,
@@ -284,7 +284,7 @@ describe("test api", () => {
     ],
   ])("First returned venue has entrances: '%s'", async (text) => {
     const resp = await client.search({
-      "focus.point.lat": "10.76989",
+      "focus.point.lat": "10.76989", //Ahamove
       "focus.point.lon": "106.6640",
       text: formatAddress(text),
       size: 10,
@@ -301,7 +301,7 @@ describe("test api", () => {
     ],
   ])("Results must follow venue name's order: '%s'", async (text, badResult) => {
     const resp = await client.search({
-      "focus.point.lat": "10.769015",
+      "focus.point.lat": "10.769015", //bệnh viện Nhi đồng 1
       "focus.point.lon": "106.671015",
       text: formatAddress(text),
       size: 10,
@@ -309,6 +309,23 @@ describe("test api", () => {
 
     resp.features.forEach((feature, index) => {
       expect(feature.properties.name).not.toContain(badResult)
+    })
+  })
+
+  test.each([
+    [
+      "7/28 Thành Thái",
+    ],
+  ])("Results must be < 1km away from focus point: '%s'", async (text) => {
+    const resp = await client.search({
+      "focus.point.lat": "10.76989", //Ahamove
+      "focus.point.lon": "106.6640",
+      text: formatAddress(text),
+      size: 10,
+    })
+
+    resp.features.forEach((feature, index) => {
+      expect(feature.properties.distance).toBeLessThan(1)
     })
   })
 })

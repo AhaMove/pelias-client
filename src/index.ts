@@ -128,8 +128,8 @@ export class PeliasClient<
     hits.sort((a, b) => b._score - a._score)
 
     const points = {
-      "focus.point.lat": parseFloat(params["focus.point.lat"] || "0"),
       "focus.point.lon": parseFloat(params["focus.point.lon"] || "0"),
+      "focus.point.lat": parseFloat(params["focus.point.lat"] || "0"),
     }
 
     const data = PeliasTransform.getHits(hits, geocode)

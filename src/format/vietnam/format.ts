@@ -389,7 +389,9 @@ const dedupLocality = (retry = 10) => (
 const cleanPostalCode = _.replace(/,\s+\d+,/gi, ",")
 
 export const format = _.flow([
-  _.replace(/['"\\\n\t]/g, " "), // remove common escape sequences: \', \", \\, \n, \t
+  _.replace(/["\\()]/g, " "), // remove common non-related symbols
+  _.replace(/[\n\t]/g, " "), // remove common escape sequences: \n, \t
+  _.replace(/^\/+/, ""), //remove preceding "/"
   dedupSpaces,
   _.replace(/Phuong(?:(?!Phuong).)*?Việt Nam,/gi, ""),
   _.replace(/Vietnam|Việt Nam|Viet Nam|VN|ViệtNam/gi, ""),

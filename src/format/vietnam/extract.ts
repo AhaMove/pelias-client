@@ -218,7 +218,7 @@ export const extractVenue = (text: string): string => {
   const firstPart = text.split(",")[0]
   // const venue = firstPart.match(/^[^\d]+(?:\s+\d{1,})?(?:[ ]|$)/)
   const venue = firstPart.match(/^[^\d]*/)
-  if (!venue) {
+  if (!venue || !venue[0].replace(/[^\w]/gi, "")) {
     return ""
   }
 

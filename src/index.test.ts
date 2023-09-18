@@ -328,4 +328,17 @@ describe("test api", () => {
       expect(feature.properties.distance).toBeLessThan(1)
     })
   })
+
+  test.each([
+    [
+      "7/28 Thành Thái, F.14, Q.10, HCM, VN",
+      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+    ],
+    [
+      "Số nhà 7/28 ' \\', đường Thành Thái \" \\\", Phường 14 \\ , Quận 10 \n \\\n , thành phố Hồ Chí Minh \t \\\t, Việt   Nam   ",
+      "7/28 Đường Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+    ],
+  ])("Formated text should be correct: '%s'", async (text, result) => {
+    expect(formatAddress(text)).toBe(result)
+  })
 })

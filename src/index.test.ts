@@ -375,7 +375,7 @@ describe("test api", () => {
       "12/34 Lý Thường Kiệt, Phường 12, Quận 05, Hồ Chí Minh, Việt Nam",
     ],
     [
-      "///12 Lý Thường Kiệt, F.12, Q.5, HCM",
+      "..--''//.-'/12 Lý Thường Kiệt, F.12, Q.5, HCM",
       "12 Lý Thường Kiệt, Phường 12, Quận 05, Hồ Chí Minh, Việt Nam",
     ],
   ])("Formated text should be correct: '%s'", async (text, result) => {

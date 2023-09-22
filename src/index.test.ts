@@ -122,7 +122,7 @@ describe("test api", () => {
     ],
     [
       "? 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "7A/28 Thành Thái",
+      "7/28 Thành Thái",
     ],
     [
       "?, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",

@@ -207,7 +207,7 @@ const extractAddress = (text: string) => {
 
 export const isAddress = (text: string): RegExpMatchArray | null => {
   const firstPart = text.split(",")[0]
-  return firstPart.match(/^[0-9]+[a-zA-Z\-/0-9]*(?:[ ]|$)/)
+  return firstPart.match(/^[A-Z]?[0-9]+[a-zA-Z\-/0-9]*(?:[ ]|$)/)
 }
 
 export const extractVenue = (text: string): string => {
@@ -215,14 +215,12 @@ export const extractVenue = (text: string): string => {
     return ""
   }
 
-  const firstPart = text.split(",")[0]
-  // const venue = firstPart.match(/^[^\d]+(?:\s+\d{1,})?(?:[ ]|$)/)
-  const venue = firstPart.match(/^[^\d]*/)
-  if (!venue || !venue[0].replace(/[^\w]/gi, "")) {
+  const venue = text.split(",")[0]
+  if (!venue.replace(/[^\w]/gi, "")) {
     return ""
   }
 
-  return venue[0].trim()
+  return venue.trim()
 }
 
 export const extract = (text: string): AddressParts => {

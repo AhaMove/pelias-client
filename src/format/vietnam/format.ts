@@ -49,7 +49,7 @@ const decodeDictionaryWord = (text: string) => {
 const cleanAddress = _.flow([
   _.replace(/\.,/g, ","),
   _.replace(
-    /^(số|so|ngo|ngõ|hẻm|hem|số nhà|sn|Sô Nha|Sô|Đến|Nhà Số|nha so)\s?([0-9]+)/i,
+    /^(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)\s([A-Z]?[0-9]+)/i,
     "$2"
   ),
   _.replace(

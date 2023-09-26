@@ -264,23 +264,23 @@ export class PeliasClient<
                     query: params.text,
                     filter: {
                       script: {
-                        source: "interval.start == 0 && interval.gaps == 0"
-                      }
+                        source: "interval.start == 0 && interval.gaps == 0",
+                      },
                     },
                     ordered: true,
-                  }
-                }
-              }
-            }
-          ]
-        }
+                  },
+                },
+              },
+            },
+          ],
+        },
       },
       size: params.size || 1,
       sort: [
         {
-          _doc: "desc"
-        }
-      ]
+          _doc: "desc",
+        },
+      ],
     }
 
     if (params.lat && params.lon) {
@@ -289,9 +289,9 @@ export class PeliasClient<
           distance: "1m",
           center_point: {
             lat: params.lat,
-            lon: params.lon
-          }
-        }
+            lon: params.lon,
+          },
+        },
       })
     }
 
@@ -299,9 +299,9 @@ export class PeliasClient<
       index: "pelias",
       body,
     })
-    
+
     const hits = result.body.hits.hits
-    
+
     return {
       geocoding: {
         version: "0.1",

@@ -1,38 +1,6 @@
 import { UpdateParams } from "src/resources/update.params"
-import { SearchByNameParams } from "src/resources/search.params"
 
 export class DocumentTransform {
-  static queryBuilder(params: SearchByNameParams): any {
-    const query: any = {
-      query: {
-        bool: {
-          must: [],
-        },
-      },
-    }
-
-    if (params.address_name) {
-      query.query.bool.must.push({
-        match: {
-          "name.default": {
-            query: params.address_name,
-            minimum_should_match: params.minimum_should_match ?? "70%",
-          },
-        },
-      })
-    }
-
-    if (params.id) {
-      query.query.bool.must.push({
-        term: {
-          _id: params.id,
-        },
-      })
-    }
-
-    return query
-  }
-
   static docBuilder(data: UpdateParams) {
     const doc: UpdateParams = {}
 

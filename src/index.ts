@@ -252,13 +252,63 @@ export class PeliasClient<
     })
   }
 
-  searchByName(
-    params: SearchByNameParams
-  ): TransportRequestPromise<ApiResponse<TResponse, TContext>> {
-    return this.esClient.search({
+  async searchByName(params: SearchByNameParams): Promise<PeliasResponse> {
+    const body: Record<string, any> = {
+      query: {
+        bool: {
+          filter: [
+            {
+              intervals: {
+                "name.default": {
+                  match: {
+                    query: params.text,
+                    filter: {
+                      script: {
+                        source: "interval.start == 0 && interval.gaps == 0"
+                      }
+                    },
+                    ordered: true,
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      size: params.size || 1,
+      sort: [
+        {
+          _doc: "desc"
+        }
+      ]
+    }
+
+    if (params.lat && params.lon) {
+      body.query.bool.filter.push({
+        geo_distance: {
+          distance: "1m",
+          center_point: {
+            lat: params.lat,
+            lon: params.lon
+          }
+        }
+      })
+    }
+
+    const result = await this.esClient.search<TResponse>({
       index: "pelias",
-      body: DocumentTransform.queryBuilder(params),
+      body,
     })
+    
+    const hits = result.body.hits.hits
+    
+    return {
+      geocoding: {
+        version: "0.1",
+      },
+      type: "FeatureCollection",
+      features: PeliasTransform.toFeatures(hits),
+    }
   }
 }
 

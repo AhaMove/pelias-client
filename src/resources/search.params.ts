@@ -7,7 +7,8 @@ export interface SearchParams {
 }
 
 export interface SearchByNameParams {
-  id?: string
-  address_name?: string
-  minimum_should_match?: string
+  text: string
+  lat?: string
+  lon?: string
+  size?: number
 }

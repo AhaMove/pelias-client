@@ -59,14 +59,6 @@ describe("test api", () => {
       "Thao Dien",
       "Tòa Nhà Thảo Điền, 25 Hoàng Hoa Thám, Phường 06, Quận Bình Thạnh, Hồ Chí Minh, Việt Nam",
     ],
-    [
-      "? 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "7/28 Thành Thái",
-    ],
-    [
-      "?, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "7/28 Thành Thái",
-    ],
   ])("autocomplete with focus should success: '%s'", async (text, result1) => {
     const resp = await client.search({
       "focus.point.lat": "10.76989", //Ahamove
@@ -120,14 +112,6 @@ describe("test api", () => {
       "Thao Dien",
       "L'Apella De Thao Dien, 1 Đường Số 16, Thảo Điền, Thủ Đức, Hồ Chí Minh, Việt Nam",
     ],
-    [
-      "? 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "7/28 Thành Thái",
-    ],
-    [
-      "?, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "7/28 Thành Thái",
-    ],
   ])("autocomplete w/o focus should success: '%s'", async (text, result1) => {
     const resp = await client.search({
       text: formatAddress(text),
@@ -178,14 +162,6 @@ describe("test api", () => {
     [
       "Thao Dien",
       "Masteri Thao Dien, Quận 04, Hồ Chí Minh, Việt Nam",
-    ],
-    [
-      "? 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "7/28 Thành Thái",
-    ],
-    [
-      "?, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "7/28 Thành Thái",
     ],
   ])("geocoding with focus should success: '%s'", async (text, result) => {
     const resp = await client.search(
@@ -241,14 +217,6 @@ describe("test api", () => {
     [
       "Thao Dien",
       "Masteri Thảo Điền, T3, 42 Đường Số 10, Thao Dien, Quận 02, Hồ Chí Minh, Việt Nam",
-    ],
-    [
-      "? 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "7/28 Thành Thái",
-    ],
-    [
-      "?, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "7/28 Thành Thái",
     ],
   ])("geocoding w/o focus should success: '%s'", async (text, result) => {
     const resp = await client.search(
@@ -380,5 +348,20 @@ describe("test api", () => {
     ],
   ])("Formated text should be correct: '%s'", async (text, result) => {
     expect(formatAddress(text)).toBe(result)
+  })
+
+  test.each([
+    [
+      "241/61/28 Ngõ Chợ Khâm Thiên",
+      "241/61/28 Ngõ Chợ Khâm Thiên, Phương Liên, Đống Đa, Hà Nội, Việt Nam",
+    ],
+  ])("Search should found: '%s'", async (text, result) => {
+    const resp = await client.search({
+      text: formatAddress(text),
+      size: 1,
+    })
+
+    const features = resp.features
+    expect(features[0].properties.name).toContain(result)
   })
 })

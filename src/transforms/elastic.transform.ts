@@ -61,7 +61,6 @@ export class ElasticTransform {
         return {
           match_phrase: {
             [newKey]: {
-              analyzer: "peliasQuery",
               query: value,
             },
           },

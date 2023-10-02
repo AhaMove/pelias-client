@@ -58,9 +58,15 @@ export class ElasticTransform {
           return null
         }
 
+        let analyzer = "peliasQuery"
+        if (newKey == "address_parts.number") {
+          analyzer = "peliasHousenumber"
+        }
+
         return {
           match_phrase: {
             [newKey]: {
+              analyzer: analyzer,
               query: value,
             },
           },

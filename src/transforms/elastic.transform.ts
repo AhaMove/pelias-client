@@ -23,6 +23,7 @@ interface CreateQuery {
 
 interface RescoreQuery {
   query: Record<string, any>
+  venueName: string
 }
 
 interface CreateSort {
@@ -119,16 +120,43 @@ export class ElasticTransform {
     return result
   }
 
-  static rescoreQuery({ query }: RescoreQuery): Record<string, any> {
+  static rescoreQuery({ query, venueName }: RescoreQuery): Record<string, any> {
     return {
       function_score: {
         query: query,
-        script_score: {
-          script: {
-            source:
-              "try {params._source.addendum.entrances.length()} catch (Exception e) {2}",
+        functions: [
+          {
+            filter: {
+              intervals: {
+                "name.default": {
+                  match: {
+                    query: venueName,
+                    filter: {
+                      script: {
+                        source: "interval.start == 0 && interval.gaps == 0",
+                      }
+                    },
+                    ordered: true
+                  }
+                }
+              }
+            },
+            script_score: {
+              script: {
+                source: "1"
+              }
+            }
           },
-        },
+          {
+            script_score: {
+              script: {
+                source:
+                  "try {params._source.addendum.entrances.length() > 2 ? 1 : 0} catch (Exception e) {0}",
+              },
+            },
+          }
+        ],
+        score_mode: "sum",
         boost_mode: "replace",
       },
     }
@@ -192,7 +220,8 @@ export class ElasticTransform {
       })
 
       if (!countResult.terminated_early) {
-        query = ElasticTransform.rescoreQuery({ query })
+        const venueName = parsedText.venue || ""
+        query = ElasticTransform.rescoreQuery({ query, venueName })
       } else {
         sortScore = false
       }

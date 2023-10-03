@@ -134,18 +134,18 @@ export class ElasticTransform {
                     filter: {
                       script: {
                         source: "interval.start == 0 && interval.gaps == 0",
-                      }
+                      },
                     },
-                    ordered: true
-                  }
-                }
-              }
+                    ordered: true,
+                  },
+                },
+              },
             },
             script_score: {
               script: {
-                source: "1"
-              }
-            }
+                source: "1",
+              },
+            },
           },
           {
             script_score: {
@@ -154,7 +154,7 @@ export class ElasticTransform {
                   "try {params._source.addendum.entrances.length() > 2 ? 1 : 0} catch (Exception e) {0}",
               },
             },
-          }
+          },
         ],
         score_mode: "sum",
         boost_mode: "replace",

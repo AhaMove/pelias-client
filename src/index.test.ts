@@ -355,8 +355,14 @@ describe("test api", () => {
       "241/61/28 Ngõ Chợ Khâm Thiên",
       "241/61/28 Ngõ Chợ Khâm Thiên, Phương Liên, Đống Đa, Hà Nội, Việt Nam",
     ],
+    [
+      "Saigon Centre",
+      "Saigon Centre Moi, 77 Nam Ky Khoi Nghia, Ben Nghe, Quận 01, Hồ Chí Minh, Việt Nam",
+    ],
   ])("Search should found: '%s'", async (text, result) => {
     const resp = await client.search({
+      "focus.point.lat": "10.76989", //Ahamove
+      "focus.point.lon": "106.6640",
       text: formatAddress(text),
       size: 1,
     })

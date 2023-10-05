@@ -42,7 +42,7 @@ const findCounty = (text: string) => {
     county = ""
     index = -1
   }
-  
+
   return {
     index,
     name: county.trim(),
@@ -66,7 +66,7 @@ const findLocality = (text: string) => {
     locality = ""
     index = -1
   }
-  
+
   return {
     index,
     name: locality.trim(),
@@ -151,7 +151,12 @@ const extractAddress = (text: string) => {
 
 export const isAddress = (text: string): RegExpMatchArray | null => {
   let firstPart = text.split(",")[0].trim()
-  firstPart = firstPart.replace(/^(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)\s+([A-Z]?[0-9]+)/i, "$2").trim()
+  firstPart = firstPart
+    .replace(
+      /^(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)\s+([A-Z]?[0-9]+)/i,
+      "$2"
+    )
+    .trim()
 
   return firstPart.match(/^[A-Z]?[0-9]+[A-Z\-/0-9]*(?:[ ]|$)/i)
 }
@@ -174,15 +179,21 @@ export const extract = (text: string): AddressParts => {
   const country = findCountry(text)
   const region = findRegion(text)
   const { name: county, index: countyIndex } = findCounty(text)
-  let locality = "", localityIndex = -1
+  let locality = "",
+    localityIndex = -1
   if (county != "" && countyIndex > -1) {
     const { name: _locality, index: _localityIndex } = findLocality(text)
     locality = _locality
     localityIndex = _localityIndex
   }
 
-  const index = localityIndex > -1 ? localityIndex : countyIndex > -1 ? countyIndex : arr.length
-  
+  const index =
+    localityIndex > -1
+      ? localityIndex
+      : countyIndex > -1
+      ? countyIndex
+      : arr.length
+
   const result: AddressParts = {
     country,
     region,

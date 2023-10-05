@@ -1,4 +1,4 @@
-import { PeliasClient, formatAddress } from "./index"
+import { PeliasClient, formatAddress, extractAddress } from "./index"
 
 const client = new PeliasClient({
   node: "http://pes7.ahamove.com:9200",
@@ -39,10 +39,10 @@ describe("test api", () => {
       "Rivera Park",
       "Rivera Park",
     ],
-    // [
-    //   "Rivera Park, 7/28 Thành Thái",
-    //   "Rivera Park",
-    // ],
+    [
+      "Rivera Park, 7/28 Thành Thái",
+      "Rivera Park",
+    ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10",
       "Rivera Park",
@@ -92,10 +92,10 @@ describe("test api", () => {
       "Rivera Park",
       "Rivera Park",
     ],
-    // [
-    //   "Rivera Park, 7/28 Thành Thái",
-    //   "Chung Cư Rivera Park, 7/28 Thành Thái",
-    // ],
+    [
+      "Rivera Park, 7/28 Thành Thái",
+      "Rivera Park",
+    ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10",
       "Rivera Park",
@@ -143,10 +143,10 @@ describe("test api", () => {
       "Rivera Park",
       "Rivera Park",
     ],
-    // [
-    //   "Rivera Park, 7/28 Thành Thái",
-    //   "Rivera Park",
-    // ],
+    [
+      "Rivera Park, 7/28 Thành Thái",
+      "Rivera Park",
+    ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10",
       "Rivera Park",
@@ -198,10 +198,10 @@ describe("test api", () => {
       "Rivera Park",
       "Rivera Park",
     ],
-    // [
-    //   "Rivera Park, 7/28 Thành Thái",
-    //   "Rivera Park",
-    // ],
+    [
+      "Rivera Park, 7/28 Thành Thái",
+      "Rivera Park",
+    ],
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10",
       "Rivera Park",
@@ -346,6 +346,14 @@ describe("test api", () => {
       "..--''//.-'/12 Lý Thường Kiệt, F.12, Q.5, HCM",
       "12 Lý Thường Kiệt, Phường 12, Quận 05, Hồ Chí Minh, Việt Nam",
     ],
+    [
+      "7/28 d.Thành Thái, F.14, Q.10, HCM, VN",
+      "7/28 Đường Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+    ],
+    [
+      "Rivera Park, 7/28 đ. Thành Thái",
+      "Rivera Park, 7/28 Đường Thành Thái",
+    ],
   ])("Formated text should be correct: '%s'", async (text, result) => {
     expect(formatAddress(text)).toBe(result)
   })
@@ -369,5 +377,394 @@ describe("test api", () => {
 
     const features = resp.features
     expect(features[0].properties.name).toContain(result)
+  })
+
+  test.each([
+    [
+      "Rivera Park , 7/28 Thành Thái , F14 , Q10 , HCM , VN",
+      {
+        country: "Việt Nam",
+        region: "Hồ Chí Minh",
+        county: "Quận 10",
+        locality: "Phường 14",
+        number: "7/28",
+        street: "Thành Thái",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park 7/28 Thành Thái",
+      {
+        country: "",
+        region: "",
+        county: "",
+        locality: "",
+        venue: "Rivera Park 7/28 Thành Thái",
+      }
+    ],
+    [
+      "7/28",
+      {
+        country: "",
+        region: "",
+        county: "",
+        locality: "",
+        address: "7/28",
+      }
+    ],
+    [
+      "7/28 Thành Thái",
+      {
+        country: "",
+        region: "",
+        county: "",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        address: "7/28 Thành Thái",
+      }
+    ],
+    [
+      "Rivera Park, 7/28",
+      {
+        country: "",
+        region: "",
+        county: "",
+        locality: "",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park, 7/28 Thành Thái",
+      {
+        country: "",
+        region: "",
+        county: "",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park, Q10",
+      {
+        country: "",
+        region: "",
+        county: "Quận 10",
+        locality: "",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park, HCM",
+      {
+        country: "Việt Nam",
+        region: "Hồ Chí Minh",
+        county: "",
+        locality: "",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park, VN",
+      {
+        country: "",
+        region: "",
+        county: "",
+        locality: "",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "7/28, Thành Thái",
+      {
+        country: "",
+        region: "",
+        county: "",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        address: "7/28 Thành Thái",
+      }
+    ],
+    [
+      "7/28 Thành Thái, Q10",
+      {
+        country: "",
+        region: "",
+        county: "Quận 10",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        address: "7/28 Thành Thái",
+      }
+    ],
+    [
+      "7/28 Thành Thái, HCM",
+      {
+        country: "Việt Nam",
+        region: "Hồ Chí Minh",
+        county: "",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        address: "7/28 Thành Thái",
+      }
+    ],
+    [
+      "7/28 Thành Thái, VN",
+      {
+        country: "",
+        region: "",
+        county: "",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        address: "7/28 Thành Thái",
+      }
+    ],
+    [
+      "Rivera Park, 7/28 Thành Thái, Q10",
+      {
+        country: "",
+        region: "",
+        county: "Quận 10",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park, 7/28 Thành Thái, HCM",
+      {
+        country: "Việt Nam",
+        region: "Hồ Chí Minh",
+        county: "",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park, 7/28 Thành Thái, VN",
+      {
+        country: "",
+        region: "",
+        county: "",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park, F14, Q10",
+      {
+        country: "",
+        region: "",
+        county: "Quận 10",
+        locality: "Phường 14",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park, Q10, HCM",
+      {
+        country: "Việt Nam",
+        region: "Hồ Chí Minh",
+        county: "Quận 10",
+        locality: "",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park, Q10, VN",
+      {
+        country: "",
+        region: "",
+        county: "Quận 10",
+        locality: "",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park, HCM, VN",
+      {
+        country: "Việt Nam",
+        region: "Hồ Chí Minh",
+        county: "",
+        locality: "",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "7/28 Thành Thái, F14, Q10",
+      {
+        country: "",
+        region: "",
+        county: "Quận 10",
+        locality: "Phường 14",
+        number: "7/28",
+        street: "Thành Thái",
+        address: "7/28 Thành Thái",
+      }
+    ],
+    [
+      "7/28 Thành Thái, Q10, HCM",
+      {
+        country: "Việt Nam",
+        region: "Hồ Chí Minh",
+        county: "Quận 10",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        address: "7/28 Thành Thái",
+      }
+    ],
+    [
+      "7/28 Thành Thái, Q10, VN",
+      {
+        country: "",
+        region: "",
+        county: "Quận 10",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        address: "7/28 Thành Thái",
+      }
+    ],
+    [
+      "7/28 Thành Thái, HCM, VN",
+      {
+        country: "Việt Nam",
+        region: "Hồ Chí Minh",
+        county: "",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        address: "7/28 Thành Thái",
+      }
+    ],
+    [
+      "Rivera Park , 7/28 Thành Thái , F14 , Q10",
+      {
+        country: "",
+        region: "",
+        county: "Quận 10",
+        locality: "Phường 14",
+        number: "7/28",
+        street: "Thành Thái",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park , 7/28 Thành Thái , Q10 , HCM",
+      {
+        country: "Việt Nam",
+        region: "Hồ Chí Minh",
+        county: "Quận 10",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park , 7/28 Thành Thái , Q10 , VN",
+      {
+        country: "",
+        region: "",
+        county: "Quận 10",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park , 7/28 Thành Thái , HCM , VN",
+      {
+        country: "Việt Nam",
+        region: "Hồ Chí Minh",
+        county: "",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park , F14 , Q10, HCM",
+      {
+        country: "Việt Nam",
+        region: "Hồ Chí Minh",
+        county: "Quận 10",
+        locality: "Phường 14",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park , F14 , Q10, VN",
+      {
+        country: "",
+        region: "",
+        county: "Quận 10",
+        locality: "Phường 14",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "Rivera Park , Q10, HCM, VN",
+      {
+        country: "Việt Nam",
+        region: "Hồ Chí Minh",
+        county: "Quận 10",
+        locality: "",
+        venue: "Rivera Park",
+      }
+    ],
+    [
+      "7/28 Thành Thái , F14 , Q10, HCM",
+      {
+        country: "Việt Nam",
+        region: "Hồ Chí Minh",
+        county: "Quận 10",
+        locality: "Phường 14",
+        number: "7/28",
+        street: "Thành Thái",
+        address: "7/28 Thành Thái",
+      }
+    ],
+    [
+      "7/28 Thành Thái , F14 , Q10, VN",
+      {
+        country: "",
+        region: "",
+        county: "Quận 10",
+        locality: "Phường 14",
+        number: "7/28",
+        street: "Thành Thái",
+        address: "7/28 Thành Thái",
+      }
+    ],
+    [
+      "7/28 Thành Thái , Q10 , HCM, VN",
+      {
+        country: "Việt Nam",
+        region: "Hồ Chí Minh",
+        county: "Quận 10",
+        locality: "",
+        number: "7/28",
+        street: "Thành Thái",
+        address: "7/28 Thành Thái",
+      }
+    ],
+  ])("Address extraction should return as expected: '%s'", async (text, expected) => {
+    const result = extractAddress(formatAddress(text))
+
+    expect(result).toEqual(expected)
   })
 })

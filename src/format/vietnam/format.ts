@@ -49,7 +49,7 @@ const decodeDictionaryWord = (text: string) => {
 const cleanAddress = _.flow([
   _.replace(/\.,/g, ","),
   _.replace(
-    /^(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)\s([A-Z]?[0-9]+)/i,
+    /^(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)\s+([A-Z]?[0-9]+)/i,
     "$2"
   ),
   _.replace(
@@ -395,7 +395,7 @@ export const format = _.flow([
   dedupSpaces,
   _.replace(/Phuong(?:(?!Phuong).)*?Việt Nam,/gi, ""),
   _.replace(/Vietnam|Việt Nam|Viet Nam|VN|ViệtNam/gi, ""),
-  _.replace(/Đường|D\./gi, " Đường "),
+  _.replace(/Đường|Đ\.|D\./gi, " Đường "),
   _.replace(/Đc|Dc|, Hem|Địa Chị|Địa Chỉ/gi, ""),
   _.replace(/T7, Cn/gi, ""),
   cleanAbbreviations,

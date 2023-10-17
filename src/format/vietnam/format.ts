@@ -44,6 +44,7 @@ const decodeDictionaryWord = (text: string) => {
 
 const cleanAddress = _.flow([
   _.replace(/(?<=^|\W)\d{5,6}(?=$|\W)/gi, " "), // clean VN postal code
+  _.replace(/(?<=^|\W)(\+84|0)(9|8|1[2689])([0-9]{8})(?=$|\W)/g, " "), // xoá số điện thoại Việt Nam
   _.replace(/["\\]/g, " "), // remove common non-related symbols such as " \
   _.replace(/[\n\t]/g, " "), // remove common escape sequences: \n, \t
   _.replace(/^[,.\-'/]+/, ""), //remove preceding symbols such as , . - ' /
@@ -59,6 +60,8 @@ const cleanAddress = _.flow([
     "$1 $2"
   ),
   _.replace(/^([A-Z]?[0-9][A-Z\-/0-9]*)([\s,]*)/i, "$1 "), // xoá dấu , kề sau số nhà
+  _.replace(/(?<=^|\W)Gần .*?(?=$|,)/gi, " "), // xoá "gần ..."
+  _.replace(/(\s+trên\s+)(\d+)/gi, "/$2"), // 2 trên 3 -> 2/3
   
   _.replace(
     /^([a-z0-9]*)(\s?-\s?)([a-z0-9]*)(,?\s)([a-z0-9]*)(\s?-\s?)([a-z0-9]*)/i,
@@ -254,19 +257,5 @@ export const format = _.flow([
   transformRegion,
   dedupString,
   trimAll,
-  // _.replace(/([a-z])(\s+)(Quận|Huyện)/gi, "$1, $3 "),
-  // _.replace(/(phố)/, " Phố"), // them khoang cach
-  // _.replace(/(Ngõ|số)(\d+)/i, "$1 $2"), // them khoang cach
-  // _.replace(
-  //   /(Sau|QUA GỌI|qua goi|Gọi|Goi|Láy|Lấy|Lay|Giao Trước|Giao truoc|Nghỉ|Có)((?:.)*?(\s{2}|(?=,)))/i,
-  //   ""
-  // ),
-  // _.replace(/(Gần((?:.)*?(\s{2}|(?=,))))/i, ", $1"),
-  // _.replace(/(09|08|01[2689])+([0-9]{8})\b/, ""),
-  // _.replace(/,\s,\s,|,\s,/g, ","),
-  // _.replace(/\/,/g, ","),
-  // _.replace(/\/\s/g, " "), // xoa dau /
-  // _.replace(/(\s?trên\s?)(\d+)/gi, "/$2"),
-  // trimAll,
   // cleanSuffix,
 ])

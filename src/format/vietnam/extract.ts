@@ -158,7 +158,7 @@ export const isAddress = (text: string): RegExpMatchArray | null => {
     )
     .trim()
 
-  return firstPart.match(/^[A-Z]?[0-9]+[A-Z\-/0-9]*(?:[ ]|$)/i)
+  return firstPart.match(/^[A-Z]?[0-9]+[A-Z\-/0-9]*(?=\s|$)/i)
 }
 
 export const extractVenue = (text: string): string => {

@@ -21,15 +21,9 @@ const dedupString = _.flow([
   _.join(", "),
 ])
 
-const cleanCity = _.flow([
-  _.replace(/Tp[,.]?/i, ""),
-  _.replace(/\b(Tx\.|Tx)\b/i, "Thị xã "),
-  _.replace(/\b(Tt\.|Tt)\b/i, "Thị trấn "),
-])
-
 const sanitizeStreet = _.flow([
-  _.replace(/(Street)|(Road)/i, ","),
-  _.replace(/(Đường)((?:(?!Đường ).)*?((?=,)))/i, "$1 $2"),
+  _.replace(/(?<=^|\W)(Đường\s|đường\s|Duong\s|Đ\s|đ\s|Đ\.|đ\.|D\s|D\.)/gi, " Đường "),
+  _.replace(/(?<=^|\W)(Street|Road)(?=$|\W)/gi, ", "),
 ])
 
 const encodeDictionaryWord = (text: string) => {
@@ -47,16 +41,25 @@ const decodeDictionaryWord = (text: string) => {
 }
 
 const cleanAddress = _.flow([
-  _.replace(/\.,/g, ","),
+  _.replace(/["\\]/g, " "), // remove common non-related symbols such as " \
+  _.replace(/[\n\t]/g, " "), // remove common escape sequences: \n, \t
+  _.replace(/^[,.\-'/]+/, ""), //remove preceding symbols such as , . - ' /
+  _.replace(/;/g, ","),
+  _.replace(/(?<=^|\W)(Vietnam|Việt Nam|Viet Nam|VN|ViệtNam)(?=$|\W)/gi, ""),
+  _.replace(/(?<=^|\W)(Đ\/c|đ\/c|Đc|đc|Địa Chỉ|địa chỉ|D\/c|Dc|Dia Chi)(?=$|\W)/gi, ""),
   _.replace(
-    /^(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)\s+([A-Z]?[0-9]+)/i,
+    /^(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)\s+([A-Z]?[0-9])/i,
     "$2"
   ),
+  _.replace(
+    /(?<=^|\W)(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)([0-9])/gi,
+    "$1 $2"
+  ),
+  
   _.replace(
     /^([a-z0-9]*)(\s?-\s?)([a-z0-9]*)(,?\s)([a-z0-9]*)(\s?-\s?)([a-z0-9]*)/i,
     "$1@$3$4$5@$7"
   ),
-  encodeDictionaryWord,
   (str) => {
     const re = /^([a-t0-9]+)(-)([a-t0-9]+)/gi
     const number = str.match(re)
@@ -77,15 +80,12 @@ const cleanAddress = _.flow([
       _.replace("%", number),
     ])(str)
   },
-  _.replace(/; /g, " "),
   _.replace(/@/g, "-"),
-  _.replace(/(ngách|ngach)(\d+)/gi, "$1 $2"),
-  _.replace(/^[,.]*\s?/, ""),
 ])
 
 const addLeadingZero = _.flow([
   _.replace(/(Quận|Phường)(\s+)(\d+)/gi, (_, p1, p2, p3) => {
-    return p1 + p2 + p3.trim().padStart(2, "0")
+    return p1 + " " + p3.trim().padStart(2, "0")
   }),
 ])
 
@@ -111,31 +111,38 @@ const sanitizeWithoutFirst = (
   return [p1].concat(formatted).join(",")
 }
 
+const sanitizeRegion = _.flow([
+  sanitizeWithoutFirst(/(?<=^|\W)City(?=$|\W)/gi, ","),
+  sanitizeWithoutFirst(/(?<=^|\W)Province(?=$|\W)/gi, ","),
+  sanitizeWithoutFirst(/(?<=^|\W)(Tp\s|Tp\.)/gi, ", "),
+])
+
 const sanitizeCounty = _.flow([
-  _.replace(/(District((?:(?!District).)*?(\s{2}|(?=,))))/gi, (_, p1, p2) => {
+  _.replace(/(District((?:(?!District).)*?(?=,|$)))/gi, (_, p1, p2) => {
     if (p2 && !isNaN(p2)) {
-      return "Quận " + p2
+      return ", Quận " + p2 + ", "
     }
 
-    return p2
+    return ", " + p2 + ", "
   }),
-  _.replace(/District/i, ""),
-  sanitizeWithoutFirst(/(,?\s?)((\bQuan\b)|(Q\s|Q\.))/gi, ", Quận "),
-  _.replace(/\s(q|-q)(\d{1,2})/gi, " Quận $2"),
-  _.replace(/(q)(?=[^uls\s.,0-9])/gi, "Quận "),
-  _.replace(/(,?\s?)((Huyen\b)|(\bH\.))/gi, ", Huyện "),
+  sanitizeWithoutFirst(/(?<=^|\W)(Quận\s|Quan\s|Q\s|Q\.)/gi, ", Quận "),
+  sanitizeWithoutFirst(/(?<=^|\W)q(\d{1,2})(?=$|\W)/gi, ", Quận $1, "),
+  sanitizeWithoutFirst(/(?<=^|\W)(Huyện\s|Huyen\s|H\s|H\.)/gi, ", Huyện "),
+  sanitizeWithoutFirst(/(?<=^|\W)(Thị Xã\s|Thi Xa\s|Tx\s|Tx\.)/gi, ", Thị Xã "),
 ])
 
 const sanitizeLocality = _.flow([
-  _.replace(/Phường,/gi, "#"),
-  _.replace(/Phường/gi, ", Phường "),
-  _.replace(/(,\s?)((Phuong)|(P\s|P\.|F\s|F\.|Ward))/gi, ", Phường "),
-  // _.replace(/\s([pf])(\d{1,2})\b/gi, ', Phường $2'),
-  sanitizeWithoutFirst(/\s([pf])(\d{1,2})\b/gi, ", Phường $2"),
-  _.replace(/\s(p)(?=[^hluaefpr\s.,0-9])/gi, "Phường "),
-  _.replace(/\b(x\.)\b/gi, "Xã "),
-  _.replace(/(\s)(Ấp)/i, " Ấp "),
-  _.replace(/#/g, "Phường,"),
+  _.replace(/(Ward((?:(?!Ward).)*?(?=,|$)))/gi, (_, p1, p2) => {
+    if (p2 && !isNaN(p2)) {
+      return ", Phường " + p2 + ", "
+    }
+
+    return ", " + p2 + ", "
+  }),
+  sanitizeWithoutFirst(/(?<=^|\W)(Phường\s|Phuong\s|P\s|P\.|F\s|F\.)/gi, ", Phường "),
+  sanitizeWithoutFirst(/(?<=^|\W)[pf](\d{1,2})(?=$|\W)/gi, ", Phường $1, "),
+  sanitizeWithoutFirst(/(?<=^|\W)(Xã\s|Xa\s|X\s|X\.)/gi, ", Xã "),
+  sanitizeWithoutFirst(/(?<=^|\W)(Thị Trấn\s|Thi Tran\s|Tt\s|Tt\.)/gi, ", Thị Trấn "),
 ])
 
 interface MatchParams {
@@ -389,30 +396,23 @@ const dedupLocality = (retry = 10) => (
 const cleanPostalCode = _.replace(/,\s+\d+,/gi, ",")
 
 export const format = _.flow([
-  _.replace(/["\\()]/g, " "), // remove common non-related symbols
-  _.replace(/[\n\t]/g, " "), // remove common escape sequences: \n, \t
-  _.replace(/^[.\-'/]+/g, ""), //remove preceding symbols such as . - ' /
-  dedupSpaces,
-  _.replace(/Phuong(?:(?!Phuong).)*?Việt Nam,/gi, ""),
-  _.replace(/Vietnam|Việt Nam|Viet Nam|VN|ViệtNam/gi, ""),
-  _.replace(/Đường|Đ\.|D\./gi, " Đường "),
-  _.replace(/Đc|Dc|, Hem|Địa Chị|Địa Chỉ/gi, ""),
-  _.replace(/T7, Cn/gi, ""),
   cleanAbbreviations,
+  encodeDictionaryWord,
+  cleanAddress,
+  dedupSpaces,
+  sanitizeRegion,
   sanitizeCounty,
   sanitizeLocality,
   addLeadingZero,
-  cleanAddress,
-  dedupSpaces,
-  reverseString,
-  cleanCity,
   sanitizeStreet,
+  dedupSpaces,
+  // reverseString,
   fixAccent,
   trimAll,
   splitAll,
   capitalizeAll,
   dedupString,
-  reverseString,
+  // reverseString,
   dedupCity(),
   cleanPostalCode,
   trimAll,

@@ -307,7 +307,7 @@ describe("test api", () => {
       size: 10,
     })
 
-    resp.features.forEach((feature, index) => {
+    resp.features.forEach((feature) => {
       expect(feature.properties.name).not.toContain(badResult)
     })
   })
@@ -324,7 +324,7 @@ describe("test api", () => {
       size: 10,
     })
 
-    resp.features.forEach((feature, index) => {
+    resp.features.forEach((feature) => {
       expect(feature.properties.distance).toBeLessThan(1)
     })
   })
@@ -353,6 +353,10 @@ describe("test api", () => {
     [
       "Rivera Park, 7/28 đ. Thành Thái",
       "Rivera Park, 7/28 Đường Thành Thái",
+    ],
+    [
+      "Rivera Park II,q12",
+      "Rivera Park 2, Quận 12",
     ],
   ])("Formated text should be correct: '%s'", async (text, result) => {
     expect(formatAddress(text)).toBe(result)

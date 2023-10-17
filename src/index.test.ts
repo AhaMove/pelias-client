@@ -331,8 +331,8 @@ describe("test api", () => {
 
   test.each([
     [
-      "Phở Nam Định, rivera park II, Cmt8 , q12,thành phố Thủ Đức,thành phố Hồ Chí Minh, tỉnh Nam Định, thành phố Hồ Chí Minh, Nam Định ",
-      "xxx",
+      "Phở Nam Định, rivera park II, 12 Cmt8 , q12,thành phố Thủ Đức,thành phố Hồ Chí Minh, tỉnh Nam Định, Hồ Chí Minh City, Nam Định ",
+      "Phở Nam Định, Rivera Park 2, 12 Cách Mạng Tháng Tám, Quận 12, Thành Phố Thủ Đức, Hồ Chí Minh, Việt Nam",
     ],
     [
       "7/28 Thành Thái, F.14, Q.10, HCM, VN",

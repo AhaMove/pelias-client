@@ -3,7 +3,6 @@ import regex from "src/data/vietnam/regex.json"
 import abbreviations from "src/data/vietnam/abbreviations.json"
 import dictionary from "src/data/vietnam/dictionary.json"
 import deaccents from "src/format/vietnam/deaccents"
-import { match, when } from "src/utils/match-when"
 
 const dedupSpaces = _.replace(/\s+/g, " ")
 
@@ -45,7 +44,7 @@ const decodeDictionaryWord = (text: string) => {
 const cleanAddress = _.flow([
   _.replace(/(?<=^|\W)\d{5,6}(?=$|\W)/gi, " "), // clean VN postal code
   _.replace(/(?<=^|\W)(\+84|0)(9|8|1[2689])([0-9]{8})(?=$|\W)/g, " "), // xoá số điện thoại Việt Nam
-  _.replace(/["\\]/g, " "), // remove common non-related symbols such as " \
+  _.replace(/["\\()]/g, " "), // remove common non-related symbols such as " \ ( )
   _.replace(/[\n\t]/g, " "), // remove common escape sequences: \n, \t
   _.replace(/^[,.\-'/]+/, ""), //remove preceding symbols such as , . - ' /
   _.replace(/;/g, ","),
@@ -154,69 +153,77 @@ const sanitizeLocality = _.flow([
   sanitizeWithoutFirst(/(?<=^|\W)(Thị Trấn\s|Thi Tran\s|Tt\s|Tt\.)/gi, ", Thị Trấn "),
 ])
 
-interface MatchParams {
-  pattern?: string
-  flags?: string
-  matchFlags?: string
-  replacement?(text: string): string
-  matchCallback?(re: RegExp, key: string): void
-}
-
-const createMatchFactory = (source: { [key: string]: string }) => (
-  params: MatchParams = {
-    pattern: "",
-    flags: "gi",
-  }
-) => {
-  const { pattern = "", flags = "", matchFlags = "", replacement, matchCallback } = params
-
-  const matcher = Object.keys(source).reduce<any>((acc, key) => {
-    const flag = matchFlags ? matchFlags : flags
-    const re = new RegExp(source[key] + pattern, flag)
-    const hasReplacement = !!replacement
-    const matching = _.replace(re, hasReplacement ? replacement!(key) : key)
-    acc[when(re)] = matchCallback ? matchCallback(re, key) : matching
-
-    return acc
-  }, {})
-
-  matcher[when()] = (value: string) => value
-
-  return matcher
-}
-
-const cleanCityNameFactory = createMatchFactory(regex)
-
-const handleCleanSuffix = match({
-  [when(/Vietnam|Việt Nam/i)]: _.replace(/Vietnam|Việt Nam.*/i, ""),
-  [when()]: match(
-    cleanCityNameFactory({
-      pattern: ".*",
-      flags: "i",
-      replacement: (key) => key + ", Việt Nam",
-    })
-  ),
-})
-
-const cleanSuffix = function (data: string) {
-  const splitData = data
+const transformAll = function (text: string) {
+  let arr = text
     .split(",")
     .map((item) => item.trim())
     .filter((item) => item !== "")
-  if (splitData.length > 1) {
-    const first = splitData.shift()
-    let i = splitData.length - 1
-    for (i; i >= 0; i--) {
-      const result = handleCleanSuffix(splitData[i])
-      if (result !== splitData[i]) {
-        splitData[i] = result
-        splitData.splice(i + 1, splitData.length)
-        break
+
+  let locality = "", county = "", region = ""
+  const regexLocality = new RegExp("^(Phường|Xã|Thị Trấn)", "i")
+  const regexCounty = new RegExp("^(Quận|Huyện|Thị Xã)", "i")
+  
+  for (let i = 0; i < arr.length; i++) {
+    const item = arr[i];
+    if (regexLocality.test(item)) {
+      if (locality == "") {
+        locality = item
+      } else {
+        arr[i] = ""
       }
     }
-    return `${first}, ${splitData.join(", ")}`
   }
-  return data
+
+  for (let i = 0; i < arr.length; i++) {
+    const item = arr[i];
+    if (regexCounty.test(item)) {
+      if (county == "") {
+        county = item
+      } else {
+        arr[i] = ""
+      }
+    }
+  }
+
+  const regionKeys = Object.keys(regex)
+  for (let i = 0; i < arr.length; i++) {
+    const item = arr[i];
+    if (regionKeys.includes(item)) {
+      if (region == "") {
+        region = item
+      } else {
+        arr[i] = ""
+      }
+    }
+  }
+
+  text = arr.filter((item) => item !== "").join(", ")
+  
+  if (locality != "" && county != "" && region != "") {
+    arr = text
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item !== "")
+
+    text = ""
+
+    for (let i = 0; i < arr.length; i++) {
+      const item = arr[i];
+      if (item != locality && item != county && item != region) {
+        text += item + ", "
+      } else {
+        break
+      }    
+    }
+
+    text += locality + ", " + county + ", " + region
+  }
+
+  if (region != "") {
+    text += ", Việt Nam"
+  }
+
+  return text
 }
 
 // const reverseString = _.flow([_.split(","), _.reverse, _.join(",")])
@@ -256,6 +263,7 @@ export const format = _.flow([
   capitalizeAll,
   transformRegion,
   dedupString,
+  dedupSpaces,
   trimAll,
-  // cleanSuffix,
+  transformAll,
 ])

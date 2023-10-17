@@ -8,16 +8,19 @@ import escapeStringRegexp from "src/utils/escape-string-regexp"
 
 const dedupSpaces = _.replace(/\s+/g, " ")
 
-const trimAll = _.flow([_.split(","), _.map(_.trim), _.join(", ")])
+const trimAll = _.flow([_.split(","), _.map(_.trim), _.filter((_) => _ != ""), _.join(", ")])
 
-const splitAll = _.split(",")
-
-const capitalizeAll = _.map(
-  _.flow([_.split(" "), _.map(_.upperFirst), _.join(" ")])
-)
+const capitalizeAll = _.flow([
+  _.split(","),
+  _.map(
+    _.flow([_.trim, _.split(" "), _.map(_.upperFirst), _.join(" ")])
+  ),
+  _.join(", ")
+])
 
 const dedupString = _.flow([
-  _.uniqBy(_.flow([_.lowerCase, deaccents])),
+  _.split(","),
+  _.uniqBy(_.flow([deaccents, _.lowerCase])),
   _.join(", "),
 ])
 
@@ -114,7 +117,9 @@ const sanitizeWithoutFirst = (
 const sanitizeRegion = _.flow([
   sanitizeWithoutFirst(/(?<=^|\W)City(?=$|\W)/gi, ","),
   sanitizeWithoutFirst(/(?<=^|\W)Province(?=$|\W)/gi, ","),
-  sanitizeWithoutFirst(/(?<=^|\W)(Tp\s|Tp\.)/gi, ", "),
+  sanitizeWithoutFirst(/(?<=^|\W)(Thành Phố\s|Thanh Pho\s|Tp\s|Tp\.)/gi, ", Thành Phố "),
+  sanitizeWithoutFirst(/(?<=^|\W)(Tỉnh\s|Tinh\s)/gi, ", Tỉnh "),
+  sanitizeWithoutFirst(/(?<=^|,|\s)(T\s|T\.)/gi, ", Tỉnh "),
 ])
 
 const sanitizeCounty = _.flow([
@@ -156,10 +161,10 @@ interface MatchParams {
 const createMatchFactory = (source: { [key: string]: string }) => (
   params: MatchParams = {
     pattern: "",
-    flags: "i",
+    flags: "gi",
   }
 ) => {
-  const { pattern, flags, matchFlags, replacement, matchCallback } = params
+  const { pattern = "", flags = "", matchFlags = "", replacement, matchCallback } = params
 
   const matcher = Object.keys(source).reduce<any>((acc, key) => {
     const flag = matchFlags ? matchFlags : flags
@@ -177,12 +182,6 @@ const createMatchFactory = (source: { [key: string]: string }) => (
 }
 
 const cleanCityNameFactory = createMatchFactory(regex)
-
-const fixAccent = match(
-  cleanCityNameFactory({
-    flags: "i",
-  })
-)
 
 const handleCleanSuffix = match({
   [when(/Vietnam|Việt Nam/i)]: _.replace(/Vietnam|Việt Nam.*/i, ""),
@@ -225,7 +224,14 @@ const cleanWildcard = _.flow([
 
 const reverseString = _.flow([_.split(","), _.reverse, _.join(",")])
 
-const cleanAbbreviations = match(createMatchFactory(abbreviations)())
+const transformAbbreviations = (text: string) => {
+  for (const [key, value] of Object.entries(abbreviations)) {
+    const re = new RegExp(value, "gi");
+    text = text.replace(re, key);
+  }
+  
+  return text
+}
 
 const dedupStringFactory = (patternString: string) => (
   value: string,
@@ -285,35 +291,13 @@ const dedupAdmin = (
   return arr.join(",")
 }
 
-const dedupCity = (retry = 10) => (str: string, currentRetry = 0): string => {
-  if (currentRetry === retry) {
-    return str
+const transformRegion = (text: string) => {
+  for (const [key, value] of Object.entries(regex)) {
+    const re = new RegExp(value, "gi");
+    text = text.replace(re, key);
   }
-
-  const matcher = match(
-    str,
-    cleanCityNameFactory({
-      matchFlags: "gi",
-      matchCallback: (re) => (value: string) => value.match(re),
-    })
-  )
-
-  if (!Array.isArray(matcher)) {
-    return str
-  }
-
-  if (matcher && matcher.length >= 2) {
-    const result = match(
-      str,
-      cleanCityNameFactory({
-        replacement: () => "",
-      })
-    )
-
-    return dedupCity(retry)(result, currentRetry + 1)
-  }
-
-  return str
+  
+  return text
 }
 
 const dedupCounty = (retry = 10) => (
@@ -396,7 +380,8 @@ const dedupLocality = (retry = 10) => (
 const cleanPostalCode = _.replace(/,\s+\d+,/gi, ",")
 
 export const format = _.flow([
-  cleanAbbreviations,
+  dedupSpaces,
+  transformAbbreviations,
   encodeDictionaryWord,
   cleanAddress,
   dedupSpaces,
@@ -406,35 +391,31 @@ export const format = _.flow([
   addLeadingZero,
   sanitizeStreet,
   dedupSpaces,
-  // reverseString,
-  fixAccent,
   trimAll,
-  splitAll,
   capitalizeAll,
+  transformRegion,
   dedupString,
-  // reverseString,
-  dedupCity(),
-  cleanPostalCode,
-  trimAll,
-  cleanWildcard,
-  cleanSuffix,
-  trimAll,
-  dedupLocality(),
-  dedupCounty(),
-  _.replace(/([a-z])(\s+)(Quận|Huyện)/gi, "$1, $3 "),
-  dedupSpaces,
-  _.replace(/(phố)/, " Phố"), // them khoang cach
-  _.replace(/(Ngõ|số)(\d+)/i, "$1 $2"), // them khoang cach
-  _.replace(
-    /(Sau|QUA GỌI|qua goi|Gọi|Goi|Láy|Lấy|Lay|Giao Trước|Giao truoc|Nghỉ|Có)((?:.)*?(\s{2}|(?=,)))/i,
-    ""
-  ),
-  _.replace(/(Gần((?:.)*?(\s{2}|(?=,))))/i, ", $1"),
-  _.replace(/(09|08|01[2689])+([0-9]{8})\b/, ""),
-  _.replace(/,\s,\s,|,\s,/g, ","),
-  _.replace(/\/,/g, ","),
-  _.replace(/\/\s/g, " "), // xoa dau /
-  _.replace(/(\s?trên\s?)(\d+)/gi, "/$2"),
-  decodeDictionaryWord,
-  trimAll,
+  // cleanPostalCode,
+  // trimAll,
+  // cleanWildcard,
+  // cleanSuffix,
+  // trimAll,
+  // dedupLocality(),
+  // dedupCounty(),
+  // _.replace(/([a-z])(\s+)(Quận|Huyện)/gi, "$1, $3 "),
+  // dedupSpaces,
+  // _.replace(/(phố)/, " Phố"), // them khoang cach
+  // _.replace(/(Ngõ|số)(\d+)/i, "$1 $2"), // them khoang cach
+  // _.replace(
+  //   /(Sau|QUA GỌI|qua goi|Gọi|Goi|Láy|Lấy|Lay|Giao Trước|Giao truoc|Nghỉ|Có)((?:.)*?(\s{2}|(?=,)))/i,
+  //   ""
+  // ),
+  // _.replace(/(Gần((?:.)*?(\s{2}|(?=,))))/i, ", $1"),
+  // _.replace(/(09|08|01[2689])+([0-9]{8})\b/, ""),
+  // _.replace(/,\s,\s,|,\s,/g, ","),
+  // _.replace(/\/,/g, ","),
+  // _.replace(/\/\s/g, " "), // xoa dau /
+  // _.replace(/(\s?trên\s?)(\d+)/gi, "/$2"),
+  // decodeDictionaryWord,
+  // trimAll,
 ])

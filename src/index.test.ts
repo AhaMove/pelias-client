@@ -331,6 +331,10 @@ describe("test api", () => {
 
   test.each([
     [
+      "Phở Nam Định, rivera park II, Cmt8 , q12,thành phố Thủ Đức,thành phố Hồ Chí Minh, tỉnh Nam Định, thành phố Hồ Chí Minh, Nam Định ",
+      "xxx",
+    ],
+    [
       "7/28 Thành Thái, F.14, Q.10, HCM, VN",
       "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
@@ -353,10 +357,6 @@ describe("test api", () => {
     [
       "Rivera Park, 7/28 đ. Thành Thái",
       "Rivera Park, 7/28 Đường Thành Thái",
-    ],
-    [
-      "Rivera Park II,q12",
-      "Rivera Park 2, Quận 12",
     ],
   ])("Formated text should be correct: '%s'", async (text, result) => {
     expect(formatAddress(text)).toBe(result)

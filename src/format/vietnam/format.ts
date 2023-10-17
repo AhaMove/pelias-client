@@ -4,7 +4,6 @@ import abbreviations from "src/data/vietnam/abbreviations.json"
 import dictionary from "src/data/vietnam/dictionary.json"
 import deaccents from "src/format/vietnam/deaccents"
 import { match, when } from "src/utils/match-when"
-import escapeStringRegexp from "src/utils/escape-string-regexp"
 
 const dedupSpaces = _.replace(/\s+/g, " ")
 
@@ -217,7 +216,7 @@ const cleanSuffix = function (data: string) {
   return data
 }
 
-const reverseString = _.flow([_.split(","), _.reverse, _.join(",")])
+// const reverseString = _.flow([_.split(","), _.reverse, _.join(",")])
 
 const transformAbbreviations = (text: string) => {
   for (const [key, value] of Object.entries(abbreviations)) {
@@ -228,64 +227,6 @@ const transformAbbreviations = (text: string) => {
   return text
 }
 
-const dedupStringFactory = (patternString: string) => (
-  value: string,
-  index = -1
-) => {
-  const reLocality = /(Phường((?:(?!Phường).)*?))|(Thị trấn((?:(?!Thị trấn).)*?))/gi
-  const reWard = /(Quận((?:(?!Quận).)*?))|(Huyện((?:(?!Huyện).)*?))|(Thị xã((?:(?!Thị xã).)*?))/gi
-
-  if (!isNaN(Number(patternString))) {
-    return value
-  }
-
-  if (!reLocality.test(value) && !reWard.test(value) && index !== 0) {
-    const patternStringNoAccent = deaccents(patternString)
-    const reStr = [
-      `\\d ${patternString}`,
-      `\\d ${patternStringNoAccent}`,
-      `Đường\\s+${patternString}`,
-      `Đường\\s+${patternStringNoAccent}`,
-      `Phố ${patternString}`,
-      `Phố ${patternStringNoAccent}`,
-      `Thị xã ${patternString}`,
-      `Thị xã ${patternStringNoAccent}`,
-      `Kho ${patternString}`,
-      `Kho ${patternStringNoAccent}`,
-      `Tuyến ${patternString}`,
-      `Tuyen ${patternStringNoAccent}`,
-    ].join("|")
-
-    const re = new RegExp(`^(?!.*(${reStr})).*$`, "gi")
-
-    if (re.test(value)) {
-      value = value.replace(
-        new RegExp(`\\b${patternString}|\\b${patternStringNoAccent}`, "gi"),
-        ""
-      )
-    }
-  }
-
-  return value
-}
-
-const dedupAdmin = (
-  str: string,
-  patternString: string,
-  hasWardOrLocality = false
-) => {
-  const arr = str.split(",")
-  const callback = dedupStringFactory(patternString)
-
-  if (hasWardOrLocality) {
-    return arr.map(callback).join(",")
-  }
-
-  arr[0] = callback(arr[0])
-
-  return arr.join(",")
-}
-
 const transformRegion = (text: string) => {
   for (const [key, value] of Object.entries(regex)) {
     const re = new RegExp(value, "gi");
@@ -293,83 +234,6 @@ const transformRegion = (text: string) => {
   }
   
   return text
-}
-
-const dedupCounty = (retry = 10) => (
-  text: string,
-  currentRetry = 0
-): string => {
-  const arr = text.split(",")
-
-  if (arr.length === 1) {
-    return text
-  }
-
-  if (currentRetry === retry) {
-    return text
-  }
-
-  // const matcher = str.match(
-  //   /(Quận((?:(?!Quận).)*?(\s{2}|(?=,)))|Thị Xã((?:(?!Thị Xã).)*?(\s{2}|(?=,)))|Huyện((?:(?!Huyện).)))/gi,
-  // )
-  const fullWardName = RegExp.$1
-  const rawWardName = RegExp.$2 ? RegExp.$2 : RegExp.$4
-  const wardName = escapeStringRegexp(rawWardName.replace(/(^\s+|,$)/gi, ""))
-
-  const re = `${escapeStringRegexp(fullWardName)}`
-  const matcher1 = text.match(new RegExp(re, "gi"))
-
-  if (!Array.isArray(matcher1)) {
-    return text
-  }
-
-  if (matcher1 && matcher1.length >= 2) {
-    const result = text.replace(new RegExp(re, "i"), "")
-
-    return dedupCounty(retry)(result, currentRetry + 1)
-  }
-
-  // const hasWardOrLocality = matcher && matcher.length > 0
-
-  return dedupAdmin(text, wardName, true)
-}
-
-const dedupLocality = (retry = 10) => (
-  text: string,
-  currentRetry = 0
-): string => {
-  const arr = text.split(",")
-
-  if (arr.length === 1) {
-    return text
-  }
-
-  if (currentRetry === retry) {
-    return text
-  }
-
-  const matcher = text.match(
-    /(Phường((?:(?!Phường).)*?(\s{2}|(?=,)|Quận((?:(?!Phường).)*?),)))/gi
-  )
-  const fullLocalityName = escapeStringRegexp(RegExp.$1)
-  const localityName = escapeStringRegexp(RegExp.$2.replace(/(^\s+|,$)/gi, ""))
-
-  const re = `${fullLocalityName}`
-  const matcher1 = text.match(new RegExp(re, "gi"))
-
-  if (!Array.isArray(matcher1)) {
-    return text
-  }
-
-  if (matcher1 && matcher1.length >= 2) {
-    const result = text.replace(new RegExp(re, "i"), "")
-
-    return dedupLocality(retry)(result, currentRetry + 1)
-  }
-
-  const hasWardOrLocality = !!(matcher && matcher.length > 0)
-
-  return dedupAdmin(text, localityName, hasWardOrLocality)
 }
 
 export const format = _.flow([
@@ -390,10 +254,7 @@ export const format = _.flow([
   transformRegion,
   dedupString,
   trimAll,
-  // dedupLocality(),
-  // dedupCounty(),
   // _.replace(/([a-z])(\s+)(Quận|Huyện)/gi, "$1, $3 "),
-  // dedupSpaces,
   // _.replace(/(phố)/, " Phố"), // them khoang cach
   // _.replace(/(Ngõ|số)(\d+)/i, "$1 $2"), // them khoang cach
   // _.replace(

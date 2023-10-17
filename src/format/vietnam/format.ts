@@ -44,6 +44,7 @@ const decodeDictionaryWord = (text: string) => {
 }
 
 const cleanAddress = _.flow([
+  _.replace(/(?<=^|\W)\d{5,6}(?=$|\W)/gi, " "), // clean VN postal code
   _.replace(/["\\]/g, " "), // remove common non-related symbols such as " \
   _.replace(/[\n\t]/g, " "), // remove common escape sequences: \n, \t
   _.replace(/^[,.\-'/]+/, ""), //remove preceding symbols such as , . - ' /
@@ -58,6 +59,7 @@ const cleanAddress = _.flow([
     /(?<=^|\W)(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)([0-9])/gi,
     "$1 $2"
   ),
+  _.replace(/^([A-Z]?[0-9][A-Z\-/0-9]*)([\s,]*)/i, "$1 "), // xoá dấu , kề sau số nhà
   
   _.replace(
     /^([a-z0-9]*)(\s?-\s?)([a-z0-9]*)(,?\s)([a-z0-9]*)(\s?-\s?)([a-z0-9]*)/i,
@@ -215,13 +217,6 @@ const cleanSuffix = function (data: string) {
   return data
 }
 
-const cleanWildcard = _.flow([
-  _.replace(/^([0-9/]+)(,?)(\s-)?/, "$1"), // xoa dau , ke so
-  _.replace(/(\s-\s|,\s,)/g, ", "), // xoa dau -
-  _.replace(/^.*:[^,]/g, ""), // xoa cac ky tu la dau chuoi - vd: Người nhận : khả kỳ Sdt: 0792042968 Địa chỉ: Duong ABC,
-  _.replace(/:,/g, ""),
-])
-
 const reverseString = _.flow([_.split(","), _.reverse, _.join(",")])
 
 const transformAbbreviations = (text: string) => {
@@ -377,13 +372,12 @@ const dedupLocality = (retry = 10) => (
   return dedupAdmin(text, localityName, hasWardOrLocality)
 }
 
-const cleanPostalCode = _.replace(/,\s+\d+,/gi, ",")
-
 export const format = _.flow([
   dedupSpaces,
   transformAbbreviations,
   encodeDictionaryWord,
   cleanAddress,
+  decodeDictionaryWord,
   dedupSpaces,
   sanitizeRegion,
   sanitizeCounty,
@@ -395,11 +389,7 @@ export const format = _.flow([
   capitalizeAll,
   transformRegion,
   dedupString,
-  // cleanPostalCode,
-  // trimAll,
-  // cleanWildcard,
-  // cleanSuffix,
-  // trimAll,
+  trimAll,
   // dedupLocality(),
   // dedupCounty(),
   // _.replace(/([a-z])(\s+)(Quận|Huyện)/gi, "$1, $3 "),
@@ -416,6 +406,6 @@ export const format = _.flow([
   // _.replace(/\/,/g, ","),
   // _.replace(/\/\s/g, " "), // xoa dau /
   // _.replace(/(\s?trên\s?)(\d+)/gi, "/$2"),
-  // decodeDictionaryWord,
   // trimAll,
+  // cleanSuffix,
 ])

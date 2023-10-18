@@ -378,6 +378,14 @@ describe("test api", () => {
       "Phở Nam Định, 123 d Hải Hậu, t Nam Định, h Hải Hậu, x Hải Châu, xa Hải Châu, huyen Hải Hậu, t.Nam Định, duong hải hậu huyện hải hậu xã hải châu tinh nam dinh f14 q10 tphcm vn",
       "Phở Nam Định, 123 Đường Hải Hậu, Xã Hải Châu, Huyện Hải Hậu, Nam Định, Việt Nam",
     ],
+    [
+      "Phở Nam Định, 123 đường Gì Đó, Hải Châu, Something, huyện Hải Hậu, Something Else, Nam Định",
+      "Phở Nam Định, 123 Đường Gì Đó, Hải Châu, Something, Huyện Hải Hậu, Something Else, Nam Định, Việt Nam",
+    ],
+    [
+      "Phở Nam Định, 123 đường Gì Đó, xã Hải Châu, Something, huyện Hải Hậu, Quận 10, Something Else, Phường 14",
+      "Phở Nam Định, 123 Đường Gì Đó, Xã Hải Châu, Something, Huyện Hải Hậu, Something Else",
+    ],
   ])("Formated text should be correct: '%s'", async (text, result) => {
     expect(formatAddress(text)).toBe(result)
   })

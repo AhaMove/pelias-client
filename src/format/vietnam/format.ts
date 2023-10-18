@@ -42,25 +42,25 @@ const decodeDictionaryWord = (text: string) => {
 }
 
 const cleanAddress = _.flow([
+  _.replace(/(?<=^|\W)(Vietnam|Việt Nam|Viet Nam|VN|ViệtNam)(?=$|\W)/gi, ""),
+  _.replace(/(?<=^|\W)(Đ\/c|đ\/c|Đc|đc|Địa Chỉ|địa chỉ|D\/c|Dc|Dia Chi)(?=$|\W)/gi, ""),
   _.replace(/(?<=^|\W)\d{5,6}(?=$|\W)/gi, " "), // clean VN postal code
   _.replace(/(?<=^|\W)(\+84|0)(9|8|1[2689])([0-9]{8})(?=$|\W)/g, " "), // xoá số điện thoại Việt Nam
   _.replace(/["\\()]/g, " "), // remove common non-related symbols such as " \ ( )
   _.replace(/[\n\t]/g, " "), // remove common escape sequences: \n, \t
-  _.replace(/^[,.\-'/]+/, ""), //remove preceding symbols such as , . - ' /
+  _.replace(/^\s*[,.\-'/]+/, ""), //remove preceding symbols such as , . - ' /
   _.replace(/;/g, ","),
-  _.replace(/(?<=^|\W)(Vietnam|Việt Nam|Viet Nam|VN|ViệtNam)(?=$|\W)/gi, ""),
-  _.replace(/(?<=^|\W)(Đ\/c|đ\/c|Đc|đc|Địa Chỉ|địa chỉ|D\/c|Dc|Dia Chi)(?=$|\W)/gi, ""),
   _.replace(
-    /^(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)\s+([A-Z]?[0-9])/i,
+    /^\s*(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)\s+([A-Z]?[0-9])/i,
     "$2"
   ),
   _.replace(
     /(?<=^|\W)(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)([0-9])/gi,
     "$1 $2"
   ),
-  _.replace(/^([A-Z]?[0-9][A-Z\-/0-9]*)([\s,]*)/i, "$1 "), // xoá dấu , kề sau số nhà
-  _.replace(/(?<=^|\W)Gần .*?(?=$|,)/gi, " "), // xoá "gần ..."
   _.replace(/(\s+trên\s+)(\d+)/gi, "/$2"), // 2 trên 3 -> 2/3
+  _.replace(/^\s*([A-Z]?[0-9][A-Z\-/0-9]*)([\s,]*)/i, "$1 "), // xoá dấu , kề sau số nhà
+  _.replace(/(?<=^|\W)Gần .*?(?=$|,)/gi, " "), // xoá "gần ..."
   
   _.replace(
     /^([a-z0-9]*)(\s?-\s?)([a-z0-9]*)(,?\s)([a-z0-9]*)(\s?-\s?)([a-z0-9]*)/i,
@@ -81,7 +81,6 @@ const cleanAddress = _.flow([
       }),
       _.replace(/([0-9]+)(-)([0-9]+)(-)([0-9]+)/, "$1@$3@$5"),
       _.replace(/([0-9]+)(-)([0-9]+)/, "$1@$3"),
-      _.replace(/\s?-\s?/g, ", "),
       _.replace(/(\d)-/g, "$1,"),
       _.replace("%", number),
     ])(str)
@@ -102,9 +101,9 @@ const sanitizeWithoutFirst = (
 ) => (text: string) => {
   const [p1, ...rest] = text.split(",")
 
-  if (rest.length === 0) {
-    return text
-  }
+  // if (rest.length === 0) {
+  //   return text
+  // }
 
   const formatted = rest.join(",").replace(regex, replacement)
 
@@ -149,7 +148,8 @@ const sanitizeLocality = _.flow([
   }),
   sanitizeWithoutFirst(/(?<=^|\W)(Phường\s|Phuong\s|P\s|P\.|F\s|F\.)/gi, ", Phường "),
   sanitizeWithoutFirst(/(?<=^|\W)[pf](\d{1,2})(?=$|\W)/gi, ", Phường $1, "),
-  sanitizeWithoutFirst(/(?<=^|\W)(Xã\s|Xa\s|X\s|X\.)/gi, ", Xã "),
+  sanitizeWithoutFirst(/(?<=^|\W)(X\s|X\.)/gi, ", Xã "),
+  sanitizeWithoutFirst(/(?<=^|\W)(?<!Thị\s)(Xã\s|Xa\s)/gi, ", Xã "),
   sanitizeWithoutFirst(/(?<=^|\W)(Thị Trấn\s|Thi Tran\s|Tt\s|Tt\.)/gi, ", Thị Trấn "),
 ])
 

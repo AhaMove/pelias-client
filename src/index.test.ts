@@ -343,7 +343,7 @@ describe("test api", () => {
       "7/28 Đường Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
     [
-      "Đ/c /12/34 địa chỉ Lý Thường Kiệt gần chùa Gia Lào đối diện bưu cục GHN, F12, Q 5, HCM",
+      "Đ/c /12/34 địa chỉ Lý Thường Kiệt gần chùa Gia Lào đối diện bưu cục GHN / F12 / Q 5 / HCM",
       "12/34 Lý Thường Kiệt, Phường 12, Quận 05, Hồ Chí Minh, Việt Nam",
     ],
     [
@@ -351,8 +351,8 @@ describe("test api", () => {
       "A12-13/4 Ngõ 5 Ngách 6 Hẻm 7 Lý Thường Kiệt, Phường 12, Quận 05, Hồ Chí Minh, Việt Nam",
     ],
     [
-      "7/28 Thành Thái street, Ward 14, District 10, HCM Province",
-      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "tháp Bảo Đại, 7/28 Thành Thái street, Ward 14, District 10, HCM Province",
+      "Tháp Bảo Đại, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
     [
       "7/28 Thành Thái street, xa Hải Châu, Huyen Hải Hậu, t.Nam Định",

@@ -58,7 +58,7 @@ const cleanAddress = _.flow([
   _.replace(/["\\()]/g, " "), // remove common non-related symbols such as " \ ( )
   _.replace(/[\n\t]/g, " "), // remove common escape sequences: \n, \t
   _.replace(/^\s*[,.\-'/]+/, ""), //remove preceding symbols such as , . - ' /
-  _.replace(/;/g, ","),
+  _.replace(/(;|\s\/\s)/g, " , "), // replace ; and / with ,
   _.replace(
     /^\s*(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)\s+([A-Z]?[0-9])/i,
     "$2"
@@ -158,10 +158,8 @@ const sanitizeLocality = _.flow([
 
     return ", " + p2 + ", "
   }),
-  sanitizeWithoutFirst(
-    /(?<=^|\W)(Phường\s|Phuong\s|P\s|P\.|F\s|F\.)/gi,
-    ", Phường "
-  ),
+  sanitizeWithoutFirst(/(?<=^|\W)(Phường\s|Phuong\s|F\s|F\.)/gi, ", Phường "),
+  sanitizeWithoutFirst(/(?<=^|,|\s)(P\s|P\.)/gi, ", Phường "),
   sanitizeWithoutFirst(/(?<=^|\W)[pf](\d{1,2})(?=$|\W)/gi, ", Phường $1, "),
   sanitizeWithoutFirst(/(?<=^|\W)(X\s|X\.)/gi, ", Xã "),
   sanitizeWithoutFirst(/(?<=^|\W)(?<!Thị\s)(Xã\s|Xa\s)/gi, ", Xã "),

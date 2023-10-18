@@ -6,14 +6,17 @@ import deaccents from "src/format/vietnam/deaccents"
 
 const dedupSpaces = _.replace(/\s+/g, " ")
 
-const trimAll = _.flow([_.split(","), _.map(_.trim), _.filter((_) => _ != ""), _.join(", ")])
+const trimAll = _.flow([
+  _.split(","),
+  _.map(_.trim),
+  _.filter((_) => _ != ""),
+  _.join(", "),
+])
 
 const capitalizeAll = _.flow([
   _.split(","),
-  _.map(
-    _.flow([_.trim, _.split(" "), _.map(_.upperFirst), _.join(" ")])
-  ),
-  _.join(", ")
+  _.map(_.flow([_.trim, _.split(" "), _.map(_.upperFirst), _.join(" ")])),
+  _.join(", "),
 ])
 
 const dedupString = _.flow([
@@ -23,7 +26,10 @@ const dedupString = _.flow([
 ])
 
 const sanitizeStreet = _.flow([
-  _.replace(/(?<=^|\W)(Đường\s|đường\s|Duong\s|Đ\s|đ\s|Đ\.|đ\.|D\s|D\.)/gi, " Đường "),
+  _.replace(
+    /(?<=^|\W)(Đường\s|đường\s|Duong\s|Đ\s|đ\s|Đ\.|đ\.|D\s|D\.)/gi,
+    " Đường "
+  ),
   _.replace(/(?<=^|\W)(Street|Road)(?=$|\W)/gi, ", "),
 ])
 
@@ -43,7 +49,10 @@ const decodeDictionaryWord = (text: string) => {
 
 const cleanAddress = _.flow([
   _.replace(/(?<=^|\W)(Vietnam|Việt Nam|Viet Nam|VN|ViệtNam)(?=$|\W)/gi, ""),
-  _.replace(/(?<=^|\W)(Đ\/c|đ\/c|Đc|đc|Địa Chỉ|địa chỉ|D\/c|Dc|Dia Chi)(?=$|\W)/gi, ""),
+  _.replace(
+    /(?<=^|\W)(Đ\/c|đ\/c|Đc|đc|Địa Chỉ|địa chỉ|D\/c|Dc|Dia Chi)(?=$|\W)/gi,
+    ""
+  ),
   _.replace(/(?<=^|\W)\d{5,6}(?=$|\W)/gi, " "), // clean VN postal code
   _.replace(/(?<=^|\W)(\+84|0)(9|8|1[2689])([0-9]{8})(?=$|\W)/g, " "), // xoá số điện thoại Việt Nam
   _.replace(/["\\()]/g, " "), // remove common non-related symbols such as " \ ( )
@@ -61,7 +70,7 @@ const cleanAddress = _.flow([
   _.replace(/(\s+trên\s+)(\d+)/gi, "/$2"), // 2 trên 3 -> 2/3
   _.replace(/^\s*([A-Z]?[0-9][A-Z\-/0-9]*)([\s,]*)/i, "$1 "), // xoá dấu , kề sau số nhà
   _.replace(/(?<=^|\W)Gần .*?(?=$|,)/gi, " "), // xoá "gần ..."
-  
+
   _.replace(
     /^([a-z0-9]*)(\s?-\s?)([a-z0-9]*)(,?\s)([a-z0-9]*)(\s?-\s?)([a-z0-9]*)/i,
     "$1@$3$4$5@$7"
@@ -119,7 +128,10 @@ const sanitizeWithoutFirst = (
 const sanitizeRegion = _.flow([
   sanitizeWithoutFirst(/(?<=^|\W)City(?=$|\W)/gi, ","),
   sanitizeWithoutFirst(/(?<=^|\W)Province(?=$|\W)/gi, ","),
-  sanitizeWithoutFirst(/(?<=^|\W)(Thành Phố\s|Thanh Pho\s|Tp\s|Tp\.)/gi, ", Thành Phố "),
+  sanitizeWithoutFirst(
+    /(?<=^|\W)(Thành Phố\s|Thanh Pho\s|Tp\s|Tp\.)/gi,
+    ", Thành Phố "
+  ),
   sanitizeWithoutFirst(/(?<=^|\W)(Tỉnh\s|Tinh\s)/gi, ", Tỉnh "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(T\s|T\.)/gi, ", Tỉnh "),
 ])
@@ -146,11 +158,17 @@ const sanitizeLocality = _.flow([
 
     return ", " + p2 + ", "
   }),
-  sanitizeWithoutFirst(/(?<=^|\W)(Phường\s|Phuong\s|P\s|P\.|F\s|F\.)/gi, ", Phường "),
+  sanitizeWithoutFirst(
+    /(?<=^|\W)(Phường\s|Phuong\s|P\s|P\.|F\s|F\.)/gi,
+    ", Phường "
+  ),
   sanitizeWithoutFirst(/(?<=^|\W)[pf](\d{1,2})(?=$|\W)/gi, ", Phường $1, "),
   sanitizeWithoutFirst(/(?<=^|\W)(X\s|X\.)/gi, ", Xã "),
   sanitizeWithoutFirst(/(?<=^|\W)(?<!Thị\s)(Xã\s|Xa\s)/gi, ", Xã "),
-  sanitizeWithoutFirst(/(?<=^|\W)(Thị Trấn\s|Thi Tran\s|Tt\s|Tt\.)/gi, ", Thị Trấn "),
+  sanitizeWithoutFirst(
+    /(?<=^|\W)(Thị Trấn\s|Thi Tran\s|Tt\s|Tt\.)/gi,
+    ", Thị Trấn "
+  ),
 ])
 
 const transformAll = function (text: string) {
@@ -159,12 +177,14 @@ const transformAll = function (text: string) {
     .map((item) => item.trim())
     .filter((item) => item !== "")
 
-  let locality = "", county = "", region = ""
+  let locality = "",
+    county = "",
+    region = ""
   const regexLocality = new RegExp("^(Phường|Xã|Thị Trấn)", "i")
   const regexCounty = new RegExp("^(Quận|Huyện|Thị Xã)", "i")
-  
+
   for (let i = 0; i < arr.length; i++) {
-    const item = arr[i];
+    const item = arr[i]
     if (regexLocality.test(item)) {
       if (locality == "") {
         locality = item
@@ -175,7 +195,7 @@ const transformAll = function (text: string) {
   }
 
   for (let i = 0; i < arr.length; i++) {
-    const item = arr[i];
+    const item = arr[i]
     if (regexCounty.test(item)) {
       if (county == "") {
         county = item
@@ -187,7 +207,7 @@ const transformAll = function (text: string) {
 
   const regionKeys = Object.keys(regex)
   for (let i = 0; i < arr.length; i++) {
-    const item = arr[i];
+    const item = arr[i]
     if (regionKeys.includes(item)) {
       if (region == "") {
         region = item
@@ -198,22 +218,22 @@ const transformAll = function (text: string) {
   }
 
   text = arr.filter((item) => item !== "").join(", ")
-  
+
   if (locality != "" && county != "" && region != "") {
     arr = text
-    .split(",")
-    .map((item) => item.trim())
-    .filter((item) => item !== "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item !== "")
 
     text = ""
 
     for (let i = 0; i < arr.length; i++) {
-      const item = arr[i];
+      const item = arr[i]
       if (item != locality && item != county && item != region) {
         text += item + ", "
       } else {
         break
-      }    
+      }
     }
 
     text += locality + ", " + county + ", " + region
@@ -230,19 +250,19 @@ const transformAll = function (text: string) {
 
 const transformAbbreviations = (text: string) => {
   for (const [key, value] of Object.entries(abbreviations)) {
-    const re = new RegExp(value, "gi");
-    text = text.replace(re, key);
+    const re = new RegExp(value, "gi")
+    text = text.replace(re, key)
   }
-  
+
   return text
 }
 
 const transformRegion = (text: string) => {
   for (const [key, value] of Object.entries(regex)) {
-    const re = new RegExp(value, "gi");
-    text = text.replace(re, key);
+    const re = new RegExp(value, "gi")
+    text = text.replace(re, key)
   }
-  
+
   return text
 }
 

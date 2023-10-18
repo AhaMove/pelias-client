@@ -307,7 +307,7 @@ describe("test api", () => {
       size: 10,
     })
 
-    resp.features.forEach((feature, index) => {
+    resp.features.forEach((feature) => {
       expect(feature.properties.name).not.toContain(badResult)
     })
   })
@@ -324,35 +324,59 @@ describe("test api", () => {
       size: 10,
     })
 
-    resp.features.forEach((feature, index) => {
+    resp.features.forEach((feature) => {
       expect(feature.properties.distance).toBeLessThan(1)
     })
   })
 
   test.each([
     [
-      "7/28 Thành Thái, F.14, Q.10, HCM, VN",
-      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Rivera Park, 7/28 Thành Thái, F.14, Q.10, HCM, VN",
+      "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
     [
-      "Số nhà 7/28 \", đường Thành Thái \\, Phường 14 () ( ), Quận 10   , thành phố Hồ Chí Minh \t , Việt   Nam   ",
+      "Gọi cho Khoa +84969284567 Bách Khoa Hà Nội ii, 7/28 CMT8, P14, Q.10, HCM, VN, 70000",
+      "Gọi Cho Khoa Bách Khoa Hà Nội 2, 7/28 Cách Mạng Tháng Tám, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+    ],
+    [
+      "..--''//.-' Số nhà 7/28 \", đường Thành Thái \\, Phường 14 () ( ); Quận 10   ; thành phố Hồ Chí Minh \t , Việt   Nam   ",
       "7/28 Đường Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
     [
-      "/12/34 Lý Thường Kiệt, F.12, Q.5, HCM",
+      "Đ/c /12/34 địa chỉ Lý Thường Kiệt gần chùa Gia Lào đối diện bưu cục GHN, F12, Q 5, HCM",
       "12/34 Lý Thường Kiệt, Phường 12, Quận 05, Hồ Chí Minh, Việt Nam",
     ],
     [
-      "..--''//.-'/12 Lý Thường Kiệt, F.12, Q.5, HCM",
-      "12 Lý Thường Kiệt, Phường 12, Quận 05, Hồ Chí Minh, Việt Nam",
+      "Nhà số A12-13 trên 4, ngõ5 ngách6 hẻm7 Lý Thường Kiệt, P.12, Q5, HCM",
+      "A12-13/4 Ngõ 5 Ngách 6 Hẻm 7 Lý Thường Kiệt, Phường 12, Quận 05, Hồ Chí Minh, Việt Nam",
     ],
     [
-      "7/28 d.Thành Thái, F.14, Q.10, HCM, VN",
-      "7/28 Đường Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "7/28 Thành Thái street, Ward 14, District 10, HCM Province",
+      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
     [
-      "Rivera Park, 7/28 đ. Thành Thái",
-      "Rivera Park, 7/28 Đường Thành Thái",
+      "7/28 Thành Thái street, xa Hải Châu, Huyen Hải Hậu, t.Nam Định",
+      "7/28 Thành Thái, Xã Hải Châu, Huyện Hải Hậu, Nam Định, Việt Nam",
+    ],
+    [
+      "7/28 Thành Thái road, x.Hải Châu, Tp.Nam Định, tỉnh Nam Định",
+      "7/28 Thành Thái, Xã Hải Châu, Thành Phố Nam Định, Nam Định, Việt Nam",
+    ],
+    [
+      "7/28 đ Thành Thái tt. Long Khánh Tx Long Khánh tỉnh Đồng Nai",
+      "7/28 Đường Thành Thái, Thị Trấn Long Khánh, Thị Xã Long Khánh, Đồng Nai, Việt Nam",
+    ],
+    [
+      "7/28 d.Thành Thái Tt Thịnh Long H Hải Hậu t Nam Định",
+      "7/28 Đường Thành Thái, Thị Trấn Thịnh Long, Huyện Hải Hậu, Nam Định, Việt Nam",
+    ],
+    [
+      "Phở Nam Định, d Thủ Đức, p1, d.Thủ Đức, thành phố Thủ Đức,thành phố Hồ Chí Minh, tỉnh Nam Định, Hồ Chí Minh City, Nam Định ",
+      "Phở Nam Định, Đường Thủ Đức, Phường 01, Thành Phố Thủ Đức, Hồ Chí Minh, Việt Nam",
+    ],
+    [
+      "Phở Nam Định, 123 d Hải Hậu, t Nam Định, h Hải Hậu, x Hải Châu, xa Hải Châu, huyen Hải Hậu, t.Nam Định, duong hải hậu huyện hải hậu xã hải châu tinh nam dinh f14 q10 tphcm vn",
+      "Phở Nam Định, 123 Đường Hải Hậu, Xã Hải Châu, Huyện Hải Hậu, Nam Định, Việt Nam",
     ],
   ])("Formated text should be correct: '%s'", async (text, result) => {
     expect(formatAddress(text)).toBe(result)

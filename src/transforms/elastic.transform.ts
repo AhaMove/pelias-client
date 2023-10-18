@@ -1,5 +1,5 @@
 import * as _ from "lodash/fp"
-import { extract, format } from "src/format/vietnam"
+import { extract } from "src/format/vietnam"
 import { NearbyParams } from "src/resources/nearby.params"
 import { CountModel } from "src/models/count.model"
 import { AddressParts } from "src/models/address-parts.model"

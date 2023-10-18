@@ -153,12 +153,12 @@ export const isAddress = (text: string): RegExpMatchArray | null => {
   let firstPart = text.split(",")[0].trim()
   firstPart = firstPart
     .replace(
-      /^(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)\s+([A-Z]?[0-9]+)/i,
+      /^(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)\s+([A-Z]?[0-9])/i,
       "$2"
     )
     .trim()
 
-  return firstPart.match(/^[A-Z]?[0-9]+[A-Z\-/0-9]*(?:[ ]|$)/i)
+  return firstPart.match(/^[A-Z]?[0-9][A-Z\-/0-9]*(?=\s|$)/i)
 }
 
 export const extractVenue = (text: string): string => {

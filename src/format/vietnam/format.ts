@@ -106,7 +106,7 @@ const addLeadingZero = _.flow([
 const sanitizeWithoutFirst = (
   regex: RegExp,
   replacement: string,
-  maxLength = 20
+  maxLength = 19
 ) => (text: string) => {
   const [p1, ...rest] = text.split(",")
 
@@ -116,7 +116,7 @@ const sanitizeWithoutFirst = (
 
   const formatted = rest.join(",").replace(regex, replacement)
 
-  if (p1.length > maxLength) {
+  if (p1.length >= maxLength) {
     const formattedP1 = p1.replace(regex, replacement)
 
     return [formattedP1].concat(formatted).join(",")
@@ -271,13 +271,12 @@ export const format = _.flow([
   cleanAddress,
   decodeDictionaryWord,
   dedupSpaces,
-  sanitizeRegion,
-  sanitizeCounty,
-  sanitizeLocality,
-  addLeadingZero,
   sanitizeStreet,
+  sanitizeLocality,
+  sanitizeCounty,
+  addLeadingZero,
+  sanitizeRegion,
   dedupSpaces,
-  trimAll,
   capitalizeAll,
   transformRegion,
   dedupString,

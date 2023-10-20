@@ -386,6 +386,10 @@ describe("test api", () => {
       "Phở Nam Định, 123 đường Gì Đó, xã Hải Châu, Something, huyện Hải Hậu, Quận 10, Something Else, Phường 14",
       "Phở Nam Định, 123 Đường Gì Đó, Xã Hải Châu, Something, Huyện Hải Hậu, Something Else",
     ],
+    [
+      "7 âu cơ f14 q11 hcm",
+      "7 Âu Cơ, Phường 14, Quận 11, Hồ Chí Minh, Việt Nam"
+    ]
   ])("Formated text should be correct: '%s'", async (text, result) => {
     expect(formatAddress(text)).toBe(result)
   })

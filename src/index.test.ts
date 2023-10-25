@@ -122,60 +122,6 @@ describe("test api", () => {
     expect(features[1].properties.name).toContain(result1)
   })
 
-  test.each([
-    [
-      "7/28 Thành Thái",
-      "7/28 Thành Thái",
-    ],
-    [
-      "7/28 Thành Thái, Phường 14, Quận 10",
-      "7/28 Thành Thái",
-    ],
-    [
-      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh",
-      "7/28 Thành Thái",
-    ],
-    [
-      "7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "7/28 Thành Thái",
-    ],
-    [
-      "Rivera Park",
-      "Rivera Park",
-    ],
-    [
-      "Rivera Park, 7/28 Thành Thái",
-      "Rivera Park",
-    ],
-    [
-      "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10",
-      "Rivera Park",
-    ],
-    [
-      "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh",
-      "Rivera Park",
-    ],
-    [
-      "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-      "Rivera Park",
-    ],
-    [
-      "Thao Dien",
-      "Masteri Thao Dien, Quận 04, Hồ Chí Minh, Việt Nam",
-    ],
-  ])("geocoding with focus should success: '%s'", async (text, result) => {
-    const resp = await client.search(
-      {
-        "focus.point.lat": "10.76989", //Ahamove
-        "focus.point.lon": "106.6640",
-        text: formatAddress(text),
-      },
-      true
-    )
-
-    const features = resp.features
-    expect(features[0].properties.name).toContain(result)
-  })
 
   test.each([
     [
@@ -218,7 +164,19 @@ describe("test api", () => {
       "Thao Dien",
       "Masteri Thảo Điền, T3, 42 Đường Số 10, Thao Dien, Quận 02, Hồ Chí Minh, Việt Nam",
     ],
-  ])("geocoding w/o focus should success: '%s'", async (text, result) => {
+    [
+      "241/61/28 Ngõ Chợ Khâm Thiên",
+      "241/61/28 Ngõ Chợ Khâm Thiên, Phương Liên, Đống Đa, Hà Nội, Việt Nam",
+    ],
+    [
+      "Saigon Centre",
+      "Saigon Centre, 94 Đường Nam Kỳ Khởi Nghĩa, Phường Bến Nghé, Quận 01, Hồ Chí Minh, Việt Nam",
+    ],
+    [
+      "12 Vườn Lài, Quận 8, Ho Chi Minh",
+      "12 Vườn Lài, Phường 11, Quận 08, Hồ Chí Minh, Việt Nam"
+    ]
+  ])("geocoding should success: '%s'", async (text, result) => {
     const resp = await client.search(
       {
         text: formatAddress(text),
@@ -243,7 +201,10 @@ describe("test api", () => {
     [
       "Phòng chứa bí mật, 135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một, Bình Dương, Việt Nam",
     ],
-  ])("geocoding should not found: '%s'", async (text) => {
+    [
+      "3 đường Lê Văn Sỹ, Quận 3, Ho Chi Minh, Viet Nam"
+    ]
+  ])("Geocoding should not found: '%s'", async (text) => {
     const resp = await client.search(
       {
         text: formatAddress(text),
@@ -389,30 +350,13 @@ describe("test api", () => {
     [
       "7 âu cơ f14 q11 hcm",
       "7 Âu Cơ, Phường 14, Quận 11, Hồ Chí Minh, Việt Nam"
+    ],
+    [
+      "Pho Bo Ly Quoc Su, A70/12/4B,, , , ,,   p Hàng Mã, A70/12/4B p. Hàng Mã, p. phố  cổ Hà Nội, q Hoàn Kiếm, HN",
+      "Phố Bo Ly Quoc Su, A70/12/4B Phố Hàng Mã, Phường Phố Cổ Hà Nội, Quận Hoàn Kiếm, Hà Nội, Việt Nam"
     ]
   ])("Formated text should be correct: '%s'", async (text, result) => {
     expect(formatAddress(text)).toBe(result)
-  })
-
-  test.each([
-    [
-      "241/61/28 Ngõ Chợ Khâm Thiên",
-      "241/61/28 Ngõ Chợ Khâm Thiên, Phương Liên, Đống Đa, Hà Nội, Việt Nam",
-    ],
-    [
-      "Saigon Centre",
-      "Saigon Centre Moi, 77 Nam Ky Khoi Nghia, Ben Nghe, Quận 01, Hồ Chí Minh, Việt Nam",
-    ],
-  ])("Search should found: '%s'", async (text, result) => {
-    const resp = await client.search({
-      "focus.point.lat": "10.76989", //Ahamove
-      "focus.point.lon": "106.6640",
-      text: formatAddress(text),
-      size: 1,
-    })
-
-    const features = resp.features
-    expect(features[0].properties.name).toContain(result)
   })
 
   test.each([

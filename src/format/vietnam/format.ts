@@ -31,6 +31,16 @@ const sanitizeStreet = _.flow([
     " Đường "
   ),
   _.replace(/(?<=^|\W)(Street|Road)(?=$|\W)/gi, ", "),
+  (text: string) => { // handle phố ở Hà Nội
+    if (!text.includes("Hà Nội")) {
+      return text;
+    }
+
+    text =  text.replace(/(?<=^|\W)(Phố\s|Pho\s)/gi, " Phố ");
+    text =  text.replace(/(?<=[A-Z]?[0-9][A-Z\-/0-9]*)[\s,]*(P\s|P\.)/gi, " Phố ");
+    
+    return text
+  }
 ])
 
 const encodeDictionaryWord = (text: string) => {
@@ -271,11 +281,11 @@ export const format = _.flow([
   cleanAddress,
   decodeDictionaryWord,
   dedupSpaces,
+  sanitizeRegion,
   sanitizeStreet,
   sanitizeLocality,
   sanitizeCounty,
   addLeadingZero,
-  sanitizeRegion,
   dedupSpaces,
   capitalizeAll,
   transformRegion,

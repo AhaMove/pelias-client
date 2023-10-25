@@ -77,7 +77,9 @@ export class ElasticTransform {
                   filter: {
                     script: {
                       source:
-                        "interval.start == 0 && interval.end == " + (partCount - 1) + " && interval.gaps == 0",
+                        "interval.start == 0 && interval.end == " +
+                        (partCount - 1) +
+                        " && interval.gaps == 0",
                     },
                   },
                   ordered: true,

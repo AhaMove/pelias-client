@@ -25,7 +25,7 @@ const findRegion = (text: string) => {
   return ""
 }
 
-const findCounty = (text: string) => {
+export const findCounty = (text: string) => {
   const arr = text.split(",")
   let county = ""
   let index = -1
@@ -49,7 +49,7 @@ const findCounty = (text: string) => {
   }
 }
 
-const findLocality = (text: string) => {
+export const findLocality = (text: string) => {
   const arr = text.split(",")
   let locality = ""
   let index = -1

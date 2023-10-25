@@ -4,6 +4,7 @@ import * as _ from "lodash/fp"
 import { PeliasFeatureModel } from "src/models/pelias-feature.model"
 import { DocumentModel } from "src/models/document.model"
 import { ResponseModel } from "src/models/response.model"
+import { findCounty, findLocality } from "src/format/vietnam"
 
 type FeatureOps = {
   points?: Position
@@ -27,7 +28,7 @@ export class PeliasTransform {
 
   static getHits<T extends DocumentModel>(
     hits: Array<ResponseModel<T>>,
-    geocode: boolean
+    geocode = false
   ): Array<ResponseModel<T>> {
     if (geocode) {
       if (hits.length > 0) {

@@ -59,15 +59,40 @@ export class ElasticTransform {
           return null
         }
 
-        let analyzer = "peliasQuery"
         if (newKey == "address_parts.number") {
-          analyzer = "peliasHousenumber"
+          // replace all non-number character into space for value string
+          value = value.replace(/[^0-9]/g, " ")
+          // dedup space for value string
+          value = value.replace(/\s+/g, " ")
+          // trim space for value string
+          value = value.trim()
+          // count parts separated by space in value string
+          const partCount = value.split(/\s+/).length
+
+          return {
+            intervals: {
+              [newKey]: {
+                match: {
+                  query: value,
+                  filter: {
+                    script: {
+                      source:
+                        "interval.start == 0 && interval.end == " +
+                        (partCount - 1) +
+                        " && interval.gaps == 0",
+                    },
+                  },
+                  ordered: true,
+                },
+              },
+            },
+          }
         }
 
         return {
           match_phrase: {
             [newKey]: {
-              analyzer: analyzer,
+              analyzer: "peliasQuery",
               query: value,
             },
           },
@@ -82,7 +107,7 @@ export class ElasticTransform {
       bool: {
         must: [],
         should: ElasticTransform.createShouldClauses({ parsedText }),
-        minimum_should_match: "3<-1",
+        minimum_should_match: "100%",
       },
     }
 

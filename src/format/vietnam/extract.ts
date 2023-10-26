@@ -118,6 +118,10 @@ const extractAddress = (text: string) => {
     }
   }
 
+  if (!number.replace(/[^a-z0-9À-ỹ]/gi, "")) {
+    number = ""
+  }
+
   if (arr.length === 1) {
     address = arr[0] || ""
   }
@@ -167,7 +171,7 @@ export const extractVenue = (text: string): string => {
   }
 
   const venue = text.split(",")[0]
-  if (!venue.replace(/[^\w]/gi, "")) {
+  if (!venue.replace(/[^a-z0-9À-ỹ]/gi, "")) {
     return ""
   }
 

@@ -12,8 +12,8 @@ type FeatureOps = {
 }
 
 export interface AdminAreas {
-  county: string,
-  locality: string,
+  county: string
+  locality: string
 }
 
 export class PeliasTransform {
@@ -52,7 +52,7 @@ export class PeliasTransform {
 
       for (let i = 0; i < hits.length; i++) {
         const nameDefault = deaccents(hits[i]._source.name.default)
-        
+
         if (adminAreas.county) {
           if (!nameDefault.includes(adminAreas.county)) {
             continue

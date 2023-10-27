@@ -86,7 +86,11 @@ export class PeliasClient<
    * @param params
    * @param geocode
    */
-  async search(params: SearchParams, geocode = false, adminMatch = false): Promise<PeliasResponse> {
+  async search(
+    params: SearchParams,
+    geocode = false,
+    adminMatch = false
+  ): Promise<PeliasResponse> {
     const { text, size = 10, count_terminate_after = 500 } = params
 
     const countFunc = async (
@@ -124,11 +128,13 @@ export class PeliasClient<
     })
 
     const hits = result.body.hits.hits
-    const adminAreas: AdminAreas | undefined = adminMatch? {
-      county: parsedText.county,
-      locality: parsedText.locality,
-    }: undefined
-    
+    const adminAreas: AdminAreas | undefined = adminMatch
+      ? {
+          county: parsedText.county,
+          locality: parsedText.locality,
+        }
+      : undefined
+
     const data = PeliasTransform.filterHits(hits, geocode, adminAreas)
     // console.log("Hits:\n", JSON.stringify(data, null, 2))
 

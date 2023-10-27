@@ -111,11 +111,11 @@ const cleanAddress = _.flow([
   _.replace(/@/g, "-"),
 ])
 
-const addLeadingZero = _.flow([
-  _.replace(/(Quận|Phường)(\s+)(\d+)/gi, (_, p1, p2, p3) => {
+const addLeadingZero = function (text: string) {
+  return _.replace(/(Quận|Phường)(\s+)(\d+)/gi, (_, p1, p2, p3) => {
     return p1 + " " + p3.trim().padStart(2, "0")
-  }),
-])
+  })(text)
+}
 
 const sanitizeWithoutFirst = (
   regex: RegExp,
@@ -164,6 +164,11 @@ const sanitizeCounty = _.flow([
   sanitizeWithoutFirst(/(?<=^|\W)(Thị Xã\s|Thi Xa\s|Tx\s|Tx\.)/gi, ", Thị Xã "),
 ])
 
+export const removeCountyPrefix = function (county: string) {
+  // remove "Quận" "Huyện" "Thị Xã" from county string
+  return county.replace(/(?<=^|\W)(Quận\s|Huyện\s|Thị Xã\s)/gi, "").trim()
+}
+
 const sanitizeLocality = _.flow([
   _.replace(/(Ward((?:(?!Ward).)*?(?=,|$)))/gi, (_, p1, p2) => {
     if (p2 && !isNaN(p2)) {
@@ -182,6 +187,11 @@ const sanitizeLocality = _.flow([
     ", Thị Trấn "
   ),
 ])
+
+export const removeLocalityPrefix = function (locality: string) {
+  // remove "Phường" "Xã" "Thị Trấn" from locality string
+  return locality.replace(/(?<=^|\W)(Phường\s|Xã\s|Thị Trấn\s)/gi, "").trim()
+}
 
 const transformAll = function (text: string) {
   let arr = text

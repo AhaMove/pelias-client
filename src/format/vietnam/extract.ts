@@ -98,7 +98,7 @@ const extractAddress = (text: string) => {
   let street: string
   let address = arr[0] || ""
 
-  const data = /^([0-9A-Ha-h/-]+.)(,|\s)((?:.)*?(?=,))/g.exec(text)
+  const data = /^([A-Z]?[0-9][A-Z\-/0-9]*)([,\s]+)((?:.)*?(?=,))/gi.exec(text)
 
   if (data) {
     number = data[1]
@@ -118,7 +118,7 @@ const extractAddress = (text: string) => {
     }
   }
 
-  if (!number.replace(/[^a-z0-9À-ỹ]/gi, "")) {
+  if (!number.replace(/[^0-9]/gi, "")) {
     number = ""
   }
 

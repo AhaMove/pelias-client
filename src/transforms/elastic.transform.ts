@@ -68,6 +68,9 @@ export class ElasticTransform {
           value = value.trim()
           // count parts separated by space in value string
           const partCount = value.split(/\s+/).length
+          if (!value) {
+            return null
+          }
 
           return {
             intervals: {

@@ -181,6 +181,7 @@ describe("test api", () => {
       {
         text: formatAddress(text),
       },
+      true,
       true
     )
 
@@ -203,12 +204,25 @@ describe("test api", () => {
     ],
     [
       "3 đường Lê Văn Sỹ, Quận 3, Ho Chi Minh, Viet Nam"
+    ],
+    [
+      "532 Lê Văn Sỹ, Phường 14, Quận 3, Hồ Chí Minh, Vietnam"
+    ],
+    [
+      "532 Le Van Sy, Phuong 14, Quan 3, Ho Chi Minh, Vietnam"
+    ],
+    [
+      "402/19 Lê Văn Sỹ, Phường 13, Quận Phú Nhuận, Hồ Chí Minh, Vietnam"
+    ],
+    [
+      "402/19 Le Van Sy, Phuong 13, Quan Phu Nhuan, Ho Chi Minh, Vietnam"
     ]
   ])("Geocoding should not found: '%s'", async (text) => {
     const resp = await client.search(
       {
         text: formatAddress(text),
       },
+      true,
       true
     )
 

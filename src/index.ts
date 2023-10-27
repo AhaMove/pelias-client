@@ -1,5 +1,5 @@
 import { ElasticTransform } from "src/transforms/elastic.transform"
-import { PeliasTransform } from "src/transforms/pelias.transform"
+import { PeliasTransform, AdminAreas } from "src/transforms/pelias.transform"
 import { NearbyParams } from "src/resources/nearby.params"
 import { SearchByNameParams, SearchParams } from "src/resources/search.params"
 import { AddressParts } from "src/models/address-parts.model"
@@ -86,7 +86,7 @@ export class PeliasClient<
    * @param params
    * @param geocode
    */
-  async search(params: SearchParams, geocode = false): Promise<PeliasResponse> {
+  async search(params: SearchParams, geocode = false, adminMatch = false): Promise<PeliasResponse> {
     const { text, size = 10, count_terminate_after = 500 } = params
 
     const countFunc = async (
@@ -124,17 +124,18 @@ export class PeliasClient<
     })
 
     const hits = result.body.hits.hits
-    //sort hits by _score in desc order. This make sure the most term relevant results are returned first
-    hits.sort((a, b) => b._score - a._score)
+    const adminAreas: AdminAreas | undefined = adminMatch? {
+      county: parsedText.county,
+      locality: parsedText.locality,
+    }: undefined
+    
+    const data = PeliasTransform.filterHits(hits, geocode, adminAreas)
+    // console.log("Hits:\n", JSON.stringify(data, null, 2))
 
     const points = {
       "focus.point.lon": parseFloat(params["focus.point.lon"] || "0"),
       "focus.point.lat": parseFloat(params["focus.point.lat"] || "0"),
     }
-
-    const data = PeliasTransform.getHits(hits, geocode)
-
-    // console.log("Hits:\n", JSON.stringify(data, null, 2))
 
     return {
       geocoding: {
@@ -180,7 +181,7 @@ export class PeliasClient<
     })
 
     const hits = result.body.hits.hits
-    const data = PeliasTransform.getHits(hits, false)
+    const data = PeliasTransform.filterHits(hits)
 
     return {
       geocoding: {
@@ -201,7 +202,7 @@ export class PeliasClient<
     })
 
     const hits = result.body.hits.hits
-    const data = PeliasTransform.getHits(hits, geocode)
+    const data = PeliasTransform.filterHits(hits, geocode)
 
     return {
       geocoding: {

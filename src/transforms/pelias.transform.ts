@@ -4,10 +4,16 @@ import * as _ from "lodash/fp"
 import { PeliasFeatureModel } from "src/models/pelias-feature.model"
 import { DocumentModel } from "src/models/document.model"
 import { ResponseModel } from "src/models/response.model"
-import { findCounty, findLocality } from "src/format/vietnam"
+import deaccents from "src/format/vietnam/deaccents"
+import { removeCountyPrefix, removeLocalityPrefix } from "src/format/vietnam"
 
 type FeatureOps = {
   points?: Position
+}
+
+export interface AdminAreas {
+  county: string,
+  locality: string,
 }
 
 export class PeliasTransform {
@@ -26,14 +32,43 @@ export class PeliasTransform {
     return turf.distance(from, to)
   }
 
-  static getHits<T extends DocumentModel>(
+  static filterHits<T extends DocumentModel>(
     hits: Array<ResponseModel<T>>,
-    geocode = false
+    geocode = false,
+    adminAreas?: AdminAreas
   ): Array<ResponseModel<T>> {
     if (geocode) {
-      if (hits.length > 0) {
-        return [hits[0]]
+      if (!adminAreas) {
+        if (hits.length > 0) {
+          return [hits[0]]
+        }
+        return hits
       }
+
+      adminAreas = {
+        county: deaccents(removeCountyPrefix(adminAreas.county)),
+        locality: deaccents(removeLocalityPrefix(adminAreas.locality)),
+      }
+
+      for (let i = 0; i < hits.length; i++) {
+        const nameDefault = deaccents(hits[i]._source.name.default)
+        
+        if (adminAreas.county) {
+          if (!nameDefault.includes(adminAreas.county)) {
+            continue
+          }
+        }
+
+        if (adminAreas.locality) {
+          if (!nameDefault.includes(adminAreas.locality)) {
+            continue
+          }
+        }
+
+        return [hits[i]]
+      }
+
+      return []
     }
 
     return hits

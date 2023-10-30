@@ -61,7 +61,33 @@ const decodeDictionaryWord = (text: string) => {
   })
 }
 
+const cleanBracketContents = (text: string) => {
+  //cleanBracketContents will remove all content that is inside brackets
+  //There can be many brackets, so we have to remove all content inside all those brackets.
+  //There can be nested brackets, so we only need to remove all content inside the most outer brackets.
+  //Also, in case open bracket does not have a matching close bracket, we will remove all content after that open bracket until the end of the string.
+  //For example: "123 (abc (xyz) def" will be transformed to "123"
+  //For example: "123 (abc (xyz) def) 456" will be transformed to "123 456"
+  
+  let result = ""
+  let count = 0
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i]
+    if (char === "(") {
+      count++
+    } else if (char === ")") {
+      if (count > 0){
+        count--
+      }
+    } else if (count === 0) {
+      result += char
+    }
+  }
+  return result
+}
+
 const cleanAddress = _.flow([
+  cleanBracketContents,
   _.replace(/(?<=^|\W)(Vietnam|Việt Nam|Viet Nam|VN|ViệtNam)(?=$|\W)/gi, ""),
   _.replace(
     /(?<=^|\W)(Đ\/c|đ\/c|Đc|đc|Địa Chỉ|địa chỉ|D\/c|Dc|Dia Chi)(?=$|\W)/gi,
@@ -69,7 +95,7 @@ const cleanAddress = _.flow([
   ),
   _.replace(/(?<=^|\W)\d{5,6}(?=$|\W)/gi, " "), // clean VN postal code
   _.replace(/(?<=^|\W)(\+84|0)(9|8|1[2689])([0-9]{8})(?=$|\W)/g, " "), // xoá số điện thoại Việt Nam
-  _.replace(/["\\()]/g, " "), // remove common non-related symbols such as " \ ( )
+  _.replace(/["\\]/g, " "), // remove common non-related symbols such as " \
   _.replace(/[\n\t]/g, " "), // remove common escape sequences: \n, \t
   _.replace(/^\s*[,.\-'/]+/, ""), //remove preceding symbols such as , . - ' /
   _.replace(/(;|\s\/\s)/g, " , "), // replace ; and / with ,

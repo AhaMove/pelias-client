@@ -368,8 +368,16 @@ describe("test api", () => {
     [
       "Pho Bo Ly Quoc Su, A70/12/4B,, , , ,,   p Hàng Mã, A70/12/4B p. Hàng Mã, p. phố  cổ Hà Nội, q Hoàn Kiếm, HN",
       "Phố Bo Ly Quoc Su, A70/12/4B Phố Hàng Mã, Phường Phố Cổ Hà Nội, Quận Hoàn Kiếm, Hà Nội, Việt Nam"
+    ],
+    [
+      "108A Đường số 14 (mười bốn), Kp7 (không phải Kp9), VN (VN là Việt Nam (just in case) ạ)Hồ Chí Minh Quận Bình Tân Phường Bình Hưng Hòa A (gọi chị Phượng, Hồ Chí Minh, Quận Bình Tân (không phải Tân Bình), Phường Bình Hưng Hòa A.",
+      "108A Đường Số 14, Kp7, Phường Bình Hưng Hòa A, Quận Bình Tân, Hồ Chí Minh, Việt Nam"
+    ],
+    [
+      "9A đường số 4, khu phố 22, phường Bình Hưng Hoà A, Bình Tân, HCM ( gần trường Tiểu học Phù Đổng), Hồ Chí Minh, Quận Bình Tân, Phường Bình Hưng Hòa A.",
+      "9A Đường Số 4, Khu Phố 22, Phường Bình Hưng Hoà A, Quận Bình Tân, Hồ Chí Minh, Việt Nam"
     ]
-  ])("Formated text should be correct: '%s'", async (text, result) => {
+  ])("Formatted text should be correct: '%s'", async (text, result) => {
     expect(formatAddress(text)).toBe(result)
   })
 

@@ -68,7 +68,7 @@ const cleanBracketContents = (text: string) => {
   //Also, in case open bracket does not have a matching close bracket, we will remove all content after that open bracket until the end of the string.
   //For example: "123 (abc (xyz) def" will be transformed to "123"
   //For example: "123 (abc (xyz) def) 456" will be transformed to "123 456"
-  
+
   let result = ""
   let count = 0
   for (let i = 0; i < text.length; i++) {
@@ -76,7 +76,7 @@ const cleanBracketContents = (text: string) => {
     if (char === "(") {
       count++
     } else if (char === ")") {
-      if (count > 0){
+      if (count > 0) {
         count--
       }
     } else if (count === 0) {

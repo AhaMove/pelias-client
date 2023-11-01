@@ -111,30 +111,30 @@ const cleanAddress = _.flow([
   _.replace(/^\s*([A-Z]?[0-9][A-Z\-/0-9]*)([\s,]*)/i, "$1 "), // xoá dấu , kề sau số nhà
   _.replace(/(?<=^|\W)Gần .*?(?=$|,)/gi, " "), // xoá "gần ..."
 
-  _.replace(
-    /^([a-z0-9]*)(\s?-\s?)([a-z0-9]*)(,?\s)([a-z0-9]*)(\s?-\s?)([a-z0-9]*)/i,
-    "$1@$3$4$5@$7"
-  ),
-  (str) => {
-    const re = /^([a-t0-9]+)(-)([a-t0-9]+)/gi
-    const number = str.match(re)
+  // _.replace(
+  //   /^([a-z0-9]*)(\s?-\s?)([a-z0-9]*)(,?\s)([a-z0-9]*)(\s?-\s?)([a-z0-9]*)/i,
+  //   "$1@$3$4$5@$7"
+  // ),
+  // (str) => {
+  //   const re = /^([a-t0-9]+)(-)([a-t0-9]+)/gi
+  //   const number = str.match(re)
 
-    return _.flow([
-      _.replace(new RegExp(number, "gi"), "%"),
-      _.replace(/^([0-9a-z]+)(\s?-\s?)((?:.)*?)(?=,)/gi, (_, p1, p2, p3) => {
-        if (p3.length > 3) {
-          return p1 + " @ " + p3
-        }
+  //   return _.flow([
+  //     _.replace(new RegExp(number, "gi"), "%"),
+  //     _.replace(/^([0-9a-z]+)(\s?-\s?)((?:.)*?)(?=,)/gi, (_, p1, p2, p3) => {
+  //       if (p3.length > 3) {
+  //         return p1 + " @ " + p3
+  //       }
 
-        return p1 + "@" + p3
-      }),
-      _.replace(/([0-9]+)(-)([0-9]+)(-)([0-9]+)/, "$1@$3@$5"),
-      _.replace(/([0-9]+)(-)([0-9]+)/, "$1@$3"),
-      _.replace(/(\d)-/g, "$1,"),
-      _.replace("%", number),
-    ])(str)
-  },
-  _.replace(/@/g, "-"),
+  //       return p1 + "@" + p3
+  //     }),
+  //     _.replace(/([0-9]+)(-)([0-9]+)(-)([0-9]+)/, "$1@$3@$5"),
+  //     _.replace(/([0-9]+)(-)([0-9]+)/, "$1@$3"),
+  //     _.replace(/(\d)-/g, "$1,"),
+  //     _.replace("%", number),
+  //   ])(str)
+  // },
+  // _.replace(/@/g, "-"),
 ])
 
 const addLeadingZero = function (text: string) {

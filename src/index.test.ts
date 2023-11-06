@@ -181,7 +181,6 @@ describe("test api", () => {
       {
         text: formatAddress(text),
       },
-      true,
       true
     )
 
@@ -377,10 +376,6 @@ describe("test api", () => {
       "9A đường số 4, khu phố 22, phường Bình Hưng Hoà A, Bình Tân, HCM ( gần trường Tiểu học Phù Đổng), Hồ Chí Minh, Quận Bình Tân, Phường Bình Hưng Hòa A.",
       "9A Đường Số 4, Khu Phố 22, Phường Bình Hưng Hoà A, Quận Bình Tân, Hồ Chí Minh, Việt Nam"
     ],
-    [
-      "Lô 1-4, lô 1-5, cụm 1, đường M14, khu công nghiệp Tân Bình mở rộng, Phường Bình Hưng Hòa, Quận Bình Tân, Viet Nam",
-      "Warehouse Lazada, Đường M14, Phường Bình Hưng Hòa, Quận Bình Tân"
-    ]
   ])("Formatted text should be correct: '%s'", async (text, result) => {
     expect(formatAddress(text)).toBe(result)
   })

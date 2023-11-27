@@ -26,10 +26,7 @@ const dedupString = _.flow([
 ])
 
 const sanitizeStreet = _.flow([
-  _.replace(
-    /(?<=^|\W)(Đường\s|đường\s)/gi,
-    " Đường "
-  ),
+  _.replace(/(?<=^|\W)(Đường\s|đường\s)/gi, " Đường "),
   _.replace(/(?<=^|,|\s)(Đ\s|đ\s|Đ\.|đ\.)/gi, " Đường "),
   _.replace(/(?<=^|\W)(Street|Road)(?=$|\W)/gi, ", "),
   (text: string) => {
@@ -92,7 +89,10 @@ const cleanAddress = _.flow([
   cleanBracketContents,
   _.replace(/(?<=^|\W)(Vietnam|Việt Nam|Viet Nam|ViệtNam)(?=$|\W)/gi, ""),
   _.replace(/(?<=^|,|\s)(VN)(?=$|,|\s)/gi, ""),
-  _.replace(/(?<=^|,|\s)(Đ\/c|đ\/c|Đc|đc|Địa Chỉ|địa chỉ|D\/c|Dc|Dia Chi)(?=$|,|\s)/gi, ""),
+  _.replace(
+    /(?<=^|,|\s)(Đ\/c|đ\/c|Đc|đc|Địa Chỉ|địa chỉ|D\/c|Dc|Dia Chi)(?=$|,|\s)/gi,
+    ""
+  ),
   _.replace(/(?<=^|\W)\d{5,6}(?=$|\W)/gi, " "), // clean VN postal code
   _.replace(/(?<=^|\W)(\+84|0)(9|8|1[2689])([0-9]{8})(?=$|\W)/g, " "), // xoá số điện thoại Việt Nam
   _.replace(/["\\]/g, " "), // remove common non-related symbols such as " \
@@ -143,10 +143,9 @@ const addLeadingZero = function (text: string) {
   })(text)
 }
 
-const sanitizeWithoutFirst = (
-  regex: RegExp,
-  replacement: string,
-) => (text: string) => {
+const sanitizeWithoutFirst = (regex: RegExp, replacement: string) => (
+  text: string
+) => {
   const [p1, ...rest] = text.split(",")
 
   if (rest.length === 0) {
@@ -161,10 +160,7 @@ const sanitizeWithoutFirst = (
 const sanitizeRegion = _.flow([
   // sanitizeWithoutFirst(/(?<=^|\W)City(?=$|\W)/gi, ","),
   sanitizeWithoutFirst(/(?<=^|\W)Province(?=$|\W)/gi, ","),
-  sanitizeWithoutFirst(
-    /(?<=^|\W)(Thành Phố\s|Thanh Pho\s)/gi,
-    ", Thành Phố "
-  ),
+  sanitizeWithoutFirst(/(?<=^|\W)(Thành Phố\s|Thanh Pho\s)/gi, ", Thành Phố "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(Tp\s|Tp\.)/gi, ", Thành Phố "),
   sanitizeWithoutFirst(/(?<=^|\W)(Tỉnh\s)/gi, ", Tỉnh "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(T\s|T\.)/gi, ", Tỉnh "),
@@ -189,7 +185,9 @@ const sanitizeCounty = _.flow([
 
 export const removeCountyPrefix = function (county: string) {
   // remove "Thành Phố", "Quận" "Huyện" "Thị Xã" from county string
-  return county.replace(/(?<=^|\W)(Thành Phố\s|Quận\s|Huyện\s|Thị Xã\s)/gi, "").trim()
+  return county
+    .replace(/(?<=^|\W)(Thành Phố\s|Quận\s|Huyện\s|Thị Xã\s)/gi, "")
+    .trim()
 }
 
 const sanitizeLocality = _.flow([
@@ -213,10 +211,7 @@ const sanitizeLocality = _.flow([
   sanitizeWithoutFirst(/(?<=^|,|\s)[pf](\d{1,2})(?=$|,|\s)/gi, ", Phường $1, "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(X\s|X\.)/gi, ", Xã "),
   sanitizeWithoutFirst(/(?<=^|\W)(?<!Thị\s)(Xã\s)/gi, ", Xã "),
-  sanitizeWithoutFirst(
-    /(?<=^|\W)(Thị Trấn\s|Thi Tran\s)/gi,
-    ", Thị Trấn "
-  ),
+  sanitizeWithoutFirst(/(?<=^|\W)(Thị Trấn\s|Thi Tran\s)/gi, ", Thị Trấn "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(Tt\s|Tt\.)/gi, ", Thị Trấn "),
 ])
 

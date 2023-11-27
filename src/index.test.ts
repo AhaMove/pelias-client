@@ -57,7 +57,7 @@ describe("test api", () => {
     ],
     [
       "Thao Dien",
-      "Tòa Nhà Thảo Điền, 25 Hoàng Hoa Thám, Phường 06, Quận Bình Thạnh, Hồ Chí Minh, Việt Nam",
+      "Tòa Nhà Thảo Điền",
     ],
   ])("autocomplete with focus should success: '%s'", async (text, result1) => {
     const resp = await client.search({
@@ -110,7 +110,7 @@ describe("test api", () => {
     ],
     [
       "Thao Dien",
-      "L'Apella De Thao Dien, 1 Đường Số 16, Thảo Điền, Thủ Đức, Hồ Chí Minh, Việt Nam",
+      "Pasta Fresca Thảo Điền",
     ],
   ])("autocomplete w/o focus should success: '%s'", async (text, result1) => {
     const resp = await client.search({
@@ -162,7 +162,7 @@ describe("test api", () => {
     ],
     [
       "Thao Dien",
-      "Masteri Thảo Điền, T3, 42 Đường Số 10, Thao Dien, Quận 02, Hồ Chí Minh, Việt Nam",
+      "D'Edge Thao Dien Apartment",
     ],
     [
       "241/61/28 Ngõ Chợ Khâm Thiên",
@@ -321,60 +321,60 @@ describe("test api", () => {
       "12/34 Lý Thường Kiệt, Phường 12, Quận 05, Hồ Chí Minh, Việt Nam",
     ],
     [
-      "Nhà số A12-13 trên 4, ngõ5 ngách6 hẻm7 Lý Thường Kiệt, P.12, Q5, HCM",
-      "A12-13/4 Ngõ 5 Ngách 6 Hẻm 7 Lý Thường Kiệt, Phường 12, Quận 05, Hồ Chí Minh, Việt Nam",
+      "Nhà số A12-13 trên 4, ngõ5 ngách6 hẻm7, VNĐ ĐĐ Lý Thường Kiệt, P.12, Q5, HCM",
+      "A12-13/4 Ngõ 5 Ngách 6 Hẻm 7, VNĐ ĐĐ Lý Thường Kiệt, Phường 12, Quận 05, Hồ Chí Minh, Việt Nam",
     ],
     [
-      "tháp Bảo Đại, 7/28 Thành Thái street, Ward 14, District 10, HCM Province",
-      "Tháp Bảo Đại, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "tháp Bảo Đại, đh Kinh Doanh và Công Nghệ HN, 7/28 Thành Thái street, Ward 14, District 10, HCM Province",
+      "Tháp Bảo Đại, Đh Kinh Doanh Và Công Nghệ Hà Nội, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
     [
-      "7/28 Thành Thái street, xa Hải Châu, Huyen Hải Hậu, t.Nam Định",
-      "7/28 Thành Thái, Xã Hải Châu, Huyện Hải Hậu, Nam Định, Việt Nam",
+      "toà X lô H ấp T 7/28 Thành Thái street, x Hải Châu, H Hải Hậu, t Nam Định",
+      "Toà X Lô H Ấp T 7/28 Thành Thái, Xã Hải Châu, Huyện Hải Hậu, Nam Định, Việt Nam",
     ],
     [
-      "7/28 Thành Thái road, x.Hải Châu, Tp.Nam Định, tỉnh Nam Định",
+      "7/28 Thành Thái road, x.Hải Châu tỉnh Nam Định Tp.Nam Định",
       "7/28 Thành Thái, Xã Hải Châu, Thành Phố Nam Định, Nam Định, Việt Nam",
     ],
     [
-      "7/28 đ Thành Thái tt. Long Khánh Tx Long Khánh tỉnh Đồng Nai",
-      "7/28 Đường Thành Thái, Thị Trấn Long Khánh, Thị Xã Long Khánh, Đồng Nai, Việt Nam",
+      "TT TDTT block Tx 7/28 đ Xa Lộ Hà Nội, tt. Long Khánh Tx Long Khánh tỉnh Đồng Nai",
+      "TT TDTT Block Tx 7/28 Đường Xa Lộ Hà Nội, Thị Trấn Long Khánh, Thị Xã Long Khánh, Đồng Nai, Việt Nam",
     ],
     [
-      "7/28 d.Thành Thái Tt Thịnh Long H Hải Hậu t Nam Định",
-      "7/28 Đường Thành Thái, Thị Trấn Thịnh Long, Huyện Hải Hậu, Nam Định, Việt Nam",
+      "Vi Tinh Phuong Xa Huyen Quan 7/28 d.Thành Thái Tt Thịnh Long H Hải Hậu t Nam Định",
+      "Vi Tinh Phuong Xa Huyen Quan 7/28 D.Thành Thái Tt Thịnh Long H Hải Hậu T Nam Định",
     ],
     [
-      "Phở Nam Định, d Thủ Đức, p1, d.Thủ Đức, thành phố Thủ Đức,thành phố Hồ Chí Minh, tỉnh Nam Định, Hồ Chí Minh City, Nam Định ",
+      "Phở Nam Định, đ. Thủ Đức, p1, d.Thủ Đức, tp Thủ Đức,thành phố Hồ Chí Minh, tỉnh Nam Định, Hồ Chí Minh City, Nam Định, thành phố Nam Định ",
       "Phở Nam Định, Đường Thủ Đức, Phường 01, Thành Phố Thủ Đức, Hồ Chí Minh, Việt Nam",
     ],
     [
-      "Phở Nam Định, 123 d Hải Hậu, t Nam Định, h Hải Hậu, x Hải Châu, xa Hải Châu, huyen Hải Hậu, t.Nam Định, duong hải hậu huyện hải hậu xã hải châu tinh nam dinh f14 q10 tphcm vn",
-      "Phở Nam Định, 123 Đường Hải Hậu, Xã Hải Châu, Huyện Hải Hậu, Nam Định, Việt Nam",
+      "Phở Nam Định, 123 Duong Thai Hoc, t Nam Định, h Hải Hậu, x Hải Châu, xa Hải Châu, huyen Hải Hậu, t.Nam Định, duong hải hậu huyện hải hậu xã hải châu tinh nam dinh f14 q10 tphcm vn",
+      "Phở Nam Định, 123 Duong Thai Hoc, Xã Hải Châu, Huyện Hải Hậu, Nam Định, Việt Nam",
     ],
     [
-      "Phở Nam Định, 123 đường Gì Đó, Hải Châu, Something, huyện Hải Hậu, Something Else, Nam Định",
-      "Phở Nam Định, 123 Đường Gì Đó, Hải Châu, Something, Huyện Hải Hậu, Something Else, Nam Định, Việt Nam",
+      "Phở Nam Định, 123 đường số Gì Đó, Hải Châu, Something, huyện Hải Hậu, Something Else, Nam Định",
+      "Phở Nam Định, 123 Đường Số Gì Đó, Hải Châu, Something, Huyện Hải Hậu, Something Else, Nam Định, Việt Nam",
     ],
     [
       "Phở Nam Định, 123 đường Gì Đó, xã Hải Châu, Something, huyện Hải Hậu, Quận 10, Something Else, Phường 14",
       "Phở Nam Định, 123 Đường Gì Đó, Xã Hải Châu, Something, Huyện Hải Hậu, Something Else",
     ],
     [
-      "7 âu cơ f14 q11 hcm",
-      "7 Âu Cơ, Phường 14, Quận 11, Hồ Chí Minh, Việt Nam"
+      "7 đ 123 f14 q11 hcm",
+      "7 Đường Số 123, Phường 14, Quận 11, Hồ Chí Minh, Việt Nam"
     ],
     [
-      "Pho Bo Ly Quoc Su, A70/12/4B,, , , ,,   p Hàng Mã, A70/12/4B p. Hàng Mã, p. phố  cổ Hà Nội, q Hoàn Kiếm, HN",
-      "Phố Bo Ly Quoc Su, A70/12/4B Phố Hàng Mã, Phường Phố Cổ Hà Nội, Quận Hoàn Kiếm, Hà Nội, Việt Nam"
+      "Pho Bo Ly Quoc Su, A70/12/4B,, , , ,,   p Hàng Mã, A70/12/4B p. Hàng Mã, p. cổ Hà Nội, q Hoàn Kiếm, HN",
+      "Pho Bo Ly Quoc Su, A70/12/4B Phố Hàng Mã, P. Cổ Hà Nội, Quận Hoàn Kiếm, Hà Nội, Việt Nam"
     ],
     [
-      "108A Đường số 14 (mười bốn), Kp7 (không phải Kp9), VN (VN là Việt Nam (just in case) ạ)Hồ Chí Minh Quận Bình Tân Phường Bình Hưng Hòa A (gọi chị Phượng, Hồ Chí Minh, Quận Bình Tân (không phải Tân Bình), Phường Bình Hưng Hòa A.",
+      "108A đ 14 (mười bốn), Kp7 (không phải Kp9), VN (VN là Việt Nam (just in case) ạ)Hồ Chí Minh Quận Bình Tân Phường Bình Hưng Hòa A (gọi chị Phượng, Hồ Chí Minh, Quận Bình Tân (không phải Tân Bình), Phường Bình Hưng Hòa A.",
       "108A Đường Số 14, Kp7, Phường Bình Hưng Hòa A, Quận Bình Tân, Hồ Chí Minh, Việt Nam"
     ],
     [
-      "9A đường số 4, khu phố 22, phường Bình Hưng Hoà A, Bình Tân, HCM ( gần trường Tiểu học Phù Đổng), Hồ Chí Minh, Quận Bình Tân, Phường Bình Hưng Hòa A.",
-      "9A Đường Số 4, Khu Phố 22, Phường Bình Hưng Hoà A, Quận Bình Tân, Hồ Chí Minh, Việt Nam"
+      "9A đ.4, khu phố 22, khu đô thị Lakeview City, phường Bình Hưng Hoà A, Bình Tân, HCM ( gần trường Tiểu học Phù Đổng), Hồ Chí Minh, Quận Bình Tân, Phường Bình Hưng Hòa A.",
+      "9A Đường Số 4, Khu Phố 22, Khu Đô Thị Lakeview City, Phường Bình Hưng Hoà A, Quận Bình Tân, Hồ Chí Minh, Việt Nam"
     ],
   ])("Formatted text should be correct: '%s'", async (text, result) => {
     expect(formatAddress(text)).toBe(result)
@@ -761,6 +761,30 @@ describe("test api", () => {
         number: "7/28",
         street: "Thành Thái",
         address: "7/28 Thành Thái",
+      }
+    ],
+    [
+      "Cty dệt Phong Phú, 48 Tăng Nhơn Phú, Tăng Nhơn Phú B, Thành Phố Thủ Đức, Thành phố Hồ Chí Minh, Việt Nam",
+      {
+        country: "Việt Nam",
+        region: "Hồ Chí Minh",
+        county: "Thành Phố Thủ Đức",
+        locality: "Tăng Nhơn Phú B",
+        number: "48",
+        street: "Tăng Nhơn Phú",
+        venue: "Cty Dệt Phong Phú",
+      }
+    ],
+    [
+      "Không gian Cafe Dệt Xưa, 5 Hoàng Hoa Thám, Trần Đăng Ninh, TP. Nam Định, Nam Định, Vietnam",
+      {
+        country: "Việt Nam",
+        region: "Nam Định",
+        county: "Thành Phố Nam Định",
+        locality: "Trần Đăng Ninh",
+        number: "5",
+        street: "Hoàng Hoa Thám",
+        venue: "Không Gian Cafe Dệt Xưa",
       }
     ],
   ])("Address extraction should return as expected: '%s'", async (text, expected) => {

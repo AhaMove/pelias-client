@@ -305,11 +305,11 @@ describe("test api", () => {
 
   test.each([
     [
-      "Rivera Park, 7/28 Thành Thái, F.14, Q.10, HCM, VN",
+      "Rivera Park, 7/28 Thành Thái, F.14, Q.10, tp Ho Chi Minh City, VN",
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
     [
-      "Gọi cho Khoa +84969284567 Bách Khoa Hà Nội ii, 7/28 CMT8, P14, Q.10, HCM, VN, 70000",
+      "Gọi cho Khoa +84969284567 Bách Khoa Hà Nội ii, 7/28 CMT8, P14, Q.10, thành phố HCM, VN, 70000",
       "Gọi Cho Khoa Bách Khoa Hà Nội 2, 7/28 Cách Mạng Tháng Tám, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
     [
@@ -345,7 +345,7 @@ describe("test api", () => {
       "Vi Tinh Phuong Xa Huyen Quan 7/28 D.Thành Thái Tt Thịnh Long H Hải Hậu T Nam Định",
     ],
     [
-      "Phở Nam Định, đ. Thủ Đức, p1, d.Thủ Đức, tp Thủ Đức,thành phố Hồ Chí Minh, tỉnh Nam Định, Hồ Chí Minh City, Nam Định, thành phố Nam Định ",
+      "Phở Nam Định, đ. Thủ Đức, p1, d.Thủ Đức, tp Thủ Đức,thành phố Hồ Chí Minh, tỉnh Nam Định, Thành Phố thanh pho tp Ho Chi Minh City, Nam Định, thành phố Nam Định ",
       "Phở Nam Định, Đường Thủ Đức, Phường 01, Thành Phố Thủ Đức, Hồ Chí Minh, Việt Nam",
     ],
     [

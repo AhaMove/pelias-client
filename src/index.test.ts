@@ -110,7 +110,7 @@ describe("test api", () => {
     ],
     [
       "Thao Dien",
-      "Pasta Fresca Thảo Điền",
+      "L'Usine Thao Dien",
     ],
   ])("autocomplete w/o focus should success: '%s'", async (text, result1) => {
     const resp = await client.search({
@@ -162,7 +162,7 @@ describe("test api", () => {
     ],
     [
       "Thao Dien",
-      "D'Edge Thao Dien Apartment",
+      "Gateway Thảo Điền",
     ],
     [
       "241/61/28 Ngõ Chợ Khâm Thiên",

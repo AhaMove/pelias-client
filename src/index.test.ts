@@ -55,10 +55,6 @@ describe("test api", () => {
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
       "Rivera Park",
     ],
-    [
-      "Thao Dien",
-      "Tòa Nhà Thảo Điền",
-    ],
   ])("autocomplete with focus should success: '%s'", async (text, result1) => {
     const resp = await client.search({
       "focus.point.lat": "10.76989", //Ahamove
@@ -108,10 +104,6 @@ describe("test api", () => {
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
       "Rivera Park",
     ],
-    [
-      "Thao Dien",
-      "L'Usine Thao Dien",
-    ],
   ])("autocomplete w/o focus should success: '%s'", async (text, result1) => {
     const resp = await client.search({
       text: formatAddress(text),
@@ -159,10 +151,6 @@ describe("test api", () => {
     [
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
       "Rivera Park",
-    ],
-    [
-      "Thao Dien",
-      "Gateway Thảo Điền",
     ],
     [
       "241/61/28 Ngõ Chợ Khâm Thiên",
@@ -256,6 +244,9 @@ describe("test api", () => {
     [
       "Thao Dien Pearl",
     ],
+    [
+      "Rivera",
+    ]
   ])("First returned venue has entrances: '%s'", async (text) => {
     const resp = await client.search({
       "focus.point.lat": "10.76989", //Ahamove

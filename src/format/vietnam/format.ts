@@ -307,9 +307,6 @@ const transformAbbreviations = (text: string) => {
 }
 
 const transformRegion = (text: string) => {
-  //adhoc for "Hà Nội". Example: Trường ĐH Kinh Doanh Và Công Nghệ HN
-  text = text.replace(/(?<=^|,|\s)HN(?=$|,|\s)/gi, "Hà Nội")
-
   for (const [key, value] of Object.entries(regex)) {
     const re = new RegExp(value, "gi")
     text = text.replace(re, key)

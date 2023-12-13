@@ -305,11 +305,11 @@ describe("test api", () => {
 
   test.each([
     [
-      "Rivera Park, 7/28 Thành Thái, F.14, Q.10, tp Ho Chi Minh City, VN",
-      "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      "Trường ĐH Kinh Doanh Và Công Nghệ HN, 7/28 Thành Thái, F.14, Q.10, tp Ho Chi Minh City, VN",
+      "Trường ĐH Kinh Doanh Và Công Nghệ Hà Nội, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
     [
-      "Gọi cho Khoa +84969284567 Bách Khoa Hà Nội ii, 7/28 CMT8, P14, Q.10, thành phố HCM, VN, 70000",
+      "Gọi cho Khoa +84969284567 Bách Khoa Hà Nội ii, 7/28 CMT8, P14, Q.10, thành phố HCM city, VN, 70000",
       "Gọi Cho Khoa Bách Khoa Hà Nội 2, 7/28 Cách Mạng Tháng Tám, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
     [
@@ -321,8 +321,8 @@ describe("test api", () => {
       "12/34 Lý Thường Kiệt, Phường 12, Quận 05, Hồ Chí Minh, Việt Nam",
     ],
     [
-      "Nhà số A12-13 trên 4, ngõ5 ngách6 hẻm7, VNĐ ĐĐ Lý Thường Kiệt, P.12, Q5, HCM",
-      "A12-13/4 Ngõ 5 Ngách 6 Hẻm 7, VNĐ ĐĐ Lý Thường Kiệt, Phường 12, Quận 05, Hồ Chí Minh, Việt Nam",
+      "Nhà số A12-13 trên 4, ngõ5 ngách6 hẻm7, VNĐ ĐĐ Lý Thường Kiệt, P.12, Q5, thành phố    thành phố    hn    city   city, ,hn",
+      "A12-13/4 Ngõ 5 Ngách 6 Hẻm 7, VNĐ ĐĐ Lý Thường Kiệt, Phường 12, Quận 05, Hà Nội, Việt Nam",
     ],
     [
       "tháp Bảo Đại, đh Kinh Doanh và Công Nghệ HN, 7/28 Thành Thái street, Ward 14, District 10, HCM Province",

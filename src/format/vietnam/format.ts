@@ -43,7 +43,7 @@ const sanitizeStreet = _.flow([
 
     return text
   },
-  _.replace(/(?<=^|\W)Đường\s+(\d{1,3})(?=$|\W)/gi, " Đường số $1, "),
+  // _.replace(/(?<=^|\W)Đường\s+(\d{1,3})(?=$|\W)/gi, " Đường số $1, "),
 ])
 
 const encodeDictionaryWord = (text: string) => {
@@ -143,19 +143,18 @@ const addLeadingZero = function (text: string) {
   })(text)
 }
 
-const sanitizeWithoutFirst = (regex: RegExp, replacement: string) => (
-  text: string
-) => {
-  const [p1, ...rest] = text.split(",")
+const sanitizeWithoutFirst =
+  (regex: RegExp, replacement: string) => (text: string) => {
+    const [p1, ...rest] = text.split(",")
 
-  if (rest.length === 0) {
-    return text
+    if (rest.length === 0) {
+      return text
+    }
+
+    const formatted = rest.join(",").replace(regex, replacement)
+
+    return [p1].concat(formatted).join(",")
   }
-
-  const formatted = rest.join(",").replace(regex, replacement)
-
-  return [p1].concat(formatted).join(",")
-}
 
 const sanitizeRegion = _.flow([
   // sanitizeWithoutFirst(/(?<=^|\W)City(?=$|\W)/gi, ","),

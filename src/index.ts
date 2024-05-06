@@ -105,22 +105,18 @@ export class PeliasClient<
       return result.body
     }
 
-    const {
-      body,
-      formatted,
-      parsedText,
-      layer,
-    } = await ElasticTransform.createSearchBody({
-      text,
-      size: size,
-      lat: params["focus.point.lat"]
-        ? parseFloat(params["focus.point.lat"])
-        : undefined,
-      lon: params["focus.point.lon"]
-        ? parseFloat(params["focus.point.lon"])
-        : undefined,
-      countFunc,
-    })
+    const { body, formatted, parsedText, layer } =
+      await ElasticTransform.createSearchBody({
+        text,
+        size: size,
+        lat: params["focus.point.lat"]
+          ? parseFloat(params["focus.point.lat"])
+          : undefined,
+        lon: params["focus.point.lon"]
+          ? parseFloat(params["focus.point.lon"])
+          : undefined,
+        countFunc,
+      })
 
     const result = await this.esClient.search<TResponse>({
       index: "pelias",

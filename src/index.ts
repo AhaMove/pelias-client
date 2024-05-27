@@ -313,6 +313,20 @@ export class PeliasClient<
       features: PeliasTransform.toFeatures(hits),
     }
   }
+
+  async findById(_id: string) {
+    const result = await this.esClient.search({
+      index: "pelias",
+      body: {
+        query: {
+          term: {
+            source_id: _id
+          }
+        },
+      },
+    });
+    return result.body.hits.hits[0];
+  }
 }
 
 export function formatAddress(address: string): string {

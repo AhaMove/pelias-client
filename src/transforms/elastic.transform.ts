@@ -125,8 +125,8 @@ export class ElasticTransform {
 
     // if parsedText has venue, filter for records which have that venue in the beginning of "name.default"
     if (parsedText.venue) {
-      let venue_token_count = parsedText.venue.trim().split(/\s+/).length;
-      result.bool.must.push({                                            
+      const venue_token_count = parsedText.venue.trim().split(/\s+/).length;
+      result.bool.must.push({
           intervals: {
               "name.default": {
                   match: {
@@ -152,7 +152,7 @@ export class ElasticTransform {
     return {
       function_score: {
         query: query,
-        functions: [          
+        functions: [
           {
             script_score: {
               script: {
@@ -178,7 +178,7 @@ export class ElasticTransform {
                       } catch (Exception e) {
                       return 0;
                     }
-                  `                                
+                  `
                 }
               },
           },

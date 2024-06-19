@@ -125,24 +125,24 @@ export class ElasticTransform {
 
     // if parsedText has venue, filter for records which have that venue in the beginning of "name.default"
     if (parsedText.venue) {
-      result.bool.must.push({
-        intervals: {
-          "name.default": {
-            match: {
-              query: parsedText.venue,
-              filter: {
-                script: {
-                  source:
-                    "interval.start >= 0 && interval.end < " +
-                    (parsedText.venue.trim().split(/\s+/).length + 2) +
-                    " && interval.gaps == 0",
-                },
+      let venue_token_count = parsedText.venue.trim().split(/\s+/).length;
+      result.bool.must.push({                                            
+          intervals: {
+              "name.default": {
+                  match: {
+                      query: parsedText.venue,
+                      filter: {
+                          script: {
+                              source: "interval.start >= 0 && interval.end < " +
+                                  (venue_token_count + 2) +
+                                  " && interval.gaps <= " + Math.min(Math.max(venue_token_count - 1,0),3),
+                          },
+                      },
+                      ordered: true,
+                  },
               },
-              ordered: true,
-            },
           },
-        },
-      })
+      });
     }
 
     return result
@@ -152,29 +152,7 @@ export class ElasticTransform {
     return {
       function_score: {
         query: query,
-        functions: [
-          {
-            filter: {
-              intervals: {
-                "name.default": {
-                  match: {
-                    query: venueName,
-                    filter: {
-                      script: {
-                        source: "interval.start == 0 && interval.gaps == 0",
-                      },
-                    },
-                    ordered: true,
-                  },
-                },
-              },
-            },
-            script_score: {
-              script: {
-                source: "1",
-              },
-            },
-          },
+        functions: [          
           {
             script_score: {
               script: {
@@ -182,6 +160,27 @@ export class ElasticTransform {
                   "try {params._source.addendum.entrances.length() > 2 ? 1 : 0} catch (Exception e) {0}",
               },
             },
+          },
+          {
+              script_score: {
+                script: {
+                  "source": `
+                    try {
+                      double score = 0;
+                      int pos = params._source.name.default.toLowerCase().indexOf('${venueName.toLowerCase()}');
+                      if (pos > 0) {
+                          score = 5;
+                      }
+                      if (pos == 0) {
+                          score = 10;
+                      }
+                      return score;
+                      } catch (Exception e) {
+                      return 0;
+                    }
+                  `                                
+                }
+              },
           },
         ],
         score_mode: "sum",

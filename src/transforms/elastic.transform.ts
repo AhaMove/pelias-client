@@ -134,7 +134,7 @@ export class ElasticTransform {
                       filter: {
                           script: {
                               source: "interval.start >= 0 && interval.end < " +
-                                  (venue_token_count + 2) +
+                                  (venue_token_count + 4) +
                                   " && interval.gaps <= " + Math.min(Math.max(venue_token_count - 1,0),3),
                           },
                       },
@@ -229,12 +229,16 @@ export class ElasticTransform {
     lat,
     lon,
     countFunc,
+    geocode = false,
   }: CreateSearchBody) {
     // const formatted = format(text)
     const formatted = text
-    const parsedText = extract(formatted)
-    // console.log("parsedText:\n", JSON.stringify(parsedText, null, 2))
-    const layer = parsedText.venue ? "venue" : ""
+    let parsedText =  (0, vietnam_1.extract)(formatted);
+    const layer = parsedText.venue ? "venue" : "";
+    // if not geocode, we use venue search for address type
+    if (parsedText.address && !geocode) {
+        parsedText = {...parsedText, venue: parsedText.address}
+    }
     let sortScore = true
 
     // create query
@@ -249,6 +253,15 @@ export class ElasticTransform {
       if (!countResult.terminated_early) {
         const venueName = parsedText.venue || ""
         query = ElasticTransform.rescoreQuery({ query, venueName })
+        if (parsedText.number) {
+          query.function_score.functions.push({
+            script_score: {
+              script: {                                
+                source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
+              },
+            }
+          })
+        }
       } else {
         sortScore = false
       }

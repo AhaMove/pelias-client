@@ -48,6 +48,7 @@ export class ElasticTransform {
             break
           case "number":
           case "street":
+            if (parsedText.venue) return null;
             newKey = `address_parts.${key}`
             break
           case "address":
@@ -137,7 +138,7 @@ export class ElasticTransform {
                           script: {
                               source: "interval.start >= 0 && interval.end < " +
                                   (venue_token_count + 4) +
-                                  " && interval.gaps <= " + Math.min(Math.max(venue_token_count - 1,0),3),
+                                  " && interval.gaps <= " + Math.max(venue_token_count - 1,0),
                           },
                       },
                       ordered: true,
@@ -246,28 +247,27 @@ export class ElasticTransform {
     // create query
     let query = ElasticTransform.createQuery({ layer, parsedText })
 
-    if (layer == "venue") {
-      // count the number of records that match the query. If return terminated_early == true, we won't recalculate the score
-      const countResult = await countFunc({
-        query: query,
-      })
+    // count the number of records that match the query. If return terminated_early == true, we won't recalculate the score
+    const countResult = await countFunc({
+      query: query,
+    })
 
-      if (!countResult.terminated_early) {
-        const venueName = parsedText.venue || ""
-        query = ElasticTransform.rescoreQuery({ query, venueName })
-        if (parsedText.number) {
-          query.function_score.functions.push({
-            script_score: {
-              script: {
-                source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
-              },
-            }
-          })
-        }
-      } else {
-        sortScore = false
+    if (!countResult.terminated_early) {
+      const venueName = parsedText.venue || ""
+      query = ElasticTransform.rescoreQuery({ query, venueName })
+      if (parsedText.number) {
+        query.function_score.functions.push({
+          script_score: {
+            script: {
+              source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
+            },
+          }
+        })
       }
+    } else {
+      sortScore = false
     }
+
 
     // create search query body
     const body: Record<string, any> = {

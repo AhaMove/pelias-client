@@ -4,12 +4,14 @@ import { NearbyParams } from "src/resources/nearby.params"
 import { CountModel } from "src/models/count.model"
 import { AddressParts } from "src/models/address-parts.model"
 
+
 interface CreateSearchBody {
   text: string
   size: number
   lat?: number
   lon?: number
   countFunc: (queryBody: Record<string, any>) => Promise<CountModel>
+  geocode: boolean
 }
 
 interface CreateShouldClauses {
@@ -233,7 +235,7 @@ export class ElasticTransform {
   }: CreateSearchBody) {
     // const formatted = format(text)
     const formatted = text
-    let parsedText =  (0, vietnam_1.extract)(formatted);
+    let parsedText = extract(formatted);
     const layer = parsedText.venue ? "venue" : "";
     // if not geocode, we use venue search for address type
     if (parsedText.address && !geocode) {
@@ -256,7 +258,7 @@ export class ElasticTransform {
         if (parsedText.number) {
           query.function_score.functions.push({
             script_score: {
-              script: {                                
+              script: {
                 source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
               },
             }

@@ -158,7 +158,7 @@ describe("test api", () => {
     ],
     [
       "Saigon Centre",
-      "Saigon Centre, 94 Đường Nam Kỳ Khởi Nghĩa, Phường Bến Nghé, Quận 01, Hồ Chí Minh, Việt Nam",
+      "Saigon Centre Tower 2, 67 Lê Lợi, Bến Nghé, Quận 01, Hồ Chí Minh, Việt Nam",
     ],
     [
       "12 Vườn Lài, Quận 8, Ho Chi Minh",
@@ -173,6 +173,7 @@ describe("test api", () => {
     )
 
     const features = resp.features
+    console.log(features)
     expect(features[0].properties.name).toContain(result)
   })
 

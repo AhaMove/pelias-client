@@ -1,6 +1,6 @@
 {
   "name": "@ahamove/pelias-client",
-  "version": "0.0.43",
+  "version": "0.0.46",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "files": [

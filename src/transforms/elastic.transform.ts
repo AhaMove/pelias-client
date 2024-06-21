@@ -234,7 +234,7 @@ export class ElasticTransform {
   }: CreateSearchBody) {
     // const formatted = format(text)
     const formatted = text
-    let parsedText = extract(formatted);
+    const parsedText = extract(formatted);
     const layer = parsedText.venue ? "venue" : "";
     // if not geocode, we use venue search for address type
     // if (parsedText.address && !geocode) {
@@ -252,7 +252,7 @@ export class ElasticTransform {
     if (parsedText.venue) {
       if (!countResult.terminated_early) {
         const venueName = parsedText.venue || ""
-        query = ElasticTransform.rescoreQuery({ query, venueName })        
+        query = ElasticTransform.rescoreQuery({ query, venueName })
       } else {
         sortScore = false
       }
@@ -260,15 +260,15 @@ export class ElasticTransform {
     if (parsedText.number) {
         const score_exact_address_number = {
                 script_score: {
-                    script: {                                
+                    script: {
                         source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
                     },
                 }
             };
-        if (query.function_score) {           
+        if (query.function_score) {
             query.function_score.functions.push(score_exact_address_number)
         } else {
-            query = { 
+            query = {
                 function_score: {
                     query: query,
                     functions: [score_exact_address_number],
@@ -277,7 +277,7 @@ export class ElasticTransform {
                 }
             }
         }
-    } 
+    }
 
     // create search query body
     const body: Record<string, any> = {

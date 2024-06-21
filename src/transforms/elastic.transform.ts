@@ -48,7 +48,6 @@ export class ElasticTransform {
             break
           case "number":
           case "street":
-            if (parsedText.venue) return null;
             newKey = `address_parts.${key}`
             break
           case "address":
@@ -239,9 +238,9 @@ export class ElasticTransform {
     let parsedText = extract(formatted);
     const layer = parsedText.venue ? "venue" : "";
     // if not geocode, we use venue search for address type
-    if (parsedText.address && !geocode) {
-        parsedText = {...parsedText, venue: parsedText.address}
-    }
+    // if (parsedText.address && !geocode) {
+    //     parsedText = {...parsedText, venue: parsedText.address}
+    // }
     let sortScore = true
 
     // create query
@@ -251,22 +250,24 @@ export class ElasticTransform {
     const countResult = await countFunc({
       query: query,
     })
-
-    if (!countResult.terminated_early) {
-      const venueName = parsedText.venue || ""
-      query = ElasticTransform.rescoreQuery({ query, venueName })
-      if (parsedText.number) {
-        query.function_score.functions.push({
-          script_score: {
-            script: {
-              source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
-            },
-          }
-        })
+    if (parsedText.venue) {
+      if (!countResult.terminated_early) {
+        const venueName = parsedText.venue || ""
+        query = ElasticTransform.rescoreQuery({ query, venueName })        
+      } else {
+        sortScore = false
       }
-    } else {
-      sortScore = false
+    }  
+    if (parsedText.number) {
+      query.function_score.functions.push({
+        script_score: {
+          script: {
+            source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
+          },
+        }
+      })
     }
+    
 
 
     // create search query body

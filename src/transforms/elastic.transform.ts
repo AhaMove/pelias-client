@@ -146,15 +146,6 @@ export class ElasticTransform {
           },
       });
     }
-    if (parsedText.number) {
-        query.function_score.functions.push({
-            script_score: {
-                script: {                                
-                    source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
-                },
-            }
-        })
-    }
     return result
   }
 
@@ -265,7 +256,28 @@ export class ElasticTransform {
       } else {
         sortScore = false
       }
-    }  
+    }
+    if (parsedText.number) {
+        const score_exact_address_number = {
+                script_score: {
+                    script: {                                
+                        source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
+                    },
+                }
+            };
+        if (query.function_score) {           
+            query.function_score.functions.push(score_exact_address_number)
+        } else {
+            query = { 
+                function_score: {
+                    query: query,
+                    functions: [score_exact_address_number],
+                    score_mode: "sum",
+                    boost_mode: "replace",
+                }
+            }
+        }
+    } 
 
     // create search query body
     const body: Record<string, any> = {

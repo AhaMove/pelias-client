@@ -146,7 +146,15 @@ export class ElasticTransform {
           },
       });
     }
-
+    if (parsedText.number) {
+        query.function_score.functions.push({
+            script_score: {
+                script: {                                
+                    source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
+                },
+            }
+        })
+    }
     return result
   }
 
@@ -258,17 +266,6 @@ export class ElasticTransform {
         sortScore = false
       }
     }  
-    if (parsedText.number) {
-      query.function_score.functions.push({
-        script_score: {
-          script: {
-            source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
-          },
-        }
-      })
-    }
-    
-
 
     // create search query body
     const body: Record<string, any> = {

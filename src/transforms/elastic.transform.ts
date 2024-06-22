@@ -82,9 +82,7 @@ export class ElasticTransform {
                   filter: {
                     script: {
                       source:
-                        "interval.start == 0 && interval.end == " +
-                        (partCount - 1) +
-                        " && interval.gaps == 0",
+                        "interval.start == 0 && interval.gaps == 0",
                     },
                   },
                   ordered: true,
@@ -168,7 +166,7 @@ export class ElasticTransform {
                   "source": `
                     try {
                       double score = 0;
-                      int pos = params._source.name.default.toLowerCase().indexOf('${venueName.toLowerCase()}');
+                      int pos = params._source.name.default.toLowerCase().indexOf(params.venueName);
                       if (pos > 0) {
                           score = 5;
                       }
@@ -179,7 +177,10 @@ export class ElasticTransform {
                       } catch (Exception e) {
                       return 0;
                     }
-                  `
+                  `,
+                  params: {
+                      venueName: venueName.toLowerCase()
+                  }
                 }
               },
           },
@@ -261,7 +262,8 @@ export class ElasticTransform {
         const score_exact_address_number = {
                 script_score: {
                     script: {
-                        source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
+                        // source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
+                      source: "try { 10-params._source.address_parts.number.length() } catch (Exception e) {0}",
                     },
                 }
             };

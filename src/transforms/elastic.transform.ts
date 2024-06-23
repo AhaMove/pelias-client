@@ -263,7 +263,7 @@ export class ElasticTransform {
                 script_score: {
                     script: {
                         // source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
-                      source: "try { 10-params._source.address_parts.number.length() } catch (Exception e) {0}",
+                      source: "try { 100-params._source.address_parts.number.length() } catch (Exception e) {0}",
                     },
                 }
             };

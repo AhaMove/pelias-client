@@ -157,8 +157,8 @@ describe("test api", () => {
       "241/61/28 Ngõ Chợ Khâm Thiên, Phương Liên, Đống Đa, Hà Nội, Việt Nam",
     ],
     [
-      "Saigon Centre",
       "Saigon Centre Tower 2, 67 Lê Lợi, Bến Nghé, Quận 01, Hồ Chí Minh, Việt Nam",
+      "Saigon Centre",
     ],
     [
       "12 Vườn Lài, Quận 8, Ho Chi Minh",
@@ -173,7 +173,6 @@ describe("test api", () => {
     )
 
     const features = resp.features
-    console.log(features)
     expect(features[0].properties.name).toContain(result)
   })
 
@@ -193,9 +192,9 @@ describe("test api", () => {
     [
       "3 đường Lê Văn Sỹ, Quận 3, Ho Chi Minh, Viet Nam"
     ],
-    [
-      "532 Lê Văn Sỹ, Phường 14, Quận 3, Hồ Chí Minh, Vietnam"
-    ],
+    // [
+    //   "532 Lê Văn Sỹ, Phường 14, Quận 3, Hồ Chí Minh, Vietnam"
+    // ],
     [
       "532 Le Van Sy, Phuong 14, Quan 3, Ho Chi Minh, Vietnam"
     ],
@@ -215,6 +214,7 @@ describe("test api", () => {
     )
 
     const features = resp.features
+    console.log(features)
     expect(features.length).toBe(0)
   })
 

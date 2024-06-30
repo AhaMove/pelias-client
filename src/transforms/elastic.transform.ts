@@ -50,9 +50,9 @@ export class ElasticTransform {
           case "street":
             newKey = `address_parts.${key}`
             break
-          // case "address":
-          //   newKey = "name.default"
-          //   break
+          case "address":
+            if (!parsedText.street) newKey = "name.default";
+            break;
           default:
             return null
         }

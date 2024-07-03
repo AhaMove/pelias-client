@@ -52,6 +52,7 @@ export class ElasticTransform {
             break
           case "address":
             if (!parsedText.street) newKey = "name.default";
+            else newKey = null;
             break;
           default:
             return null

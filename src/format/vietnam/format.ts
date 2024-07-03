@@ -139,7 +139,7 @@ const cleanAddress = _.flow([
 
 const addLeadingZero = function (text: string) {
   return _.replace(/(Quận|Phường)(\s+)(\d+)/gi, (_, p1, p2, p3) => {
-    return p1 + " " + p3.trim().padStart(2, "0")
+    return p1 + " " + p3.trim() //.padStart(2, "0")
   })(text)
 }
 

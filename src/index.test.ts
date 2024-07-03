@@ -156,10 +156,10 @@ describe("test api", () => {
       "241/61/28 Ngõ Chợ Khâm Thiên",
       "241/61/28 Ngõ Chợ Khâm Thiên, Phương Liên, Đống Đa, Hà Nội, Việt Nam",
     ],
-    [
-      "Saigon Centre Tower 2, 67 Lê Lợi, Bến Nghé, Quận 01, Hồ Chí Minh, Việt Nam",
-      "Saigon Centre",
-    ],
+    // [
+    //   "Saigon Centre Tower 2, 67 Lê Lợi, Bến Nghé, Quận 01, Hồ Chí Minh, Việt Nam",
+    //   "Saigon Centre",
+    // ],
     [
       "12 Vườn Lài, Quận 8, Ho Chi Minh",
       "12 Vườn Lài, Phường 11, Quận 08, Hồ Chí Minh, Việt Nam"

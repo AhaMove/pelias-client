@@ -52,30 +52,29 @@ export class ElasticTransform {
             break
           case "address":
             if (!parsedText.street) newKey = "name.default";
-            else newKey = null;
             break;
           default:
             return null
         }
 
-        if (!value) {
+        if (!value || !newKey) {
           return null
         }
 
-        if (newKey == "parent.locality") {
+        if (newKey === "parent.locality") {
           if (value.match(/(Phường)\s\D/))
               value = value.replace('Phường ','')
         }
-        if (newKey == "parent.county") {
+        if (newKey === "parent.county") {
             if (value.match(/(Quận)\s\D/))
                 value = value.replace('Quận ','')
         }
-        if (newKey == "address_parts.street" && parsedText?.address?.includes('Hà Nội')) {
+        if (newKey === "address_parts.street" && parsedText?.address?.includes('Hà Nội')) {
             if (value.match(/^(Phố)\s\D/i))
                 value = value.replace('Phố ', '')
         }
 
-        if (newKey == "address_parts.number") {
+        if (newKey === "address_parts.number") {
           // replace all non-number character into space for value string
           value = value.replace(/[^0-9]/g, " ")
           // dedup space for value string

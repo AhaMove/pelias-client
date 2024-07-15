@@ -65,7 +65,7 @@ const cleanBracketContents = (text: string) => {
   //There can be many brackets, so we have to remove all content inside all those brackets.
   //There can be nested brackets, so we only need to remove all content inside the most outer brackets.
   //Also, in case open bracket does not have a matching close bracket, we will remove all content after that open bracket until the end of the string.
-  //For example: "123 (abc (xyz) def" will be transformed to "123"
+  //For example: "123 (abc (xyz) def" will be transformed to "123 to 123 abc xyz def",
   //For example: "123 (abc (xyz) def) 456" will be transformed to "123 456"
 
   let result = ""
@@ -82,6 +82,7 @@ const cleanBracketContents = (text: string) => {
       result += char
     }
   }
+  if (count != 0) return text.replace(/(\(|\))/g,'')
   return result
 }
 

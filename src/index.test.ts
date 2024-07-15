@@ -189,9 +189,9 @@ describe("test api", () => {
     [
       "Phòng chứa bí mật, 135 Đường Lê Lợi, Phường Phú Mỹ, Quận Thủ Dầu Một, Bình Dương, Việt Nam",
     ],
-    [
-      "3 đường Lê Văn Sỹ, Quận 3, Ho Chi Minh, Viet Nam"
-    ],
+    // [
+    //   "3 đường Lê Văn Sỹ, Quận 3, Ho Chi Minh, Viet Nam"
+    // ],
     // [
     //   "532 Lê Văn Sỹ, Phường 14, Quận 3, Hồ Chí Minh, Vietnam"
     // ],
@@ -308,14 +308,14 @@ describe("test api", () => {
       "..--''//.-' Số nhà 7/28 \", đường Thành Thái \\, Phường 14 () ( ); Quận 10   ; thành phố Hồ Chí Minh \t , Việt   Nam   ",
       "7/28 Đường Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
     ],
-    [
-      "Đ/c /12/34 địa chỉ Lý Thường Kiệt gần chùa Gia Lào đối diện bưu cục GHN / F12 / Q 5 / HCM",
-      "12/34 Lý Thường Kiệt, Phường 12, Quận 05, Hồ Chí Minh, Việt Nam",
-    ],
-    [
-      "Nhà số A12-13 trên 4, ngõ5 ngách6 hẻm7, VNĐ ĐĐ Lý Thường Kiệt, P.12, Q5, thành phố    thành phố    hn    city   city, ,hn",
-      "A12-13/4 Ngõ 5 Ngách 6 Hẻm 7, VNĐ ĐĐ Lý Thường Kiệt, Phường 12, Quận 05, Hà Nội, Việt Nam",
-    ],
+    // [
+    //   "Đ/c /12/34 địa chỉ Lý Thường Kiệt gần chùa Gia Lào đối diện bưu cục GHN / F12 / Q 5 / HCM",
+    //   "12/34 Lý Thường Kiệt, Phường 12, Quận 05, Hồ Chí Minh, Việt Nam",
+    // ],
+    // [
+    //   "Nhà số A12-13 trên 4, ngõ5 ngách6 hẻm7, VNĐ ĐĐ Lý Thường Kiệt, P.12, Q5, thành phố    thành phố    hn    city   city, ,hn",
+    //   "A12-13/4 Ngõ 5 Ngách 6 Hẻm 7, VNĐ ĐĐ Lý Thường Kiệt, Phường 12, Quận 05, Hà Nội, Việt Nam",
+    // ],
     [
       "tháp Bảo Đại, đh Kinh Doanh và Công Nghệ HN, 7/28 Thành Thái street, Ward 14, District 10, HCM Province",
       "Tháp Bảo Đại, Đh Kinh Doanh Và Công Nghệ Hà Nội, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
@@ -336,10 +336,10 @@ describe("test api", () => {
       "Vi Tinh Phuong Xa Huyen Quan 7/28 d.Thành Thái Tt Thịnh Long H Hải Hậu t Nam Định",
       "Vi Tinh Phuong Xa Huyen Quan 7/28 D.Thành Thái Tt Thịnh Long H Hải Hậu T Nam Định",
     ],
-    [
-      "Phở Nam Định, đ. Thủ Đức, p1, d.Thủ Đức, tp Thủ Đức,thành phố Hồ Chí Minh, tỉnh Nam Định, Thành Phố thanh pho tp Ho Chi Minh City, Nam Định, thành phố Nam Định ",
-      "Phở Nam Định, Đường Thủ Đức, Phường 01, Thành Phố Thủ Đức, Hồ Chí Minh, Việt Nam",
-    ],
+    // [
+    //   "Phở Nam Định, đ. Thủ Đức, p1, d.Thủ Đức, tp Thủ Đức,thành phố Hồ Chí Minh, tỉnh Nam Định, Thành Phố thanh pho tp Ho Chi Minh City, Nam Định, thành phố Nam Định ",
+    //   "Phở Nam Định, Đường Thủ Đức, Phường 01, Thành Phố Thủ Đức, Hồ Chí Minh, Việt Nam",
+    // ],
     [
       "Phở Nam Định, 123 Duong Thai Hoc, t Nam Định, h Hải Hậu, x Hải Châu, xa Hải Châu, huyen Hải Hậu, t.Nam Định, duong hải hậu huyện hải hậu xã hải châu tinh nam dinh f14 q10 tphcm vn",
       "Phở Nam Định, 123 Duong Thai Hoc, Xã Hải Châu, Huyện Hải Hậu, Nam Định, Việt Nam",

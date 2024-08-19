@@ -178,6 +178,7 @@ const sanitizeCounty = _.flow([
   sanitizeWithoutFirst(/(?<=^|\W)(Quận\s)/gi, ", Quận "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(Q\s|Q\.)/gi, ", Quận "),
   sanitizeWithoutFirst(/(?<=^|,|\s)q(\d{1,2})(?=$|,|\s)/gi, ", Quận $1, "),
+  sanitizeWithoutFirst(/(?<=^|,|\s)Quận\s0(\d{1,2})(?=$|,|\s)/gi, ", Quận $1, ")
   sanitizeWithoutFirst(/(?<=^|\W)(Huyện\s)/gi, ", Huyện "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(H\s|H\.)/gi, ", Huyện "),
   sanitizeWithoutFirst(/(?<=^|\W)(Thị Xã\s|Thi Xa\s)/gi, ", Thị Xã "),

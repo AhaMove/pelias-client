@@ -200,7 +200,7 @@ const sanitizeLocality = _.flow([
 
     return ", " + p2 + ", "
   }),
-  sanitizeWithoutFirst(/(?<=^|\W)(Phường\s)/gi, ", Phường "),
+  sanitizeWithoutFirst(/(?<=^|\W)(Phường\s[^,])/gi, ", Phường "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(F\s|F\.)/gi, ", Phường "),
   (text: string) => {
     // tránh lầm giữa phố vs phường ở Hà Nội

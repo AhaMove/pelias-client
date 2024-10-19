@@ -110,7 +110,7 @@ const cleanAddress = _.flow([
   ),
   _.replace(/(\s+trên\s+)(\d+)/gi, "/$2"), // 2 trên 3 -> 2/3
   _.replace(/^\s*([A-Z]?[0-9][A-Z\-/0-9]*)([\s,]*)/i, "$1 "), // xoá dấu , kề sau số nhà
-  _.replace(/\s*0+([1-9][0-9]*)/i, " $1"), // xoá các số 0 leading 1 phrase  
+  _.replace(/^\s*0+([1-9][0-9]*)/i, "$1"), // xoá các số 0 leading 1 phrase
   _.replace(/(?<=^|\W)Gần .*?(?=$|,)/gi, " "), // xoá "gần ..."
   _.replace(/(Đường\s)(số\s)?(\d+)(\s|,)/i,"Đường số $3, ")
 

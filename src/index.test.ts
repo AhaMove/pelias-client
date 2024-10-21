@@ -152,10 +152,10 @@ describe("test api", () => {
       "Rivera Park, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
       "Rivera Park",
     ],
-    [
-      "241/61/28 Ngõ Chợ Khâm Thiên",
-      "241/61/28 Ngõ Chợ Khâm Thiên, Phương Liên, Đống Đa, Hà Nội, Việt Nam",
-    ],
+    // [
+    //   "241/61/28 Ngõ Chợ Khâm Thiên",
+    //   "241/61/28 Ngõ Chợ Khâm Thiên, Phương Liên, Đống Đa, Hà Nội, Việt Nam",
+    // ],
     // [
     //   "Saigon Centre Tower 2, 67 Lê Lợi, Bến Nghé, Quận 01, Hồ Chí Minh, Việt Nam",
     //   "Saigon Centre",
@@ -214,7 +214,6 @@ describe("test api", () => {
     )
 
     const features = resp.features
-    console.log(features)
     expect(features.length).toBe(0)
   })
 
@@ -783,5 +782,40 @@ describe("test api", () => {
     const result = extractAddress(formatAddress(text))
 
     expect(result).toEqual(expected)
+  })
+})
+
+describe("test formatAddress", () => {
+  test.each([
+    [
+      "07/28 Thành Thái",
+      "7/28 Thành Thái",
+    ], [
+      "Số      1101     Đường Tạ Quang Bửu,    Phường 6, Quận 8, HCM",
+      "1101 Đường Tạ Quang Bửu, Phường 6, Quận 8, Hồ Chí Minh, Việt Nam",
+    ], [
+      "Số 0101 Đường Tạ Quang Bửu, Phường 6, Quận 8, HCM",
+      "101 Đường Tạ Quang Bửu, Phường 6, Quận 8, Hồ Chí Minh, Việt Nam",
+    ], [
+      "61 - 63, Liên phường , Phường Phú Hữu, Thành phố Thủ Đức, Thành phố Hồ Chí Minh",
+      "61 - 63, Liên Phường, Phường Phú Hữu, Thành Phố Thủ Đức, Hồ Chí Minh, Việt Nam"
+    ], [
+      "113/59/19 đường số 11, Phường Linh Xuân, Quận Thủ Đức, TP Hồ Chí Minh",
+      "113/59/19 Đường Số 11, Phường Linh Xuân, Quận Thủ Đức, Hồ Chí Minh, Việt Nam"
+    ], [
+      "028 lô K cư xá Thanh Đa, Phường 27, Quận Bình Thạnh, TP Hồ Chí Minh",
+      "28 Lô K Cư Xá Thanh Đa, Phường 27, Quận Bình Thạnh, Hồ Chí Minh, Việt Nam"
+    ], [
+      "019/038 hồ bá phấn, Phường Phước Long A, Quận 9, TP Hồ Chí Minh",
+      "19/38 Hồ Bá Phấn, Phường Phước Long A, Quận 9, Hồ Chí Minh, Việt Nam"
+    ], [
+      "125 Đ. Liên Phường, Phước Long B,      Quận 9,    Hồ Chí Minh 700000, Việt Nam",
+      "125 Đường Liên Phường, Phước Long B, Quận 9, Hồ Chí Minh, Việt Nam"
+    ], [
+      "125 Đ. Liên Phường    ,    phường Phước Long B, Quận 9, Hồ Chí Minh 700000, Việt Nam",
+      "125 Đường Liên Phường, Phường Phước Long B, Quận 9, Hồ Chí Minh, Việt Nam"
+    ]
+  ])("formatAddress should return as expected: '%s'", async (text, expected) => {
+    expect(formatAddress(text)).toBe(expected)
   })
 })

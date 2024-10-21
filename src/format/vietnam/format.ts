@@ -94,6 +94,7 @@ const cleanAddress = _.flow([
     /(?<=^|,|\s)(Đ\/c|đ\/c|Đc|đc|Địa Chỉ|địa chỉ|D\/c|Dc|Dia Chi)(?=$|,|\s)/gi,
     ""
   ),
+  _.replace(/\b0+([1-9][0-9]*)/g, "$1"), // xoá các số 0 leading 1 phrase
   _.replace(/(?<=^|\W)\d{5,6}(?=$|\W)/gi, " "), // clean VN postal code
   _.replace(/(?<=^|\W)(\+84|0)(9|8|1[2689])([0-9]{8})(?=$|\W)/g, " "), // xoá số điện thoại Việt Nam
   _.replace(/["\\]/g, " "), // remove common non-related symbols such as " \
@@ -110,7 +111,6 @@ const cleanAddress = _.flow([
   ),
   _.replace(/(\s+trên\s+)(\d+)/gi, "/$2"), // 2 trên 3 -> 2/3
   _.replace(/^\s*([A-Z]?[0-9][A-Z\-/0-9]*)([\s,]*)/i, "$1 "), // xoá dấu , kề sau số nhà
-  _.replace(/^\s*0+([1-9][0-9]*)/i, "$1"), // xoá các số 0 leading 1 phrase
   _.replace(/(?<=^|\W)Gần .*?(?=$|,)/gi, " "), // xoá "gần ..."
   _.replace(/(Đường\s)(số\s)?(\d+)(\s|,)/i,"Đường số $3, ")
 
@@ -201,7 +201,7 @@ const sanitizeLocality = _.flow([
 
     return ", " + p2 + ", "
   }),
-  sanitizeWithoutFirst(/(?<=^|\W)(Phường\s[^,])/gi, ", Phường "),
+  sanitizeWithoutFirst(/(?<=^|\W)(Phường\s)(?![^,]*Phường)/gi, " Phường "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(F\s|F\.)/gi, ", Phường "),
   (text: string) => {
     // tránh lầm giữa phố vs phường ở Hà Nội

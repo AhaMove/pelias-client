@@ -794,7 +794,7 @@ describe("test formatAddress", () => {
       "Số      1101     Đường Tạ Quang Bửu,    Phường 6, Quận 8, HCM",
       "1101 Đường Tạ Quang Bửu, Phường 6, Quận 8, Hồ Chí Minh, Việt Nam",
     ], [
-      "Số 0101 Đường Tạ Quang Bửu, Phường 6, Quận 8, HCM",
+      "Số 0000101 Đường Tạ Quang Bửu, Phường 6, Quận 8, HCM",
       "101 Đường Tạ Quang Bửu, Phường 6, Quận 8, Hồ Chí Minh, Việt Nam",
     ], [
       "61 - 63, Liên phường , Phường Phú Hữu, Thành phố Thủ Đức, Thành phố Hồ Chí Minh",
@@ -814,6 +814,12 @@ describe("test formatAddress", () => {
     ], [
       "125 Đ. Liên Phường    ,    phường Phước Long B, Quận 9, Hồ Chí Minh 700000, Việt Nam",
       "125 Đường Liên Phường, Phường Phước Long B, Quận 9, Hồ Chí Minh, Việt Nam"
+    ], [
+      "46 Đ. Nguyễn Thái Bình, Phường Nguyễn Thái Bình, Quận 1, Hồ Chí Minh 71010, Vietnam",
+      "46 Đường Nguyễn Thái Bình, Phường Nguyễn Thái Bình, Quận 1, Hồ Chí Minh, Việt Nam"
+    ], [
+      "44 P.Phạm Ngọc Thạch, Phương Liên, Đống Đa, Hà Nội",
+      "44 Phố Phạm Ngọc Thạch, Phương Liên, Đống Đa, Hà Nội, Việt Nam"
     ]
   ])("formatAddress should return as expected: '%s'", async (text, expected) => {
     expect(formatAddress(text)).toBe(expected)

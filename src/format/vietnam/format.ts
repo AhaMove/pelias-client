@@ -95,7 +95,6 @@ const cleanAddress = _.flow([
     ""
   ),
   _.replace(/\b0+([1-9][0-9]*)/g, "$1"), // xoá các số 0 leading 1 phrase
-  _.replace(/^0+([1-9][0-9]*)/i, " $1"), // xoa số 0 bắt đầu địa chỉ
   _.replace(/(?<=^|\W)\d{5,6}(?=$|\W)/gi, " "), // clean VN postal code
   _.replace(/(?<=^|\W)(\+84|0)(9|8|1[2689])([0-9]{8})(?=$|\W)/g, " "), // xoá số điện thoại Việt Nam
   _.replace(/["\\]/g, " "), // remove common non-related symbols such as " \

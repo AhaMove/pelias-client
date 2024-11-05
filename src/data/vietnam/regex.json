@@ -5,7 +5,7 @@
   "Đà Nẵng": "(Thành Phố\\s*)*(Đà Nẵng|ĐàNẵng|Da Nang|DaNang|Thành Phố Đà Nẵng|Đà Nẵng City|Da Nang City)(\\s*City)*",
   "Hải Phòng": "(Thành Phố\\s*)*(Hải Phòng|HảiPhòng|Hai Phong|HaiPhong|Thành Phố Hải Phòng|Hải Phòng City|Hai Phong City)(\\s*City)*",
   "An Giang": "(An Giang|AnGiang|An Giang|AnGiang|Tỉnh An Giang|An Giang Province|An Giang Province)",
-  "Bà Rịa - Vũng Tàu": "(Bà Rịa - Vũng Tàu|Bà Rịa-VũngTàu|BàRịa -VũngTàu|BàRịa- VũngTàu|BàRịa-Vũng Tàu|BàRịa-VũngTàu|Ba Ria-VungTau|BaRia -VungTau|BaRia- VungTau|BaRia-Vung Tau|BaRia-VungTau|Tỉnh Bà Rịa - Vũng Tàu|Bà Rịa - Vũng Tàu Province|Ba Ria - Vung Tau Province)",
+  "Bà Rịa - Vũng Tàu": "(Bà Rịa - Vũng Tàu|Bà Rịa-VũngTàu|BàRịa -VũngTàu|BàRịa- VũngTàu|BàRịa-Vũng Tàu|BàRịa-VũngTàu|Ba Ria-VungTau|BaRia -VungTau|BaRia- VungTau|BaRia-Vung Tau|BaRia-VungTau|Tỉnh Bà Rịa - Vũng Tàu|Tỉnh Bà Rịa Vũng Tàu|Bà Rịa - Vũng Tàu Province|Ba Ria - Vung Tau Province)",
   "Bắc Giang": "(Bắc Giang|BắcGiang|Bac Giang|BacGiang|Tỉnh Bắc Giang|Bắc Giang Province|Bac Giang Province)",
   "Bắc Kạn": "(Bắc Kạn|BắcKạn|Bac Kan|BacKan|Tỉnh Bắc Kạn|Bắc Kạn Province|Bac Kan Province)",
   "Bạc Liêu": "(Bạc Liêu|BạcLiêu|Bac Lieu|BacLieu|Tỉnh Bạc Liêu|Bạc Liêu Province|Bac Lieu Province)",

@@ -26,6 +26,9 @@ export interface PeliasProperties {
   locality_a: string
   entrances: string
   polygon: string
+  region_id: string
+  locality_id: string
+  county_id: string
 }
 
 export interface PeliasFeatureModel {

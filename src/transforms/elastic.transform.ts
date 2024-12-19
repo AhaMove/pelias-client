@@ -248,12 +248,10 @@ export class ElasticTransform {
   }: CreateSearchBody) {
     // const formatted = format(text)
     const formatted = text
-    const parsedText = extract(formatted);
+    let parsedText = extract(formatted);
     const layer = parsedText.venue ? "venue" : "";
-    // if not geocode, we use venue search for address type
-    // if (parsedText.address && !geocode) {
-    //     parsedText = {...parsedText, venue: parsedText.address}
-    // }
+    // if not geocode, we only search address/venue and exclude other parts
+    parsedText = geocode ? parsedText : {venue: parsedText.venue, address: parsedText.address};    
     let sortScore = true
 
     // create query

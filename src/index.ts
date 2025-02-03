@@ -1,4 +1,4 @@
-import { ElasticTransform } from "src/transforms/elastic.transform"
+import {MultiIndexOptions, ElasticTransform } from "src/transforms/elastic.transform"
 import { PeliasTransform, AdminAreas } from "src/transforms/pelias.transform"
 import { NearbyParams } from "src/resources/nearby.params"
 import { SearchByNameParams, SearchParams } from "src/resources/search.params"
@@ -89,7 +89,9 @@ export class PeliasClient<
   async search(
     params: SearchParams,
     geocode = false,
-    adminMatch = false
+    adminMatch = false,
+    alias: string = "pelias",
+    multiIndexOpts?: MultiIndexOptions | null
   ): Promise<PeliasResponse> {
     const { text, size = 10, count_terminate_after = 500 } = params
 
@@ -97,7 +99,7 @@ export class PeliasClient<
       queryBody: Record<string, any>
     ): Promise<CountModel> => {
       const result = await this.esClient.count<TCountResponse>({
-        index: "pelias",
+        index: alias,
         terminate_after: count_terminate_after,
         body: queryBody,
       })
@@ -117,11 +119,11 @@ export class PeliasClient<
           : undefined,
         countFunc,
         geocode,
-        opts: null,
+        opts: multiIndexOpts,
       })
 
     const result = await this.esClient.search<TResponse>({
-      index: "pelias",
+      index: alias,
       body,
     })
 

@@ -4,6 +4,10 @@ import { NearbyParams } from "src/resources/nearby.params"
 import { CountModel } from "src/models/count.model"
 import { AddressParts } from "src/models/address-parts.model"
 
+export interface MultiIndexOptions {
+  extraFilters?: Array<any>;
+  extraFunctions?: Array<any>;
+}
 
 interface CreateSearchBody {
   text: string
@@ -11,8 +15,8 @@ interface CreateSearchBody {
   lat?: number
   lon?: number
   countFunc: (queryBody: Record<string, any>) => Promise<CountModel>
-  geocode: boolean,
-  opts: any
+  geocode: boolean
+  multiIndexOpts?: MultiIndexOptions | null
 }
 
 interface CreateShouldClauses {
@@ -246,10 +250,9 @@ export class ElasticTransform {
     lon,
     countFunc,
     geocode = false,
-    opts = null,
+    multiIndexOpts = null
   }: CreateSearchBody) {
     // const formatted = format(text)
-    console.log("OW-833, opts: ", opts)
     const formatted = text
     const parsedText = extract(formatted);
     const layer = parsedText.venue ? "venue" : "";
@@ -264,7 +267,13 @@ export class ElasticTransform {
 
     // create query
     let query = ElasticTransform.createQuery({ layer, parsedText })
-
+    // if multiIndexOpts is provided, add extra filters
+    if (multiIndexOpts) {
+      if (multiIndexOpts.extraFilters) {
+        query.bool.filter = query.bool.filter || []
+        query.bool.filter.push(...multiIndexOpts.extraFilters)
+      }
+    }
     // count the number of records that match the query. If return terminated_early == true, we won't recalculate the score
     const countResult = await countFunc({
       query: query,
@@ -299,7 +308,14 @@ export class ElasticTransform {
             }
         }
     }
-
+    // if multiIndexOpts is provided, add extra scoring functions
+    if (multiIndexOpts) {
+      if (multiIndexOpts.extraFunctions){
+        query.function_score = query.function_score || {}
+        query.function_score.functions = query.function_score.functions || []
+        query.function_score.functions.push(...multiIndexOpts.extraFunctions)
+      }
+    }
     // create search query body
     const body: Record<string, any> = {
       query: query,

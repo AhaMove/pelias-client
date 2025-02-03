@@ -11,7 +11,8 @@ interface CreateSearchBody {
   lat?: number
   lon?: number
   countFunc: (queryBody: Record<string, any>) => Promise<CountModel>
-  geocode: boolean
+  geocode: boolean,
+  opts: any
 }
 
 interface CreateShouldClauses {
@@ -245,8 +246,10 @@ export class ElasticTransform {
     lon,
     countFunc,
     geocode = false,
+    opts = null,
   }: CreateSearchBody) {
     // const formatted = format(text)
+    console.log("OW-833, opts: ", opts)
     const formatted = text
     const parsedText = extract(formatted);
     const layer = parsedText.venue ? "venue" : "";

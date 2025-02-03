@@ -116,7 +116,8 @@ export class PeliasClient<
           ? parseFloat(params["focus.point.lon"])
           : undefined,
         countFunc,
-        geocode
+        geocode,
+        opts: null,
       })
 
     const result = await this.esClient.search<TResponse>({

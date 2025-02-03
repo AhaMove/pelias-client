@@ -119,7 +119,7 @@ export class PeliasClient<
           : undefined,
         countFunc,
         geocode,
-        opts: multiIndexOpts,
+        multiIndexOpts: multiIndexOpts,
       })
 
     const result = await this.esClient.search<TResponse>({

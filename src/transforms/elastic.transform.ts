@@ -7,6 +7,12 @@ import { AddressParts } from "src/models/address-parts.model"
 export interface MultiIndexOptions {
   extraFilters?: Array<any>;
   extraFunctions?: Array<any>;
+  aggregations?: Record<string, MultiIndexAggregationConfig> | null;
+}
+
+export interface MultiIndexAggregationConfig {
+  filter: any;
+  size: number;
 }
 
 interface CreateSearchBody {
@@ -316,14 +322,18 @@ export class ElasticTransform {
         query.function_score.functions.push(...multiIndexOpts.extraFunctions)
       }
     }
-    // create search query body
-    const body: Record<string, any> = {
+    let sort = ElasticTransform.createSort({ sortScore, lat, lon })
+    let body: Record<string, any> = {
       query: query,
       size: size,
       track_scores: true,
-      sort: ElasticTransform.createSort({ sortScore, lat, lon }),
+      sort: sort,
     }
-    // console.log("SearchBodyQuery:\n", JSON.stringify(body, null, 2))
+    
+    if (multiIndexOpts && multiIndexOpts.aggregations) {
+      const aggregations = buildMultiIndexAggregations(multiIndexOpts.aggregations, sort)
+      body["aggs"] = aggregations
+    }
 
     return {
       body,
@@ -379,5 +389,98 @@ export class ElasticTransform {
     }
 
     return nearByBody
+  }
+}
+
+/**
+ * Builds aggregations for multiple Elasticsearch indices / aliases with filtering and sorting
+ * 
+ * @param {Record<string, MultiIndexAggregationConfig> | null} aggregations - Aggregations configuration object
+ *    Key: Index name (e.g., "saved_place", "nearby")
+ *    Value: Configuration object containing:
+ *      - filter: Elasticsearch filter query (term, terms, range etc)
+ *      - size: Number of top hits to return for this index/alias
+ *    Pass empty if no aggregations needed
+ * 
+ * @param {any} sort - Sorting configuration for top hits results
+ *    Defines sort order for documents within each aggregation, should be sort of the main queries
+ * 
+ * @returns {Record<string, any>} Processed aggregations object with structure:
+ *    {
+ *      [indexName]: {
+ *        filter: <filter criteria>,
+ *        aggs: {
+ *          top_hits: {
+ *            top_hits: {
+ *              size: <size>,
+ *              track_scores: true,
+ *              sort: <sort config>
+ *            }
+ *          }
+ *        }
+ *      }
+ *    }
+ *    Returns empty object if input is null
+ * 
+ * @example
+ * // Configuration for multiple indices
+ * const aggregations = {
+ *   "saved_place": {
+ *     filter: { 
+ *       term: { "_index": "saved_place" }
+ *     },
+ *     size: 2
+ *   },
+ *   "nearby": {
+ *     "filter": { "bool": { "must_not": [ { "terms": { "_index": ["saved_place", "recent_place"] } }]}},
+ *     size: 10
+ *   }
+ * };
+ * 
+ * const sort = { _score: "desc" };
+ * 
+ * const result = buildMultiIndexAggregations(aggregations, sort);
+ * 
+ * // Result structure:
+ * // {
+ * //   "saved_place": {
+ * //     filter: { term: { status: "active" }},
+ * //     aggs: {
+ * //       top_hits: {
+ * //         top_hits: {
+ * //           size: 5,
+ * //           track_scores: true,
+ * //           sort: { _score: "desc" }
+ * //         }
+ * //       }
+ * //     }
+ * //   },
+ * //   "nearby": { ... }
+ * // }
+ */
+
+function buildMultiIndexAggregations(aggregations: Record<string, MultiIndexAggregationConfig> | null, sort: any) {
+  // Initialize empty aggregations object
+  let aggs: Record<string, any> = {};
+  // Return empty object if aggregations is null
+  if (!aggregations) {
+    return aggs;
+  }
+  // Loop through each aggregation configuration
+  for (const [aggName, aggConfig] of Object.entries(aggregations)) {
+    // Skip if configuration is empty
+    if (!aggConfig) continue;
+    aggs[aggName] = {
+      "filter": aggConfig.filter,
+      "aggs": {
+        "top_hits": {
+          "top_hits": {
+            "size": aggConfig.size,
+            "track_scores": true,
+            "sort": sort
+          }
+        }
+      }
+    };
   }
 }

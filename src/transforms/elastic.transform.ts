@@ -331,8 +331,7 @@ export class ElasticTransform {
     }
     
     if (multiIndexOpts && multiIndexOpts.aggregations) {
-      const aggregations = buildMultiIndexAggregations(multiIndexOpts.aggregations, sort)
-      body["aggs"] = aggregations
+      body["aggs"] = buildMultiIndexAggregations(multiIndexOpts.aggregations, sort)
     }
 
     return {
@@ -483,4 +482,5 @@ function buildMultiIndexAggregations(aggregations: Record<string, MultiIndexAggr
       }
     };
   }
+  return aggs;
 }

@@ -127,7 +127,24 @@ export class PeliasClient<
       body,
     })
 
-    const hits = result.body.hits.hits
+    let hits = result.body.hits.hits
+    if (multiIndexOpts && multiIndexOpts.overwriteHits) {
+      let aggregations = (result.body as any).aggregations;
+      hits = [];
+      for (let key in aggregations) {
+        let bucket = aggregations[key];
+        if (bucket.top_hits) {
+          let topHits = bucket.top_hits.hits.hits;
+          for (let hit of topHits) {
+            hits.push(hit);
+          }
+        }
+      }
+      hits.sort((a, b) => {
+        return b._score - a._score;
+      });
+    }
+  
     const adminAreas: AdminAreas | undefined = adminMatch
       ? {
           county: parsedText.county,

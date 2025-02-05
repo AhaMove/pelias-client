@@ -8,6 +8,7 @@ export interface MultiIndexOptions {
   extraFilters?: Array<any>;
   extraFunctions?: Array<any>;
   aggregations?: Record<string, MultiIndexAggregationConfig> | null;
+  overwriteHits?: boolean
 }
 
 export interface MultiIndexAggregationConfig {
@@ -316,20 +317,22 @@ export class ElasticTransform {
     }
     // if multiIndexOpts is provided, add extra scoring functions
     if (multiIndexOpts) {
-      if (multiIndexOpts.extraFunctions){
+      if (multiIndexOpts.extraFunctions) {
         query.function_score = query.function_score || {}
         query.function_score.functions = query.function_score.functions || []
         query.function_score.functions.push(...multiIndexOpts.extraFunctions)
       }
     }
     let sort = ElasticTransform.createSort({ sortScore, lat, lon })
+    if (multiIndexOpts && multiIndexOpts.overwriteHits) {
+      size = 0;
+    }
     let body: Record<string, any> = {
       query: query,
       size: size,
       track_scores: true,
       sort: sort,
     }
-    
     if (multiIndexOpts && multiIndexOpts.aggregations) {
       body["aggs"] = buildMultiIndexAggregations(multiIndexOpts.aggregations, sort)
     }

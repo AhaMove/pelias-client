@@ -5,15 +5,15 @@ import { CountModel } from "src/models/count.model"
 import { AddressParts } from "src/models/address-parts.model"
 
 export interface MultiIndexOptions {
-  extraFilters?: Array<any>;
-  extraFunctions?: Array<any>;
-  aggregations?: Record<string, MultiIndexAggregationConfig> | null;
+  extraFilters?: Array<any>
+  extraFunctions?: Array<any>
+  aggregations?: Record<string, MultiIndexAggregationConfig> | null
   overwriteHits?: boolean
 }
 
 export interface MultiIndexAggregationConfig {
-  filter: any;
-  size: number;
+  filter: any
+  size: number
 }
 
 interface CreateSearchBody {
@@ -63,8 +63,8 @@ export class ElasticTransform {
             newKey = `address_parts.${key}`
             break
           case "address":
-            if (!parsedText.street) newKey = "name.default";
-            break;
+            if (!parsedText.street) newKey = "name.default"
+            break
           default:
             return null
         }
@@ -74,16 +74,16 @@ export class ElasticTransform {
         }
 
         if (newKey === "parent.locality") {
-          if (value.match(/(Phường)\s\D/))
-              value = value.replace('Phường ','')
+          if (value.match(/(Phường)\s\D/)) value = value.replace("Phường ", "")
         }
         if (newKey === "parent.county") {
-            if (value.match(/(Quận)\s\D/))
-                value = value.replace('Quận ','')
+          if (value.match(/(Quận)\s\D/)) value = value.replace("Quận ", "")
         }
-        if (newKey === "address_parts.street" && parsedText?.address?.includes('Hà Nội')) {
-            if (value.match(/^(Phố)\s\D/i))
-                value = value.replace('Phố ', '')
+        if (
+          newKey === "address_parts.street" &&
+          parsedText?.address?.includes("Hà Nội")
+        ) {
+          if (value.match(/^(Phố)\s\D/i)) value = value.replace("Phố ", "")
         }
 
         if (newKey === "address_parts.number") {
@@ -106,8 +106,7 @@ export class ElasticTransform {
                   query: value,
                   filter: {
                     script: {
-                      source:
-                        "interval.start == 0 && interval.gaps == 0",
+                      source: "interval.start == 0 && interval.gaps == 0",
                     },
                   },
                   ordered: true,
@@ -150,24 +149,26 @@ export class ElasticTransform {
 
     // if parsedText has venue, filter for records which have that venue in the beginning of "name.default"
     if (parsedText.venue) {
-      const venue_token_count = parsedText.venue.trim().split(/\s+/).length;
+      const venue_token_count = parsedText.venue.trim().split(/\s+/).length
       result.bool.must.push({
-          intervals: {
-              "name.default": {
-                  match: {
-                      query: parsedText.venue,
-                      filter: {
-                          script: {
-                              source: "interval.start >= 0 && interval.end < " +
-                                  (venue_token_count + 4) +
-                                  " && interval.gaps <= " + Math.max(venue_token_count - 1,0),
-                          },
-                      },
-                      ordered: true,
-                  },
+        intervals: {
+          "name.default": {
+            match: {
+              query: parsedText.venue,
+              filter: {
+                script: {
+                  source:
+                    "interval.start >= 0 && interval.end < " +
+                    (venue_token_count + 4) +
+                    " && interval.gaps <= " +
+                    Math.max(venue_token_count - 1, 0),
+                },
               },
+              ordered: true,
+            },
           },
-      });
+        },
+      })
     }
     return result
   }
@@ -186,9 +187,9 @@ export class ElasticTransform {
             },
           },
           {
-              script_score: {
-                script: {
-                  "source": `
+            script_score: {
+              script: {
+                source: `
                     try {
                       double score = 0;
                       int pos = params._source.name.default.toLowerCase().indexOf(params.venueName);
@@ -203,11 +204,11 @@ export class ElasticTransform {
                       return 0;
                     }
                   `,
-                  params: {
-                      venueName: venueName.toLowerCase()
-                  }
-                }
+                params: {
+                  venueName: venueName.toLowerCase(),
+                },
               },
+            },
           },
         ],
         score_mode: "sum",
@@ -257,12 +258,12 @@ export class ElasticTransform {
     lon,
     countFunc,
     geocode = false,
-    multiIndexOpts = null
+    multiIndexOpts = null,
   }: CreateSearchBody) {
     // const formatted = format(text)
     const formatted = text
-    const parsedText = extract(formatted);
-    const layer = parsedText.venue ? "venue" : "";
+    const parsedText = extract(formatted)
+    const layer = parsedText.venue ? "venue" : ""
     // if not geocode, ignore admin parts
     if (!geocode) {
       parsedText.country = ""
@@ -294,26 +295,27 @@ export class ElasticTransform {
       }
     }
     if (parsedText.number) {
-        const score_exact_address_number = {
-                script_score: {
-                    script: {
-                        // source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
-                      source: "try { 100-params._source.address_parts.number.length() } catch (Exception e) {0}",
-                    },
-                }
-            };
-        if (query.function_score) {
-            query.function_score.functions.push(score_exact_address_number)
-        } else {
-            query = {
-                function_score: {
-                    query: query,
-                    functions: [score_exact_address_number],
-                    score_mode: "sum",
-                    boost_mode: "replace",
-                }
-            }
+      const score_exact_address_number = {
+        script_score: {
+          script: {
+            // source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
+            source:
+              "try { 100-params._source.address_parts.number.length() } catch (Exception e) {0}",
+          },
+        },
+      }
+      if (query.function_score) {
+        query.function_score.functions.push(score_exact_address_number)
+      } else {
+        query = {
+          function_score: {
+            query: query,
+            functions: [score_exact_address_number],
+            score_mode: "sum",
+            boost_mode: "replace",
+          },
         }
+      }
     }
     // if multiIndexOpts is provided, add extra scoring functions
     if (multiIndexOpts) {
@@ -325,7 +327,7 @@ export class ElasticTransform {
     }
     let sort = ElasticTransform.createSort({ sortScore, lat, lon })
     if (multiIndexOpts && multiIndexOpts.overwriteHits) {
-      size = 0;
+      size = 0
     }
     let body: Record<string, any> = {
       query: query,
@@ -334,7 +336,10 @@ export class ElasticTransform {
       sort: sort,
     }
     if (multiIndexOpts && multiIndexOpts.aggregations) {
-      body["aggs"] = buildMultiIndexAggregations(multiIndexOpts.aggregations, sort)
+      body["aggs"] = buildMultiIndexAggregations(
+        multiIndexOpts.aggregations,
+        sort
+      )
     }
 
     return {
@@ -396,17 +401,17 @@ export class ElasticTransform {
 
 /**
  * Builds aggregations for multiple Elasticsearch indices / aliases with filtering and sorting
- * 
+ *
  * @param {Record<string, MultiIndexAggregationConfig> | null} aggregations - Aggregations configuration object
  *    Key: Index name (e.g., "saved_place", "nearby")
  *    Value: Configuration object containing:
  *      - filter: Elasticsearch filter query (term, terms, range etc)
  *      - size: Number of top hits to return for this index/alias
  *    Pass empty if no aggregations needed
- * 
+ *
  * @param {any} sort - Sorting configuration for top hits results
  *    Defines sort order for documents within each aggregation, should be sort of the main queries
- * 
+ *
  * @returns {Record<string, any>} Processed aggregations object with structure:
  *    {
  *      [indexName]: {
@@ -423,12 +428,12 @@ export class ElasticTransform {
  *      }
  *    }
  *    Returns empty object if input is null
- * 
+ *
  * @example
  * // Configuration for multiple indices
  * const aggregations = {
  *   "saved_place": {
- *     filter: { 
+ *     filter: {
  *       term: { "_index": "saved_place" }
  *     },
  *     size: 2
@@ -438,11 +443,11 @@ export class ElasticTransform {
  *     size: 10
  *   }
  * };
- * 
+ *
  * const sort = { _score: "desc" };
- * 
+ *
  * const result = buildMultiIndexAggregations(aggregations, sort);
- * 
+ *
  * // Result structure:
  * // {
  * //   "saved_place": {
@@ -461,29 +466,32 @@ export class ElasticTransform {
  * // }
  */
 
-function buildMultiIndexAggregations(aggregations: Record<string, MultiIndexAggregationConfig> | null, sort: any) {
+function buildMultiIndexAggregations(
+  aggregations: Record<string, MultiIndexAggregationConfig> | null,
+  sort: any
+) {
   // Initialize empty aggregations object
-  let aggs: Record<string, any> = {};
+  let aggs: Record<string, any> = {}
   // Return empty object if aggregations is null
   if (!aggregations) {
-    return aggs;
+    return aggs
   }
   // Loop through each aggregation configuration
   for (const [aggName, aggConfig] of Object.entries(aggregations)) {
     // Skip if configuration is empty
-    if (!aggConfig) continue;
+    if (!aggConfig) continue
     aggs[aggName] = {
-      "filter": aggConfig.filter,
-      "aggs": {
-        "top_hits": {
-          "top_hits": {
-            "size": aggConfig.size,
-            "track_scores": true,
-            "sort": sort
-          }
-        }
-      }
-    };
+      filter: aggConfig.filter,
+      aggs: {
+        top_hits: {
+          top_hits: {
+            size: aggConfig.size,
+            track_scores: true,
+            sort: sort,
+          },
+        },
+      },
+    }
   }
-  return aggs;
+  return aggs
 }

@@ -1,4 +1,7 @@
-import {MultiIndexOptions, ElasticTransform } from "src/transforms/elastic.transform"
+import {
+  MultiIndexOptions,
+  ElasticTransform,
+} from "src/transforms/elastic.transform"
 import { PeliasTransform, AdminAreas } from "src/transforms/pelias.transform"
 import { NearbyParams } from "src/resources/nearby.params"
 import { SearchByNameParams, SearchParams } from "src/resources/search.params"
@@ -129,22 +132,22 @@ export class PeliasClient<
 
     let hits = result.body.hits.hits
     if (multiIndexOpts && multiIndexOpts.overwriteHits) {
-      let aggregations = (result.body as any).aggregations;
-      hits = [];
+      let aggregations = (result.body as any).aggregations
+      hits = []
       for (let key in aggregations) {
-        let bucket = aggregations[key];
+        let bucket = aggregations[key]
         if (bucket.top_hits) {
-          let topHits = bucket.top_hits.hits.hits;
+          let topHits = bucket.top_hits.hits.hits
           for (let hit of topHits) {
-            hits.push(hit);
+            hits.push(hit)
           }
         }
       }
       hits.sort((a, b) => {
-        return b._score - a._score;
-      });
+        return b._score - a._score
+      })
     }
-  
+
     const adminAreas: AdminAreas | undefined = adminMatch
       ? {
           county: parsedText.county,
@@ -341,12 +344,12 @@ export class PeliasClient<
       body: {
         query: {
           term: {
-            source_id: _id
-          }
+            source_id: _id,
+          },
         },
       },
-    });
-    return result.body.hits.hits[0];
+    })
+    return result.body.hits.hits[0]
   }
 }
 

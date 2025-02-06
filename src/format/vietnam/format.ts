@@ -82,7 +82,7 @@ const cleanBracketContents = (text: string) => {
       result += char
     }
   }
-  if (count != 0) return text.replace(/(\(|\))/g,'')
+  if (count != 0) return text.replace(/(\(|\))/g, "")
   return result
 }
 
@@ -112,7 +112,7 @@ const cleanAddress = _.flow([
   _.replace(/(\s+trên\s+)(\d+)/gi, "/$2"), // 2 trên 3 -> 2/3
   _.replace(/^\s*([A-Z]?[0-9][A-Z\-/0-9]*)(?![\w.])[\s,]*/i, "$1 "), // xoá dấu , kề sau số nhà
   _.replace(/(?<=^|\W)Gần .*?(?=$|,)/gi, " "), // xoá "gần ..."
-  _.replace(/(Đường\s)(số\s)?(\d+)(\s|,)/i,"Đường số $3, ")
+  _.replace(/(Đường\s)(số\s)?(\d+)(\s|,)/i, "Đường số $3, "),
 
   // _.replace(
   //   /^([a-z0-9]*)(\s?-\s?)([a-z0-9]*)(,?\s)([a-z0-9]*)(\s?-\s?)([a-z0-9]*)/i,
@@ -179,7 +179,10 @@ const sanitizeCounty = _.flow([
   sanitizeWithoutFirst(/(?<=^|\W)(Quận\s)/gi, ", Quận "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(Q\s|Q\.)/gi, ", Quận "),
   sanitizeWithoutFirst(/(?<=^|,|\s)q(\d{1,2})(?=$|,|\s)/gi, ", Quận $1, "),
-  sanitizeWithoutFirst(/(?<=^|,|\s)Quận\s0(\d{1,2})(?=$|,|\s)/gi, ", Quận $1, "),
+  sanitizeWithoutFirst(
+    /(?<=^|,|\s)Quận\s0(\d{1,2})(?=$|,|\s)/gi,
+    ", Quận $1, "
+  ),
   sanitizeWithoutFirst(/(?<=^|\W)(Huyện\s)/gi, ", Huyện "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(H\s|H\.)/gi, ", Huyện "),
   sanitizeWithoutFirst(/(?<=^|\W)(Thị Xã\s|Thi Xa\s)/gi, ", Thị Xã "),

@@ -1,4 +1,7 @@
-import { ElasticTransform } from "src/transforms/elastic.transform"
+import {
+  MultiIndexOptions,
+  ElasticTransform,
+} from "src/transforms/elastic.transform"
 import { PeliasTransform, AdminAreas } from "src/transforms/pelias.transform"
 import { NearbyParams } from "src/resources/nearby.params"
 import { SearchByNameParams, SearchParams } from "src/resources/search.params"
@@ -89,7 +92,9 @@ export class PeliasClient<
   async search(
     params: SearchParams,
     geocode = false,
-    adminMatch = false
+    adminMatch = false,
+    alias: string = "pelias",
+    multiIndexOpts?: MultiIndexOptions | null
   ): Promise<PeliasResponse> {
     const { text, size = 10, count_terminate_after = 500 } = params
 
@@ -97,7 +102,7 @@ export class PeliasClient<
       queryBody: Record<string, any>
     ): Promise<CountModel> => {
       const result = await this.esClient.count<TCountResponse>({
-        index: "pelias",
+        index: alias,
         terminate_after: count_terminate_after,
         body: queryBody,
       })
@@ -116,15 +121,33 @@ export class PeliasClient<
           ? parseFloat(params["focus.point.lon"])
           : undefined,
         countFunc,
-        geocode
+        geocode,
+        multiIndexOpts: multiIndexOpts,
       })
 
     const result = await this.esClient.search<TResponse>({
-      index: "pelias",
+      index: alias,
       body,
     })
 
-    const hits = result.body.hits.hits
+    let hits = result.body.hits.hits
+    if (multiIndexOpts && multiIndexOpts.overwriteHits) {
+      let aggregations = (result.body as any).aggregations
+      hits = []
+      for (let key in aggregations) {
+        let bucket = aggregations[key]
+        if (bucket.top_hits) {
+          let topHits = bucket.top_hits.hits.hits
+          for (let hit of topHits) {
+            hits.push(hit)
+          }
+        }
+      }
+      hits.sort((a, b) => {
+        return b._score - a._score
+      })
+    }
+
     const adminAreas: AdminAreas | undefined = adminMatch
       ? {
           county: parsedText.county,
@@ -321,12 +344,12 @@ export class PeliasClient<
       body: {
         query: {
           term: {
-            source_id: _id
-          }
+            source_id: _id,
+          },
         },
       },
-    });
-    return result.body.hits.hits[0];
+    })
+    return result.body.hits.hits[0]
   }
 }
 

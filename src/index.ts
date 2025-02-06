@@ -93,7 +93,7 @@ export class PeliasClient<
     params: SearchParams,
     geocode = false,
     adminMatch = false,
-    alias: string = "pelias",
+    alias = "pelias",
     multiIndexOpts?: MultiIndexOptions | null
   ): Promise<PeliasResponse> {
     const { text, size = 10, count_terminate_after = 500 } = params
@@ -132,13 +132,13 @@ export class PeliasClient<
 
     let hits = result.body.hits.hits
     if (multiIndexOpts && multiIndexOpts.overwriteHits) {
-      let aggregations = (result.body as any).aggregations
+      const aggregations = (result.body as any).aggregations
       hits = []
-      for (let key in aggregations) {
-        let bucket = aggregations[key]
+      for (const key in aggregations) {
+        const bucket = aggregations[key]
         if (bucket.top_hits) {
-          let topHits = bucket.top_hits.hits.hits
-          for (let hit of topHits) {
+          const topHits = bucket.top_hits.hits.hits
+          for (const hit of topHits) {
             hits.push(hit)
           }
         }

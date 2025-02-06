@@ -325,11 +325,11 @@ export class ElasticTransform {
         query.function_score.functions.push(...multiIndexOpts.extraFunctions)
       }
     }
-    let sort = ElasticTransform.createSort({ sortScore, lat, lon })
+    const sort = ElasticTransform.createSort({ sortScore, lat, lon })
     if (multiIndexOpts && multiIndexOpts.overwriteHits) {
       size = 0
     }
-    let body: Record<string, any> = {
+    const body: Record<string, any> = {
       query: query,
       size: size,
       track_scores: true,
@@ -471,7 +471,7 @@ function buildMultiIndexAggregations(
   sort: any
 ) {
   // Initialize empty aggregations object
-  let aggs: Record<string, any> = {}
+  const aggs: Record<string, any> = {}
   // Return empty object if aggregations is null
   if (!aggregations) {
     return aggs

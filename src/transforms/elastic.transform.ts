@@ -318,13 +318,18 @@ export class ElasticTransform {
       }
     }
     // if multiIndexOpts is provided, add extra scoring functions
-    if (multiIndexOpts) {
-      if (multiIndexOpts.extraFunctions) {
-        query.function_score = query.function_score || {}
-        query.function_score.functions = query.function_score.functions || []
-        query.function_score.functions.push(...multiIndexOpts.extraFunctions)
+    if (multiIndexOpts && multiIndexOpts.extraFunctions) {
+      if (!query.function_score) {
+          query = {
+              function_score: {
+                  query: query,
+                  functions: []
+              }
+          };
       }
-    }
+      query.function_score.functions = query.function_score.functions || [];
+      query.function_score.functions.push(...multiIndexOpts.extraFunctions);
+  }
     const sort = ElasticTransform.createSort({ sortScore, lat, lon })
     if (multiIndexOpts && multiIndexOpts.overwriteHits) {
       size = 0

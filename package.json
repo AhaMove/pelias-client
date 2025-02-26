@@ -1,6 +1,6 @@
 {
   "name": "@ahamove/pelias-client",
-  "version": "0.0.66",
+  "version": "0.0.67",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "files": [
@@ -56,5 +56,6 @@
   "bugs": {
     "url": "https://github.com/AhaMove/pelias-client/issues"
   },
-  "homepage": "https://github.com/AhaMove/pelias-client#readme"
+  "homepage": "https://github.com/AhaMove/pelias-client#readme",
+  "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72"
 }

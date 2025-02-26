@@ -28,9 +28,21 @@ export interface CenterPoint {
   lat: number
 }
 
+export interface Entrance {
+  name: string
+  short_name: string
+  coordinates: number[]
+}
+
+interface Geometry {
+  entrances: Entrance[]
+  polygon: string
+}
+
 interface Addendum {
   entrances: string
   polygon: string
+  geometry: Geometry
 }
 
 export interface DocumentModel {

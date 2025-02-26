@@ -1,3 +1,5 @@
+import { Entrance } from "./document.model"
+
 export interface PeliasGeometry {
   type: string
   coordinates: number[]
@@ -24,7 +26,7 @@ export interface PeliasProperties {
   locality: string
   locality_gid: string
   locality_a: string
-  entrances: string
+  entrances: Entrance[],
   polygon: string
   region_id: string
   locality_id: string

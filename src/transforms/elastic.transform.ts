@@ -63,7 +63,7 @@ export class ElasticTransform {
             newKey = `address_parts.${key}`
             break
           case "address":
-            newKey = "name.default"
+            if (!parsedText.street) newKey = "name.default"
             break
           default:
             return null
@@ -71,6 +71,19 @@ export class ElasticTransform {
 
         if (!value || !newKey) {
           return null
+        }
+
+        if (newKey === "parent.locality") {
+          if (value.match(/(Phường)\s\D/)) value = value.replace("Phường ", "")
+        }
+        if (newKey === "parent.county") {
+          if (value.match(/(Quận)\s\D/)) value = value.replace("Quận ", "")
+        }
+        if (
+          newKey === "address_parts.street" &&
+          parsedText?.address?.includes("Hà Nội")
+        ) {
+          if (value.match(/^(Phố)\s\D/i)) value = value.replace("Phố ", "")
         }
 
         if (newKey === "address_parts.number") {

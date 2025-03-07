@@ -2,7 +2,7 @@ import * as turf from "@turf/turf"
 import { Position } from "@turf/turf"
 import * as _ from "lodash/fp"
 import { PeliasFeatureModel } from "src/models/pelias-feature.model"
-import { DocumentModel, Geometry } from "src/models/document.model"
+import { DocumentModel } from "src/models/document.model"
 import { ResponseModel } from "src/models/response.model"
 import deaccents from "src/format/vietnam/deaccents"
 import { removeCountyPrefix, removeLocalityPrefix } from "src/format/vietnam"
@@ -86,7 +86,7 @@ export class PeliasTransform {
       const coordinates = [source.center_point.lon, source.center_point.lat]
       const nameDefault = source.name.default
       const name = Array.isArray(nameDefault) ? nameDefault[0] : nameDefault
-      const geometry: Geometry = JSON.parse(source?.addendum?.geometry || "{}")
+
       const result: PeliasFeatureModel = {
         type: "Feature",
         geometry: {
@@ -117,8 +117,8 @@ export class PeliasTransform {
           locality_a: "",
           locality_gid: "",
           locality_id: _.get("locality_id.0", parent),
-          entrances: geometry.entrances ?? [],
-          polygon: geometry.polygon ?? "",
+          entrances: source?.addendum?.geometry?.entrances ?? [],
+          polygon: source?.addendum?.geometry?.polygon ?? "",
         },
       }
 

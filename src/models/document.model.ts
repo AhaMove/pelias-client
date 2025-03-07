@@ -34,7 +34,7 @@ export interface Entrance {
   coordinates: number[]
 }
 
-export interface Geometry {
+interface Geometry {
   entrances: Entrance[]
   polygon: string
 }
@@ -42,7 +42,7 @@ export interface Geometry {
 interface Addendum {
   entrances: string
   polygon: string
-  geometry: string
+  geometry: Geometry
 }
 
 export interface DocumentModel {

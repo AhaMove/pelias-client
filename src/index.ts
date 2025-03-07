@@ -91,11 +91,14 @@ export class PeliasClient<
    */
   async search(
     params: SearchParams,
-    geocode = false,
-    adminMatch = false,
-    alias = "pelias",
+    geocode: boolean,
+    adminMatch: boolean,
+    alias: string,
     multiIndexOpts?: MultiIndexOptions | null
   ): Promise<PeliasResponse> {
+    if (!alias) {
+      alias = "pelias"
+    }
     const { text, size = 10, count_terminate_after = 500 } = params
 
     const countFunc = async (

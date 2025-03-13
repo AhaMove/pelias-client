@@ -103,6 +103,7 @@ export class ElasticTransform {
           }
           if (shouldSearchEntrances){
             return {
+              bool: {
                 should: [
                   {
                     intervals: {
@@ -135,6 +136,7 @@ export class ElasticTransform {
                     }
                   }
                 ]
+              }
             }
           } else{
             return {
@@ -209,7 +211,8 @@ export class ElasticTransform {
         },
       }
       if (shouldSearchEntrances){
-        result.bool.must.push({ 
+        result.bool.must.push({
+          bool:{ 
             "should": [
               baseIntervals,
               {
@@ -228,7 +231,8 @@ export class ElasticTransform {
                 }
               }
             ]
-          })
+          }
+        })
       }else{
         result.bool.must.push(baseIntervals)
       }

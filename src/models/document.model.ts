@@ -31,6 +31,16 @@ export interface CenterPoint {
 interface Addendum {
   entrances: string
   polygon: string
+  geometry: Geometry
+}
+
+export interface EntrancesV4 {
+  name: string
+  short_name: string
+}
+
+interface Geometry {
+  entrances: EntrancesV4[]
 }
 
 export interface DocumentModel {

@@ -86,7 +86,7 @@ export class PeliasTransform {
       const coordinates = [source.center_point.lon, source.center_point.lat]
       const nameDefault = source.name.default
       const name = Array.isArray(nameDefault) ? nameDefault[0] : nameDefault
-
+      const entrancesV4 = (source.addendum?.geometry?.entrances) ?? []
       const result: PeliasFeatureModel = {
         type: "Feature",
         geometry: {
@@ -119,6 +119,7 @@ export class PeliasTransform {
           locality_id: _.get("locality_id.0", parent),
           entrances: source?.addendum?.entrances ?? "",
           polygon: source?.addendum?.polygon ?? "",
+          entrances_v4: entrancesV4,
         },
       }
 

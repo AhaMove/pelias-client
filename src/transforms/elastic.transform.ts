@@ -9,6 +9,7 @@ export interface MultiIndexOptions {
   extraFunctions?: Array<any>
   aggregations?: Record<string, MultiIndexAggregationConfig> | null
   overwriteHits?: boolean
+  debug?: boolean
 }
 
 export interface MultiIndexAggregationConfig {
@@ -411,7 +412,9 @@ export class ElasticTransform {
         sort
       )
     }
-
+    if (multiIndexOpts && multiIndexOpts.debug) {
+      console.log("Query body", JSON.stringify(body, null, 2))
+    }
     return {
       body,
       formatted,

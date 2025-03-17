@@ -9,6 +9,8 @@ export interface MultiIndexOptions {
   extraFunctions?: Array<any>
   aggregations?: Record<string, MultiIndexAggregationConfig> | null
   overwriteHits?: boolean
+  debug?: boolean
+  searchEntrances?: boolean
 }
 
 export interface MultiIndexAggregationConfig {
@@ -28,11 +30,13 @@ interface CreateSearchBody {
 
 interface CreateShouldClauses {
   parsedText: AddressParts
+  shouldSearchEntrances?: boolean
 }
 
 interface CreateQuery {
   layer: string
   parsedText: AddressParts
+  shouldSearchEntrances?: boolean
 }
 
 interface RescoreQuery {
@@ -47,7 +51,7 @@ interface CreateSort {
 }
 
 export class ElasticTransform {
-  static createShouldClauses({ parsedText }: CreateShouldClauses) {
+  static createShouldClauses({ parsedText, shouldSearchEntrances }: CreateShouldClauses) {
     return _.flow([
       _.toPairs,
       _.map(([key, value]) => {
@@ -98,21 +102,59 @@ export class ElasticTransform {
           if (!value) {
             return null
           }
-
-          return {
-            intervals: {
-              [newKey]: {
-                match: {
-                  query: value,
-                  filter: {
-                    script: {
-                      source: "interval.start == 0 && interval.gaps == 0",
+          if (shouldSearchEntrances){
+            return {
+              bool: {
+                should: [
+                  {
+                    intervals: {
+                      [newKey]: {
+                        match: {
+                          query: value,
+                          filter: {
+                            script: {
+                              source: "interval.start == 0 && interval.gaps == 0",
+                            },
+                          },
+                          ordered: true,
+                        },
+                      },
                     },
                   },
-                  ordered: true,
+                  {
+                    nested: {
+                      path: "addendum.geometry.entrances",
+                      query: {
+                          intervals: {
+                            "addendum.geometry.entrances.name.default": {
+                            match: {
+                              query: value,
+                              ordered: true
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          } else{
+            return {
+              intervals: {
+                [newKey]: {
+                  match: {
+                    query: value,
+                    filter: {
+                      script: {
+                        source: "interval.start == 0 && interval.gaps == 0",
+                      },
+                    },
+                    ordered: true,
+                  },
                 },
               },
-            },
+            }
           }
         }
 
@@ -129,11 +171,11 @@ export class ElasticTransform {
     ])(parsedText)
   }
 
-  static createQuery({ layer, parsedText }: CreateQuery): Record<string, any> {
+  static createQuery({ layer, parsedText, shouldSearchEntrances }: CreateQuery): Record<string, any> {
     const result: any = {
       bool: {
         must: [],
-        should: ElasticTransform.createShouldClauses({ parsedText }),
+        should: ElasticTransform.createShouldClauses({ parsedText, shouldSearchEntrances }),
         minimum_should_match: "100%",
       },
     }
@@ -150,7 +192,7 @@ export class ElasticTransform {
     // if parsedText has venue, filter for records which have that venue in the beginning of "name.default"
     if (parsedText.venue) {
       const venue_token_count = parsedText.venue.trim().split(/\s+/).length
-      result.bool.must.push({
+      const baseIntervals = {
         intervals: {
           "name.default": {
             match: {
@@ -168,7 +210,33 @@ export class ElasticTransform {
             },
           },
         },
-      })
+      }
+      if (shouldSearchEntrances){
+        result.bool.must.push({
+          bool:{ 
+            "should": [
+              baseIntervals,
+              {
+                nested: {
+                  path: "addendum.geometry.entrances",
+                  query: {
+                      intervals: {
+                        "addendum.geometry.entrances.name.default": {
+                        match: {
+                          query: parsedText.venue,
+                          ordered: true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        })
+      }else{
+        result.bool.must.push(baseIntervals)
+      }
     }
     return result
   }
@@ -257,8 +325,8 @@ export class ElasticTransform {
     lat,
     lon,
     countFunc,
-    geocode = false,
-    multiIndexOpts = null,
+    geocode,
+    multiIndexOpts,
   }: CreateSearchBody) {
     // const formatted = format(text)
     const formatted = text
@@ -272,9 +340,12 @@ export class ElasticTransform {
       parsedText.region = ""
     }
     let sortScore = true
-
+    let shouldSearchEntrances = false
+    if (multiIndexOpts && multiIndexOpts.searchEntrances) {
+        shouldSearchEntrances = true
+    }
     // create query
-    let query = ElasticTransform.createQuery({ layer, parsedText })
+    let query = ElasticTransform.createQuery({ layer, parsedText, shouldSearchEntrances })
     // if multiIndexOpts is provided, add extra filters
     if (multiIndexOpts) {
       if (multiIndexOpts.extraFilters) {
@@ -346,7 +417,9 @@ export class ElasticTransform {
         sort
       )
     }
-
+    if (multiIndexOpts && multiIndexOpts.debug) {
+      console.log("Query body", JSON.stringify(body, null, 2))
+    }
     return {
       body,
       formatted,

@@ -122,10 +122,10 @@ export class ElasticTransform {
                   },
                   {
                     nested: {
-                      path: "addendum.geometry_v4.entrances",
+                      path: "addendum.geometry.entrances",
                       query: {
                           intervals: {
-                            "addendum.geometry_v4.entrances.name.default": {
+                            "addendum.geometry.entrances.name.default": {
                             match: {
                               query: value,
                               ordered: true
@@ -217,10 +217,10 @@ export class ElasticTransform {
               baseIntervals,
               {
                 nested: {
-                  path: "addendum.geometry_v4.entrances",
+                  path: "addendum.geometry.entrances",
                   query: {
                       intervals: {
-                        "addendum.geometry_v4.entrances.name.default": {
+                        "addendum.geometry.entrances.name.default": {
                         match: {
                           query: parsedText.venue,
                           ordered: true

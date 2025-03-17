@@ -31,7 +31,7 @@ export interface CenterPoint {
 interface Addendum {
   entrances: string
   polygon: string
-  geometryBeta: Geometry
+  geometry: Geometry
 }
 
 export interface EntrancesV4 {

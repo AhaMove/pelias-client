@@ -10,6 +10,7 @@ export interface MultiIndexOptions {
   aggregations?: Record<string, MultiIndexAggregationConfig> | null
   overwriteHits?: boolean
   debug?: boolean
+  searchEntrances?: boolean
 }
 
 export interface MultiIndexAggregationConfig {
@@ -324,8 +325,8 @@ export class ElasticTransform {
     lat,
     lon,
     countFunc,
-    geocode = false,
-    multiIndexOpts = null,
+    geocode,
+    multiIndexOpts,
   }: CreateSearchBody) {
     // const formatted = format(text)
     const formatted = text
@@ -340,7 +341,7 @@ export class ElasticTransform {
     }
     let sortScore = true
     let shouldSearchEntrances = false
-    if (multiIndexOpts){
+    if (multiIndexOpts && multiIndexOpts.searchEntrances) {
         shouldSearchEntrances = true
     }
     // create query

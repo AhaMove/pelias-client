@@ -87,6 +87,20 @@ export class PeliasTransform {
       const nameDefault = source.name.default
       const name = Array.isArray(nameDefault) ? nameDefault[0] : nameDefault
 
+      const { addendum } = source
+      let entrances = "", polygon = "";
+      if (addendum) {
+        const { geometry } = addendum
+        if (geometry) {
+          const jsonGeometry = JSON.parse(geometry)
+          entrances = jsonGeometry?.entrances ?? ""
+          polygon = jsonGeometry?.polygon ?? ""
+        } else {
+          entrances = source?.addendum?.entrances ?? ""
+          polygon = source?.addendum?.polygon ?? ""
+        }
+      }
+
       const result: PeliasFeatureModel = {
         type: "Feature",
         geometry: {
@@ -117,8 +131,8 @@ export class PeliasTransform {
           locality_a: "",
           locality_gid: "",
           locality_id: _.get("locality_id.0", parent),
-          entrances: source?.addendum?.entrances ?? "",
-          polygon: source?.addendum?.polygon ?? "",
+          entrances,  
+          polygon,
         },
       }
 

@@ -1,7 +1,6 @@
 node_modules
 docs
 .idea
-lib
 .vscode
 .yarn/*
 yarn.lock

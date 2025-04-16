@@ -837,3 +837,54 @@ describe("test formatAddress", () => {
     expect(formatAddress(text)).toBe(expected)
   })
 })
+
+describe("extractAddress", () => {
+  test.each([
+    // Basic address with number and street
+    [
+      "7/28 Thành Thái", 
+      { number: "7/28", street: "Thành Thái", address: "7/28 Thành Thái" }
+    ],
+    // Number only - should extract the number but have empty street
+    [
+      "7/28", 
+      { number: "7/28", street: undefined, address: "7/28" }
+    ],
+    // With leading zero in number
+    [
+      "07/28 Thành Thái", 
+      { number: "07/28", street: "Thành Thái", address: "07/28 Thành Thái" }
+    ],
+    // With trailing space
+    [
+      "7/28 ", 
+      { number: "7/28", street: undefined, address: "7/28 " }
+    ],
+    // Complex number format
+    [
+      "A2-15/3 ", 
+      { number: "A2-15/3", street: undefined, address: "A2-15/3 " }
+    ],
+    // Number starting with letter
+    [
+      "B12 Nguyễn Văn Cừ", 
+      { number: "B12", street: "Nguyễn Văn Cừ", address: "B12 Nguyễn Văn Cừ" }
+    ],
+    // Street with comma
+    [
+      "10 Lê Văn Sỹ,", 
+      { number: "10", street: "Lê Văn Sỹ", address: "10 Lê Văn Sỹ" }
+    ],
+    // Address with "Phố" format
+    [
+      "123 Phố Huế", 
+      { number: "123", street: "Phố Huế", address: "123 Phố Huế" }
+    ]
+  ])("should correctly parse '%s'", (text, expected) => {
+    const result = extractAddress(text);
+    expect(result.number).toBe(expected.number);
+    expect(result.street).toBe(expected.street);
+    expect(result.address).toBe(expected.address);
+  });
+
+});

@@ -174,6 +174,48 @@ export class ElasticTransform {
   }
 
   static rescoreQuery({ query, venueName }: RescoreQuery): Record<string, any> {
+    // return {
+    //   function_score: {
+    //     query: query,
+    //     functions: [
+    //       {
+    //         script_score: {
+    //           script: {
+    //             source:
+    //               "try {params._source.addendum.geometry.entrances ? 1 : 0} catch (Exception e) {0}",
+    //           },
+    //         },
+    //       },
+    //       {
+    //         script_score: {
+    //           script: {
+    //             source: `
+    //                 try {
+    //                   double score = 0;
+    //                   int pos = params._source.name.default.toLowerCase().indexOf(params.venueName);
+    //                   if (pos > 0) {
+    //                       score = 5;
+    //                   }
+    //                   if (pos == 0) {
+    //                       score = 10;
+    //                   }
+    //                   return score;
+    //                   } catch (Exception e) {
+    //                   return 0;
+    //                 }
+    //               `,
+    //             params: {
+    //               venueName: venueName.toLowerCase(),
+    //             },
+    //           },
+    //         },
+    //       },
+    //     ],
+    //     score_mode: "sum",
+    //     boost_mode: "replace",
+    //   },
+    // }
+
     return {
       function_score: {
         query: query,
@@ -181,39 +223,24 @@ export class ElasticTransform {
           {
             script_score: {
               script: {
-                source:
-                  "try {params._source.addendum.entrances.length() > 2 ? 1 : 0} catch (Exception e) {0}",
-              },
-            },
+                source: "try { return params._source.addendum.containsKey('geometry') ? 1 : 0; } catch (Exception e) { return 0; }"
+              }
+            }
           },
           {
             script_score: {
               script: {
-                source: `
-                    try {
-                      double score = 0;
-                      int pos = params._source.name.default.toLowerCase().indexOf(params.venueName);
-                      if (pos > 0) {
-                          score = 5;
-                      }
-                      if (pos == 0) {
-                          score = 10;
-                      }
-                      return score;
-                      } catch (Exception e) {
-                      return 0;
-                    }
-                  `,
+                source: "try { String name = params._source.name.default.toLowerCase(); int pos = name.indexOf(params.venueName); return pos == 0 ? 10 : (pos > 0 ? 5 : 0); } catch (Exception e) { return 0; }",
                 params: {
-                  venueName: venueName.toLowerCase(),
-                },
-              },
-            },
-          },
+                  venueName: venueName.toLowerCase()
+                }
+              }
+            }
+          }
         ],
         score_mode: "sum",
-        boost_mode: "replace",
-      },
+        boost_mode: "replace"
+      }
     }
   }
 

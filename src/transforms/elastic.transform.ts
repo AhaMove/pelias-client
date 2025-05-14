@@ -148,8 +148,6 @@ export class ElasticTransform {
     }
 
     // if layer is provided, filter for records which have that layer
-    console.log(layer);
-    
     if (layer != "") {
       result.bool.must.push({
         term: {

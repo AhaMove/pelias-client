@@ -46,6 +46,15 @@ interface CreateSort {
   lon?: number
 }
 
+interface RescoreFunction {
+  script_score: {
+    script: {
+      source: string,
+      params?: Record<string, any>
+    }
+  }
+}
+
 export class ElasticTransform {
   static createShouldClauses({ parsedText }: CreateShouldClauses) {
     return _.flow([
@@ -88,13 +97,13 @@ export class ElasticTransform {
 
         if (newKey === "address_parts.number") {
           // replace all non-number character into space for value string
-          value = value.replace(/[^0-9]/g, " ")
+          value = value.replace(/[^0-9/]/g, " ")
           // dedup space for value string
           value = value.replace(/\s+/g, " ")
           // trim space for value string
           value = value.trim()
           // count parts separated by space in value string
-          const partCount = value.split(/\s+/).length
+          // const partCount = value.split(/\s+/).length
           if (!value) {
             return null
           }
@@ -139,6 +148,8 @@ export class ElasticTransform {
     }
 
     // if layer is provided, filter for records which have that layer
+    console.log(layer);
+    
     if (layer != "") {
       result.bool.must.push({
         term: {
@@ -216,28 +227,40 @@ export class ElasticTransform {
     //   },
     // }
 
+    const functions: RescoreFunction[] = [
+      {
+        script_score: {
+          script: {
+            source: "try { return params._source.addendum.containsKey('geometry') ? 1 : 0; } catch (Exception e) { return 0; }"
+          }
+        }
+      },
+      {
+        script_score: {
+          script: {
+            source: "try { return params._source.layer == 'venue' ? 1 : 0; } catch (Exception e) { return 0; }"
+          }
+        }
+      }
+    ]
+
+    if (venueName) {
+      functions.push(  {
+        script_score: {
+          script: {
+            source: "try { String name = params._source.name.default.toLowerCase(); int pos = name.indexOf(params.venueName); return pos == 0 ? 10 : (pos > 0 ? 5 : 0); } catch (Exception e) { return 0; }",
+            params: {
+              venueName: venueName.toLowerCase()
+            }
+          }
+        }
+      })
+    }
+
     return {
       function_score: {
         query: query,
-        functions: [
-          {
-            script_score: {
-              script: {
-                source: "try { return params._source.addendum.containsKey('geometry') ? 1 : 0; } catch (Exception e) { return 0; }"
-              }
-            }
-          },
-          {
-            script_score: {
-              script: {
-                source: "try { String name = params._source.name.default.toLowerCase(); int pos = name.indexOf(params.venueName); return pos == 0 ? 10 : (pos > 0 ? 5 : 0); } catch (Exception e) { return 0; }",
-                params: {
-                  venueName: venueName.toLowerCase()
-                }
-              }
-            }
-          }
-        ],
+        functions,
         score_mode: "sum",
         boost_mode: "replace"
       }
@@ -313,14 +336,14 @@ export class ElasticTransform {
     const countResult = await countFunc({
       query: query,
     })
-    if (parsedText.venue) {
-      if (!countResult.terminated_early) {
-        const venueName = parsedText.venue || ""
-        query = ElasticTransform.rescoreQuery({ query, venueName })
-      } else {
-        sortScore = false
-      }
+    
+    if (!countResult.terminated_early) {
+      const venueName = parsedText.venue || ""
+      query = ElasticTransform.rescoreQuery({ query, venueName })
+    } else {
+      sortScore = false
     }
+    
     if (parsedText.number) {
       const score_exact_address_number = {
         script_score: {

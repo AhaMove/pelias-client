@@ -1,6 +1,5 @@
 import {
-  MultiIndexOptions,
-  ElasticTransform,
+  ElasticTransform
 } from "src/transforms/elastic.transform"
 import { PeliasTransform, AdminAreas } from "src/transforms/pelias.transform"
 import { NearbyParams } from "src/resources/nearby.params"
@@ -94,7 +93,7 @@ export class PeliasClient<
     geocode: boolean,
     adminMatch: boolean,
     alias: string,
-    multiIndexOpts?: MultiIndexOptions | null
+    userId = ""
   ): Promise<PeliasResponse> {
     if (!alias) {
       alias = "pelias"
@@ -113,7 +112,7 @@ export class PeliasClient<
       return result.body
     }
 
-    const { body, formatted, parsedText, layer } =
+    const { body, formatted, parsedText, layer, multiIndexOpts } =
       await ElasticTransform.createSearchBody({
         text,
         size: size,
@@ -125,7 +124,7 @@ export class PeliasClient<
           : undefined,
         countFunc,
         geocode,
-        multiIndexOpts: multiIndexOpts,
+        userId
       })
 
     const result = await this.esClient.search<TResponse>({
@@ -134,7 +133,7 @@ export class PeliasClient<
     })
 
     let hits = result.body.hits.hits
-    if (multiIndexOpts && multiIndexOpts.overwriteHits) {
+    if (multiIndexOpts?.overwriteHits) {
       const aggregations = (result.body as any).aggregations
       hits = []
       for (const key in aggregations) {

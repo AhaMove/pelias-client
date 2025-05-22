@@ -335,26 +335,33 @@ export class ElasticTransform {
 
     // Add distance-based scoring when coordinates are available
     if (lat !== undefined && lon !== undefined && query.function_score) {
-      const nearbyDistanceScore = {
-        script_score: {
-          script: {
-            source: `
-              try {
-                double distance = doc['center_point'].arcDistance(params.lat, params.lon) / 1000.0;
-                if (distance < 30) return 15;
-                if (distance < 50) return 10;
-                if (distance < 200) return 5;
-                return 0;
-              } catch (Exception e) {
-                return 0;
-              }
-            `,
-            params: { lat, lon }
+      const nearbyDistanceScore = [
+        // First function: High base score for anything within 30km
+        {
+          filter: {
+            geo_distance: {
+              distance: "30km",
+              center_point: { lat, lon }
+            }
+          },
+          weight: 20
+        },
+        // Second function: Fine-grained distance scoring within the radius
+        {
+          filter: { match_all: {} },
+          weight: 5,
+          exp: {
+            center_point: {
+              origin: { lat, lon },
+              scale: "15km",
+              offset: "0km",
+              decay: 0.6
+            }
           }
         }
-      };
+      ];
       
-      query.function_score.functions.push(nearbyDistanceScore);
+      query.function_score.functions.push(...nearbyDistanceScore);
     }
 
     const sort = ElasticTransform.createSort({ sortScore, lat, lon })

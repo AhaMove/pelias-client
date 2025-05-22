@@ -341,9 +341,9 @@ export class ElasticTransform {
             source: `
               try {
                 double distance = doc['center_point'].arcDistance(params.lat, params.lon) / 1000.0;
-                if (distance < 3) return 15;
-                if (distance < 5) return 10;
-                if (distance < 20) return 5;
+                if (distance < 30) return 15;
+                if (distance < 50) return 10;
+                if (distance < 200) return 5;
                 return 0;
               } catch (Exception e) {
                 return 0;

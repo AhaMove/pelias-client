@@ -4,4 +4,5 @@ export interface ResponseModel<T> {
   _id: string
   _score: number
   _source: T
+  sort: number[]
 }

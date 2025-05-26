@@ -188,14 +188,14 @@ export class ElasticTransform {
       {
         script_score: {
           script: {
-            source: "try { return params._source.addendum.containsKey('geometry') ? 15 : 0; } catch (Exception e) { return 0; }"
+            source: "try { return params._source.addendum.containsKey('geometry') ? 10 : 0; } catch (Exception e) { return 0; }"
           }
         }
       },
       {
         script_score: {
           script: {
-            source: "try { return params._source.layer == 'venue' ? 10 : 0; } catch (Exception e) { return 0; }"
+            source: "try { return params._source.layer == 'venue' ? 15 : 0; } catch (Exception e) { return 0; }"
           }
         }
       }

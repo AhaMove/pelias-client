@@ -81,7 +81,7 @@ export class PeliasTransform {
     }
   ): PeliasFeatureModel[] {
     return hits.map((value) => {
-      const score = value.sort[0]
+      const score = value._score
       const source = value._source
       const parent = source.parent
       const coordinates = [source.center_point.lon, source.center_point.lat]

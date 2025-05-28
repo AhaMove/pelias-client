@@ -24,6 +24,7 @@ interface CreateSearchBody {
   countFunc: (queryBody: Record<string, any>) => Promise<CountModel>
   geocode: boolean
   multiIndexOpts?: MultiIndexOptions | null
+  userId: string 
 }
 
 interface CreateShouldClauses {
@@ -183,60 +184,18 @@ export class ElasticTransform {
   }
 
   static rescoreQuery({ query, venueName }: RescoreQuery): Record<string, any> {
-    // return {
-    //   function_score: {
-    //     query: query,
-    //     functions: [
-    //       {
-    //         script_score: {
-    //           script: {
-    //             source:
-    //               "try {params._source.addendum.geometry.entrances ? 1 : 0} catch (Exception e) {0}",
-    //           },
-    //         },
-    //       },
-    //       {
-    //         script_score: {
-    //           script: {
-    //             source: `
-    //                 try {
-    //                   double score = 0;
-    //                   int pos = params._source.name.default.toLowerCase().indexOf(params.venueName);
-    //                   if (pos > 0) {
-    //                       score = 5;
-    //                   }
-    //                   if (pos == 0) {
-    //                       score = 10;
-    //                   }
-    //                   return score;
-    //                   } catch (Exception e) {
-    //                   return 0;
-    //                 }
-    //               `,
-    //             params: {
-    //               venueName: venueName.toLowerCase(),
-    //             },
-    //           },
-    //         },
-    //       },
-    //     ],
-    //     score_mode: "sum",
-    //     boost_mode: "replace",
-    //   },
-    // }
-
     const functions: RescoreFunction[] = [
       {
         script_score: {
           script: {
-            source: "try { return params._source.addendum.containsKey('geometry') ? 1 : 0; } catch (Exception e) { return 0; }"
+            source: "try { return params._source.addendum.containsKey('geometry') ? 10 : 0; } catch (Exception e) { return 0; }"
           }
         }
       },
       {
         script_score: {
           script: {
-            source: "try { return params._source.layer == 'venue' ? 1 : 0; } catch (Exception e) { return 0; }"
+            source: "try { return params._source.layer == 'venue' ? 15 : 0; } catch (Exception e) { return 0; }"
           }
         }
       }
@@ -306,7 +265,7 @@ export class ElasticTransform {
     lon,
     countFunc,
     geocode = false,
-    multiIndexOpts = null,
+    userId
   }: CreateSearchBody) {
     // const formatted = format(text)
     const formatted = text
@@ -321,6 +280,7 @@ export class ElasticTransform {
     }
     let sortScore = true
 
+    const multiIndexOpts = buildMultiIndexSearchOpts(userId)
     // create query
     let query = ElasticTransform.createQuery({ layer, parsedText })
     // if multiIndexOpts is provided, add extra filters
@@ -365,6 +325,7 @@ export class ElasticTransform {
         }
       }
     }
+
     // if multiIndexOpts is provided, add extra scoring functions
     if (multiIndexOpts && multiIndexOpts.extraFunctions) {
       if (!query.function_score) {
@@ -378,6 +339,38 @@ export class ElasticTransform {
       query.function_score.functions = query.function_score.functions || [];
       query.function_score.functions.push(...multiIndexOpts.extraFunctions);
   }
+
+    // Add distance-based scoring when coordinates are available
+    if (lat !== undefined && lon !== undefined && query.function_score) {
+      const nearbyDistanceScore = [
+        // First function: High base score for anything within 30km
+        {
+          filter: {
+            geo_distance: {
+              distance: "30km",
+              center_point: { lat, lon }
+            }
+          },
+          weight: 20
+        },
+        // Second function: Fine-grained distance scoring within the radius
+        {
+          filter: { match_all: {} },
+          weight: 5,
+          exp: {
+            center_point: {
+              origin: { lat, lon },
+              scale: "15km",
+              offset: "0km",
+              decay: 0.6
+            }
+          }
+        }
+      ];
+      
+      query.function_score.functions.push(...nearbyDistanceScore);
+    }
+
     const sort = ElasticTransform.createSort({ sortScore, lat, lon })
     if (multiIndexOpts && multiIndexOpts.overwriteHits) {
       size = 0
@@ -400,6 +393,7 @@ export class ElasticTransform {
       formatted,
       parsedText,
       layer,
+      multiIndexOpts,
     }
   }
 
@@ -452,73 +446,6 @@ export class ElasticTransform {
   }
 }
 
-/**
- * Builds aggregations for multiple Elasticsearch indices / aliases with filtering and sorting
- *
- * @param {Record<string, MultiIndexAggregationConfig> | null} aggregations - Aggregations configuration object
- *    Key: Index name (e.g., "saved_place", "nearby")
- *    Value: Configuration object containing:
- *      - filter: Elasticsearch filter query (term, terms, range etc)
- *      - size: Number of top hits to return for this index/alias
- *    Pass empty if no aggregations needed
- *
- * @param {any} sort - Sorting configuration for top hits results
- *    Defines sort order for documents within each aggregation, should be sort of the main queries
- *
- * @returns {Record<string, any>} Processed aggregations object with structure:
- *    {
- *      [indexName]: {
- *        filter: <filter criteria>,
- *        aggs: {
- *          top_hits: {
- *            top_hits: {
- *              size: <size>,
- *              track_scores: true,
- *              sort: <sort config>
- *            }
- *          }
- *        }
- *      }
- *    }
- *    Returns empty object if input is null
- *
- * @example
- * // Configuration for multiple indices
- * const aggregations = {
- *   "saved_place": {
- *     filter: {
- *       term: { "_index": "saved_place" }
- *     },
- *     size: 2
- *   },
- *   "nearby": {
- *     "filter": { "bool": { "must_not": [ { "terms": { "_index": ["saved_place", "recent_place"] } }]}},
- *     size: 10
- *   }
- * };
- *
- * const sort = { _score: "desc" };
- *
- * const result = buildMultiIndexAggregations(aggregations, sort);
- *
- * // Result structure:
- * // {
- * //   "saved_place": {
- * //     filter: { term: { status: "active" }},
- * //     aggs: {
- * //       top_hits: {
- * //         top_hits: {
- * //           size: 5,
- * //           track_scores: true,
- * //           sort: { _score: "desc" }
- * //         }
- * //       }
- * //     }
- * //   },
- * //   "nearby": { ... }
- * // }
- */
-
 function buildMultiIndexAggregations(
   aggregations: Record<string, MultiIndexAggregationConfig> | null,
   sort: any
@@ -547,4 +474,82 @@ function buildMultiIndexAggregations(
     }
   }
   return aggs
+}
+
+
+function buildMultiIndexSearchOpts(userId: string): MultiIndexOptions {
+  // Filters for favorite and recent locations
+  const favoriteLocationFilter = {
+    bool: {
+      must_not: [
+        {
+          bool: {
+            must: [
+              { term: { _index: "favorite_location" } },
+              { bool: { must_not: [{ term: { user_id: userId } }] } }
+            ]
+          }
+        }
+      ]
+    }
+  };
+
+  const recentLocationFilter = {
+    bool: {
+      must_not: [
+        {
+          bool: {
+            must: [
+              { term: { _index: "recent_location" } },
+              { bool: { must_not: [{ term: { user_id: userId } }] } }
+            ]
+          }
+        }
+      ]
+    }
+  };
+
+  // Function scores for boosting
+  const favoriteLocationFuncScore = {
+    filter: { term: { _index: "favorite_location" } },
+    weight: 60
+  };
+
+  const recentLocationFuncScore = {
+    filter: { term: { _index: "recent_location" } },
+    weight: 30
+  };
+
+  // Aggregations
+  const aggs = {
+    "favorite_location": {
+      filter: { term: { _index: "favorite_location" } },
+      size: 2
+    },
+    "recent_location": {
+      filter: { term: { _index: "recent_location" } },
+      size: 2
+    },
+    "pelias": {
+      filter: {
+        bool: {
+          must_not: [
+            {
+              terms: {
+                _index: ["favorite_location", "recent_location"] // exclude both aliases
+              }
+            }
+          ]
+        }
+      },
+      size: 10
+    }
+  };
+
+  return {
+    extraFilters: [favoriteLocationFilter, recentLocationFilter],
+    extraFunctions: [favoriteLocationFuncScore, recentLocationFuncScore],
+    aggregations: aggs,
+    overwriteHits: true
+  };
 }

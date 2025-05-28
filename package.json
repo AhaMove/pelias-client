@@ -1,6 +1,6 @@
 {
   "name": "@ahamove/pelias-client",
-  "version": "0.0.74",
+  "version": "0.0.75",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "files": [
@@ -36,9 +36,9 @@
     "typescript": "^4.2.4"
   },
   "scripts": {
-    "prepare": "yarn build",
-    "prepublishOnly": "yarn test && yarn lint",
-    "version": "yarn format && git add -A src && git reset src/index.test.ts",
+    "prepare": "pnpm build",
+    "prepublishOnly": "pnpm test && pnpm lint",
+    "version": "pnpm format && git add -A src && git reset src/index.test.ts",
     "postversion": "git push && git push --tags",
     "test": "jest",
     "build": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./lib",
@@ -57,5 +57,5 @@
     "url": "https://github.com/AhaMove/pelias-client/issues"
   },
   "homepage": "https://github.com/AhaMove/pelias-client#readme",
-  "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72"
+  "packageManager": "pnpm@9.15.0"
 }

@@ -1,0 +1,58 @@
+{
+    "_index": "pelias-k8s-202505131747108961",
+    "_type": "_doc",
+    "_id": "crawling:venue:19aaafd60c2502c6cf7b9b7c7b94e844",
+    "_source": {
+        "name": {
+            "default": "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
+        },
+        "phrase": {
+            "default": "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam"
+        },
+        "parent": {
+            "region": [
+                "Thành Phố Hồ Chí Minh"
+            ],
+            "region_id": [
+                "79"
+            ],
+            "region_a": [
+                "TPHCM"
+            ],
+            "county": [
+                "Quận 10"
+            ],
+            "county_id": [
+                "771"
+            ],
+            "county_a": [
+                "Q10"
+            ],
+            "locality": [
+                "Phường 14"
+            ],
+            "locality_id": [
+                "27169"
+            ],
+            "locality_a": [
+                "P14"
+            ]
+        },
+        "address_parts": {
+            "number": "7/28",
+            "street": "Thành Thái"
+        },
+        "center_point": {
+            "lon": 106.663669,
+            "lat": 10.769351
+        },
+        "source": "crawling",
+        "layer": "venue",
+        "source_id": "19aaafd60c2502c6cf7b9b7c7b94e844",
+        "popularity": 1747069200,
+        "addendum": {
+            "createdAt": "{\"date\":\"13-05-2025\"}",
+            "geometry": "{\"entrances\":[{\"name\":\"Rivera Park Sài Gòn - Sảnh Văn Phòng\",\"short_name\":\"Sảnh Văn Phòng\",\"coordinates\":[10.769306551142392,106.66375558488699]},{\"name\":\"Rivera Park Sài Gòn - Sảnh Dân Cư\",\"short_name\":\"Residential Lobby\",\"coordinates\":[10.76976,106.66355]}],\"polygon\":\"{lv`A_s_jSbBs@yBuGkCfA^~A~@B`A|C\"}"
+        }
+    }
+}

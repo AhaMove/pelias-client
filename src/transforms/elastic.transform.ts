@@ -97,8 +97,8 @@ export class ElasticTransform {
         }
 
         if (newKey === "address_parts.number") {
-          // replace all non-number character into space for value string
-          value = value.replace(/[^0-9/]/g, " ")
+          // replace all non-alphanumeric characters (except /) into space for value string
+          value = value.replace(/[^0-9a-zA-Z/]/g, " ")
           // dedup space for value string
           value = value.replace(/\s+/g, " ")
           // trim space for value string
@@ -157,9 +157,12 @@ export class ElasticTransform {
       })
     }
 
-    // if parsedText has venue, filter for records which have that venue in the beginning of "name.default"
+    // if parsedText has venue, add enhanced matching
     if (parsedText.venue) {
       const venue_token_count = parsedText.venue.trim().split(/\s+/).length
+      const venueTerms = parsedText.venue.trim().split(/\s+/)
+      
+      // KEEP existing phrase matching (for exact matches)
       result.bool.should.push({
         intervals: {
           "name.default": {
@@ -167,11 +170,7 @@ export class ElasticTransform {
               query: parsedText.venue,
               filter: {
                 script: {
-                  source:
-                    "interval.start >= 0 && interval.end < " +
-                    (venue_token_count + 4) +
-                    " && interval.gaps <= " +
-                    Math.max(venue_token_count - 1, 0),
+                  source: "interval.start >= 0 && interval.end < " + (venue_token_count + 4) + " && interval.gaps <= " + Math.max(venue_token_count - 1, 0),
                 },
               },
               ordered: true,
@@ -179,6 +178,7 @@ export class ElasticTransform {
           },
         },
       })
+      
       result.bool.should.push({
         nested: {
             path: "addendum.geometry.entrances",
@@ -189,6 +189,39 @@ export class ElasticTransform {
             }
         }
       })
+      
+      // ADD new cross-field term matching for multi-word venues
+      if (venueTerms.length > 1) {
+        result.bool.should.push({
+          multi_match: {
+            query: parsedText.venue,
+            fields: [
+              "name.default^3",
+              "addendum.geometry.entrances.name^2", 
+              "address_parts.number^1"
+            ],
+            type: "cross_fields",
+            operator: "and",  // Require ALL terms to be found
+            boost: 2.0
+          }
+        })
+        
+        // Individual term matching with lower boost
+        venueTerms.forEach(term => {
+          result.bool.should.push({
+            multi_match: {
+              query: term,
+              fields: [
+                "name.default^2",
+                "addendum.geometry.entrances.name^1.5",
+                "address_parts.number^1"
+              ],
+              boost: 0.5
+            }
+          })
+        })
+      }
+      
       result.bool.minimum_should_match = 1
     }
     return result
@@ -351,7 +384,6 @@ export class ElasticTransform {
     // Add distance-based scoring when coordinates are available
     if (lat !== undefined && lon !== undefined && query.function_score) {
       const nearbyDistanceScore = [
-        // First function: High base score for anything within 30km
         {
           filter: {
             geo_distance: {
@@ -359,12 +391,11 @@ export class ElasticTransform {
               center_point: { lat, lon }
             }
           },
-          weight: 20
+          weight: 5
         },
-        // Second function: Fine-grained distance scoring within the radius
         {
           filter: { match_all: {} },
-          weight: 5,
+          weight: 2,
           exp: {
             center_point: {
               origin: { lat, lon },

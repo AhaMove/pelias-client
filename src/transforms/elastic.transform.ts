@@ -160,7 +160,7 @@ export class ElasticTransform {
     // if parsedText has venue, filter for records which have that venue in the beginning of "name.default"
     if (parsedText.venue) {
       const venue_token_count = parsedText.venue.trim().split(/\s+/).length
-      result.bool.must.push({
+      result.bool.should.push({
         intervals: {
           "name.default": {
             match: {
@@ -179,6 +179,17 @@ export class ElasticTransform {
           },
         },
       })
+      result.bool.should.push({
+        nested: {
+            path: "addendum.geometry.entrances",
+            query: {
+                match: {
+                    "addendum.geometry.entrances.name": parsedText.venue
+                }
+            }
+        }
+      })
+      result.bool.minimum_should_match = 1
     }
     return result
   }
@@ -191,27 +202,24 @@ export class ElasticTransform {
             source: "try { return params._source.addendum.containsKey('geometry') ? 10 : 0; } catch (Exception e) { return 0; }"
           }
         }
-      },
-      {
-        script_score: {
-          script: {
-            source: "try { return params._source.layer == 'venue' ? 15 : 0; } catch (Exception e) { return 0; }"
-          }
-        }
       }
     ]
 
     if (venueName) {
-      functions.push(  {
-        script_score: {
-          script: {
-            source: "try { String name = params._source.name.default.toLowerCase(); int pos = name.indexOf(params.venueName); return pos == 0 ? 10 : (pos > 0 ? 5 : 0); } catch (Exception e) { return 0; }",
-            params: {
-              venueName: venueName.toLowerCase()
-            }
-          }
-        }
-      })
+      // functions.push(  {
+      //   script_score: {
+      //     script: {
+      //       source: `try { 
+      //                 String name = params._source.name.default.toLowerCase(); 
+      //                 int pos = name.indexOf(params.venueName); 
+      //                 return pos == 0 ? 10 : (pos > 0 ? 5 : 0); 
+      //               } catch (Exception e) { return 0; }`,
+      //       params: {
+      //         venueName: venueName.toLowerCase()
+      //       }
+      //     }
+      //   }
+      // })
     }
 
     return {

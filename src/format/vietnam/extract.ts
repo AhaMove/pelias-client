@@ -1,4 +1,3 @@
-import * as _ from "lodash/fp"
 import { AddressParts } from "src/models/address-parts.model"
 
 const hasCountry = (text: string) => {
@@ -92,62 +91,115 @@ const extractAddressParts = (arr: string[]) => {
   }
 }
 
+// Helper function to check if a number is valid for Vietnamese addresses
+const isValidAddressNumber = (number: string): boolean => {
+  if (!number) return false
+  // Allow numbers with at least one digit OR short alphabetic codes (like building codes)
+  // Also allow common Vietnamese patterns like "7/28", "A2-15/3", etc.
+  return /[0-9]/.test(number) || /^[A-Za-z]{1,3}$/.test(number)
+}
+
+// Helper function to detect if text looks like a venue name
+const looksLikeVenue = (text: string): boolean => {
+  if (!text || text.length < 3) return false
+  // If it's already detected as an address, it's not a venue
+  if (isAddress(text)) return false
+  // If it starts with address-like pattern, it's not a venue
+  if (/^[A-Za-z]{0,3}[0-9]/.test(text.trim())) return false
+  return true
+}
+
+// Helper function to build consistent result
+const buildAddressResult = (number?: string, street?: string, fallbackAddress?: string) => {
+  let address = ""
+  
+  if (number && street) {
+    address = `${number} ${street}`
+  } else if (number) {
+    address = number
+  } else if (fallbackAddress) {
+    address = fallbackAddress
+  }
+  
+  return {
+    number: number || undefined,
+    street: street || undefined,
+    address: address || undefined
+  }
+}
+
+// Try parsing with standard address patterns
+const tryStandardParsing = (text: string) => {
+  // Pattern 1: "123A Nguyen Van Cu" or "Z06 Duong So 13" (number + space + street)
+  const standardMatch = text.match(/^([A-Za-z]{0,3}[0-9][A-Za-z0-9\-/]*)\s+(.+?)(?:,|$)/)
+  if (standardMatch) {
+    return buildAddressResult(standardMatch[1], standardMatch[2])
+  }
+  
+  // Pattern 2: Number only at start "123A" or "Z06" or "7/28" or "A2-15/3"
+  const numberOnlyMatch = text.match(/^([A-Za-z]{0,3}[0-9][A-Za-z0-9\-/]*)(?:\s*,|$|\s|$)/)
+  if (numberOnlyMatch) {
+    return buildAddressResult(numberOnlyMatch[1])
+  }
+  
+  // Pattern 3: Vietnamese prefixes "Số 123 Nguyen Van Cu"
+  const prefixMatch = text.match(/^(?:số|ngõ|hẻm)\s+([A-Za-z0-9\-/]+)(?:\s+(.+?))?(?:,|$)/i)
+  if (prefixMatch) {
+    return buildAddressResult(prefixMatch[1], prefixMatch[2])
+  }
+  
+  return null
+}
+
+// Try parsing "Phố" format
+const tryPhoParsing = (text: string) => {
+  const phoMatch = /Phố((?:(?!Phố).)*?(\s{2}|(?=,)))/.exec(text)
+  if (phoMatch) {
+    const street = phoMatch[0]
+    const number = text.slice(0, phoMatch.index).replace(/,/gi, "").trim()
+    return buildAddressResult(number || undefined, street)
+  }
+  return null
+}
+
 const extractAddress = (text: string) => {
-  const arr = text.split(",")
-  let number: string
-  let street: string
-  let address = arr[0] || ""
-
-  // const data = /^([A-Z]?[0-9][A-Z\-/0-9]*)([,\s]+)((?:.)*?(?=,|$))/gi.exec(text)
-  const data = /^([A-Z]?[0-9][A-Z\-/0-9]*)(?:([,\s]+)((?:.)*?(?=,|$)))?/gi.exec(text);
-
-  if (data) {
-    number = data[1]
-    street = data[3]
-  } else {
-    // eslint-disable-next-line no-use-before-define
-    let addressParts: any = /Phố((?:(?!Phố).)*?(\s{2}|(?=,)))/.exec(text)
-
-    if (addressParts) {
-      street = addressParts[0]
-      number = text.slice(0, addressParts.index).replace(/,/gi, "")
-    } else {
-      addressParts = extractAddressParts(arr)
-
-      number = addressParts.number
-      street = addressParts.street
+  const parts = text.split(",").map(p => p.trim())
+  
+  // Strategy 1: Try direct parsing from start
+  let result = tryStandardParsing(text)
+  if (result && result.number && isValidAddressNumber(result.number)) {
+    return result
+  }
+  
+  // Strategy 2: Skip potential venue, parse from second part
+  if (parts.length > 1 && looksLikeVenue(parts[0])) {
+    const remainingText = parts.slice(1).join(", ")
+    result = tryStandardParsing(remainingText)
+    if (result && result.number && isValidAddressNumber(result.number)) {
+      return result
     }
   }
-
-  if (!number.replace(/[^0-9]/gi, "")) {
-    number = ""
+  
+  // Strategy 3: Try "Phố" pattern
+  result = tryPhoParsing(text)
+  if (result && result.number && isValidAddressNumber(result.number)) {
+    return result
   }
-
-  if (arr.length === 1) {
-    address = arr[0] || ""
+  
+  // Strategy 4: Try legacy extractAddressParts as fallback
+  const legacyResult = extractAddressParts(parts)
+  if (legacyResult.number && isValidAddressNumber(legacyResult.number)) {
+    return buildAddressResult(legacyResult.number, legacyResult.street)
   }
-
-  if (arr.length === 10) {
-    address = _.slice(0, 6, arr).join(",")
+  
+  // Strategy 5: Simple fallback - if text starts with address-like pattern, extract it
+  const simpleMatch = text.match(/^([A-Za-z0-9\-/]+)/)
+  if (simpleMatch && isValidAddressNumber(simpleMatch[1])) {
+    return buildAddressResult(simpleMatch[1])
   }
-
-  if (arr.length === 8) {
-    address = _.slice(0, 4, arr).join(",")
-  }
-
-  if (arr.length === 7) {
-    address = _.slice(0, 3, arr).join(",")
-  }
-
-  if (arr.length === 6) {
-    address = _.slice(0, 2, arr).join(",")
-  }
-
-  return {
-    number,
-    street,
-    address,
-  }
+  
+  // Final fallback: Return first part as address
+  return buildAddressResult(undefined, undefined, parts[0])
 }
 
 // export const isHouseNumber = (text: string) => {
@@ -198,7 +250,7 @@ export const extract = (text: string): AddressParts => {
       : countyIndex > -1
       ? countyIndex
       : arr.length
-
+ 
   const result: AddressParts = {
     country,
     region,
@@ -220,7 +272,9 @@ export const extract = (text: string): AddressParts => {
 
   if (venue) {
     result.venue = venue
-  } else {
+  } 
+  
+  if (address) {
     result.address = address
   }
 

@@ -142,89 +142,54 @@ export class ElasticTransform {
   static createQuery({ layer, parsedText }: CreateQuery): Record<string, any> {
     const result: any = {
       bool: {
-        must: [],
-        should: ElasticTransform.createShouldClauses({ parsedText }),
-        minimum_should_match: "100%",
+          must: [],
+          should: ElasticTransform.createShouldClauses({ parsedText }),
+          minimum_should_match: "100%",
       },
-    }
-
-    // if layer is provided, filter for records which have that layer
+    };
     if (layer != "") {
-      result.bool.must.push({
-        term: {
-          layer: layer,
-        },
-      })
-    }
-
-    // if parsedText has venue, add enhanced matching
-    if (parsedText.venue) {
-      const venue_token_count = parsedText.venue.trim().split(/\s+/).length
-      const venueTerms = parsedText.venue.trim().split(/\s+/)
-      
-      // KEEP existing phrase matching (for exact matches)
-      result.bool.should.push({
-        intervals: {
-          "name.default": {
-            match: {
-              query: parsedText.venue,
-              filter: {
-                script: {
-                  source: "interval.start >= 0 && interval.end < " + (venue_token_count + 4) + " && interval.gaps <= " + Math.max(venue_token_count - 1, 0),
-                },
-              },
-              ordered: true,
+        result.bool.must.push({
+            term: {
+                layer: layer,
             },
-          },
-        },
-      })
-      
-      result.bool.should.push({
-        nested: {
-            path: "addendum.geometry.entrances",
-            query: {
-                match: {
-                    "addendum.geometry.entrances.name": parsedText.venue
-                }
-            }
-        }
-      })
-      
-      // ADD new cross-field term matching for multi-word venues
-      if (venueTerms.length > 1) {
-        result.bool.should.push({
-          multi_match: {
-            query: parsedText.venue,
-            fields: [
-              "name.default^3",
-              "addendum.geometry.entrances.name^2", 
-              "address_parts.number^1"
-            ],
-            type: "cross_fields",
-            operator: "and",  // Require ALL terms to be found
-            boost: 2.0
-          }
-        })
-        
-        // Individual term matching with lower boost
-        venueTerms.forEach(term => {
-          result.bool.should.push({
-            multi_match: {
-              query: term,
-              fields: [
-                "name.default^2",
-                "addendum.geometry.entrances.name^1.5",
-                "address_parts.number^1"
-              ],
-              boost: 0.5
-            }
-          })
-        })
-      }
-      
-      result.bool.minimum_should_match = 1
+        });
     }
-    return result
+     
+      if (parsedText.venue) {
+          const shouldClauses: any = [
+              {
+                  intervals: {
+                      "name.default": {
+                          match: {
+                              query: parsedText.venue,
+                              filter: {
+                                  script: {
+                                      source: `interval.gaps <= 1`
+                                  },
+                              },
+                              ordered: true,
+                          },
+                      },
+                  },
+              },{
+                  nested: {
+                      path: "addendum.geometry.entrances",
+                      query: {
+                          match: {
+                              "addendum.geometry.entrances.name": {
+                                  query: parsedText.venue,
+                                  operator: "and",
+                              }
+                          }
+                      }
+                  }
+              }
+          ]
+            result.bool.should.push(...shouldClauses);
+          result.bool.minimum_should_match = 1;
+      }
+      return result;
+  
   }
 
   static rescoreQuery({ query, venueName }: RescoreQuery): Record<string, any> {

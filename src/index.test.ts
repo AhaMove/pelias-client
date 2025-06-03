@@ -858,12 +858,12 @@ describe("extractAddress", () => {
     // With trailing space
     [
       "7/28 ", 
-      { number: "7/28", street: undefined, address: "7/28 " }
+      { number: "7/28", street: undefined, address: "7/28" }
     ],
     // Complex number format
     [
       "A2-15/3 ", 
-      { number: "A2-15/3", street: undefined, address: "A2-15/3 " }
+      { number: "A2-15/3", street: undefined, address: "A2-15/3" }
     ],
     // Number starting with letter
     [
@@ -883,6 +883,18 @@ describe("extractAddress", () => {
     [
       "59C Nguyễn Đình Chiểu",
       { number: "59C", street: "Nguyễn Đình Chiểu", address: "59C Nguyễn Đình Chiểu" }
+    ],
+    [
+      "G Campus, Z06 Đường Số 13, Phường Tân Thuận Đông, Quận 7, Hồ Chí Minh, Việt Nam",
+      { number: "Z06", street: "Đường Số 13", address: "Z06 Đường Số 13" }
+    ],
+    [
+      "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      { number: "7/28", street: "Thành Thái", address: "7/28 Thành Thái" }
+    ],
+    [
+      "Rivera Park Sài Gòn, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      { number: undefined, street: undefined, address: "Rivera Park Sài Gòn" }
     ]
   ])("should correctly parse '%s'", (text, expected) => {
     const result = extractAddress(text);

@@ -204,20 +204,20 @@ export class ElasticTransform {
     ]
 
     if (venueName) {
-      // functions.push(  {
-      //   script_score: {
-      //     script: {
-      //       source: `try { 
-      //                 String name = params._source.name.default.toLowerCase(); 
-      //                 int pos = name.indexOf(params.venueName); 
-      //                 return pos == 0 ? 10 : (pos > 0 ? 5 : 0); 
-      //               } catch (Exception e) { return 0; }`,
-      //       params: {
-      //         venueName: venueName.toLowerCase()
-      //       }
-      //     }
-      //   }
-      // })
+      functions.push(  {
+        script_score: {
+          script: {
+            source: `try { 
+                      String name = params._source.name.default.toLowerCase(); 
+                      int pos = name.indexOf(params.venueName); 
+                      return pos == 0 ? 10 : (pos > 0 ? 5 : 0); 
+                    } catch (Exception e) { return 0; }`,
+            params: {
+              venueName: venueName.toLowerCase()
+            }
+          }
+        }
+      })
     }
 
     return {
@@ -225,7 +225,7 @@ export class ElasticTransform {
         query: query,
         functions,
         score_mode: "sum",
-        boost_mode: "replace"
+        boost_mode: "sum"
       }
     }
   }
@@ -260,7 +260,7 @@ export class ElasticTransform {
         _doc: "desc",
       })
     }
-
+    
     return result
   }
 
@@ -326,7 +326,7 @@ export class ElasticTransform {
             query: query,
             functions: [score_exact_address_number],
             score_mode: "sum",
-            boost_mode: "replace",
+            boost_mode: "sum",
           },
         }
       }
@@ -356,7 +356,7 @@ export class ElasticTransform {
               center_point: { lat, lon }
             }
           },
-          weight: 5
+          weight: 25
         },
         {
           filter: { match_all: {} },
@@ -364,9 +364,9 @@ export class ElasticTransform {
           exp: {
             center_point: {
               origin: { lat, lon },
-              scale: "15km",
+              scale: "30km",
               offset: "0km",
-              decay: 0.6
+              decay: 0.5
             }
           }
         }

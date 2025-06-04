@@ -126,7 +126,7 @@ export class PeliasClient<
         geocode,
         userId
       })
-    console.log("body", JSON.stringify(body))
+    
     const result = await this.esClient.search<TResponse>({
       index: alias,
       body,

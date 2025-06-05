@@ -267,15 +267,7 @@ export class ElasticTransform {
       functions.push(  {
         script_score: {
           script: {
-            source: `try { 
-                String name = params._source.name.default.toLowerCase(); 
-                int pos = name.indexOf(params.venueName); 
-                if (pos == -1) return 0;
-                if (pos == 0) return 1;
-                int nameLength = name.length();
-                double ratio = (double)pos / nameLength;
-                return Math.min(10, ratio * 10); 
-              } catch (Exception e) { return 0; }`,
+            source: "try { String name = params._source.name.default.toLowerCase(); int pos = name.indexOf(params.venueName); if (pos == -1) return 0; if (pos == 0) return 10; int nameLength = name.length(); double ratio = 1.0 - ((double)pos / nameLength); return Math.max(1, ratio * 10); } catch (Exception e) { return 0; }",
             params: {
               venueName: venueName.toLowerCase()
             }
@@ -299,11 +291,11 @@ export class ElasticTransform {
       _score: "desc",
     }]
 
-    if (sortScore) {
-      result.push({
-        _score: "desc",
-      })
-    }
+    // if (sortScore) {
+    //   result.push({
+    //     _score: "desc",
+    //   })
+    // }
 
     // if focus lat lon is provided, after sorting by _score, we sort the results from near to far
     if (lat !== undefined && lon !== undefined) {

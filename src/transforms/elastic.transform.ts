@@ -58,7 +58,7 @@ interface RescoreFunction {
 
 export class ElasticTransform {
   static createShouldClauses({ parsedText }: CreateShouldClauses) {
-    return _.flow([
+    const componentClauses = _.flow([
       _.toPairs,
       _.map(([key, value]) => {
         let newKey
@@ -68,13 +68,12 @@ export class ElasticTransform {
           case "locality":
             newKey = `parent.${key}`
             break
-          case "number":
-          case "street":
-            newKey = `address_parts.${key}`
-            break
-          case "address":
-            if (!parsedText.street) newKey = "name.default"
-            break
+          // case "number":
+          // case "street":
+          //   newKey = `address_parts.${key}`
+          //   break
+          // case "address":
+          //   return null
           default:
             return null
         }
@@ -89,42 +88,42 @@ export class ElasticTransform {
         if (newKey === "parent.county") {
           if (value.match(/(Quận)\s\D/)) value = value.replace("Quận ", "")
         }
-        if (
-          newKey === "address_parts.street" &&
-          parsedText?.address?.includes("Hà Nội")
-        ) {
-          if (value.match(/^(Phố)\s\D/i)) value = value.replace("Phố ", "")
-        }
+        // if (
+        //   newKey === "address_parts.street" &&
+        //   parsedText?.address?.includes("Hà Nội")
+        // ) {
+        //   if (value.match(/^(Phố)\s\D/i)) value = value.replace("Phố ", "")
+        // }
 
-        if (newKey === "address_parts.number") {
-          // replace all non-alphanumeric characters (except /) into space for value string
-          value = value.replace(/[^0-9a-zA-Z/]/g, " ")
-          // dedup space for value string
-          value = value.replace(/\s+/g, " ")
-          // trim space for value string
-          value = value.trim()
-          // count parts separated by space in value string
-          // const partCount = value.split(/\s+/).length
-          if (!value) {
-            return null
-          }
+        // if (newKey === "address_parts.number") {
+        //   // replace all non-alphanumeric characters (except /) into space for value string
+        //   value = value.replace(/[^0-9a-zA-Z/]/g, " ")
+        //   // dedup space for value string
+        //   value = value.replace(/\s+/g, " ")
+        //   // trim space for value string
+        //   value = value.trim()
+        //   // count parts separated by space in value string
+        //   // const partCount = value.split(/\s+/).length
+        //   if (!value) {
+        //     return null
+        //   }
 
-          return {
-            intervals: {
-              [newKey]: {
-                match: {
-                  query: value,
-                  filter: {
-                    script: {
-                      source: "interval.start == 0 && interval.gaps == 0",
-                    },
-                  },
-                  ordered: true,
-                },
-              },
-            },
-          }
-        }
+        //   return {
+        //     intervals: {
+        //       [newKey]: {
+        //         match: {
+        //           query: value,
+        //           // filter: {
+        //           //   script: {
+        //           //     source: "interval.start == 0 && interval.gaps == 0",
+        //           //   },
+        //           // },
+        //           ordered: true,
+        //         },
+        //       },
+        //     },
+        //   }
+        // }
 
         return {
           match_phrase: {
@@ -137,6 +136,59 @@ export class ElasticTransform {
       }),
       _.filter((value) => !!value),
     ])(parsedText)
+
+    // Always add a name.default search clause
+    const nameDefaultClause = {
+      bool: {
+        should: [
+          {
+            match: {
+              "name.default": {
+                query: parsedText.venue || parsedText.address || "",
+                operator: "and",
+              }
+            }
+          },
+          {
+            match_phrase: {
+              "name.default": {
+                query: parsedText.address || parsedText.venue || "", 
+                boost: 10,
+              },
+            },
+          }
+        ]
+      }
+      
+    }
+
+    const entrancesClause = {
+      nested: {
+        path: "addendum.geometry.entrances",
+        query: {
+          bool:{
+            should: [
+            {  match: {
+                "addendum.geometry.entrances.name": {
+                  query: parsedText.venue || parsedText.address || "",
+                  operator: "and",
+                }
+              }},
+              {
+                match_phrase: {
+                  "addendum.geometry.entrances.name": {
+                    query: parsedText.venue || parsedText.address || "",
+                    boost: 20,
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+
+    return [nameDefaultClause, entrancesClause, ...componentClauses]
   }
 
   static createQuery({ layer, parsedText }: CreateQuery): Record<string, any> {
@@ -144,17 +196,17 @@ export class ElasticTransform {
       bool: {
           must: [],
           should: ElasticTransform.createShouldClauses({ parsedText }),
-          minimum_should_match: "100%",
+          minimum_should_match: "50%",
       },
     };
-    if (layer != "") {
-        result.bool.must.push({
-            term: {
-                layer: layer,
-            },
-        });
-    }
-     
+    // if (layer != "") {
+    //     result.bool.must.push({
+    //         term: {
+    //             layer: layer,
+    //         },
+    //     });
+    // }
+    
       if (parsedText.venue) {
           const shouldClauses: any = [
               {
@@ -171,22 +223,23 @@ export class ElasticTransform {
                           },
                       },
                   },
-              },{
-                  nested: {
-                      path: "addendum.geometry.entrances",
-                      query: {
-                          match: {
-                              "addendum.geometry.entrances.name": {
-                                  query: parsedText.venue,
-                                  operator: "and",
-                              }
-                          }
-                      }
-                  }
-              }
+              },
+              // {
+              //     nested: {
+              //         path: "addendum.geometry.entrances",
+              //         query: {
+              //             match: {
+              //                 "addendum.geometry.entrances.name": {
+              //                     query: parsedText.venue,
+              //                     operator: "and",
+              //                 }
+              //             }
+              //         }
+              //     }
+              // }
           ]
-            result.bool.should.push(...shouldClauses);
-          result.bool.minimum_should_match = 1;
+      result.bool.should.push(...shouldClauses);
+      result.bool.minimum_should_match = 1;
       }
       return result;
   
@@ -200,6 +253,13 @@ export class ElasticTransform {
             source: "try { return params._source.addendum.containsKey('geometry') ? 10 : 0; } catch (Exception e) { return 0; }"
           }
         }
+      },
+      {
+        script_score: {
+          script: {
+            source: "try { return params._source.layer == 'venue' ? 10 : 0; } catch (Exception e) { return 0; }"
+          }
+        }
       }
     ]
 
@@ -208,10 +268,14 @@ export class ElasticTransform {
         script_score: {
           script: {
             source: `try { 
-                      String name = params._source.name.default.toLowerCase(); 
-                      int pos = name.indexOf(params.venueName); 
-                      return pos == 0 ? 10 : (pos > 0 ? 5 : 0); 
-                    } catch (Exception e) { return 0; }`,
+                String name = params._source.name.default.toLowerCase(); 
+                int pos = name.indexOf(params.venueName); 
+                if (pos == -1) return 0;
+                if (pos == 0) return 1;
+                int nameLength = name.length();
+                double ratio = (double)pos / nameLength;
+                return Math.min(10, ratio * 10); 
+              } catch (Exception e) { return 0; }`,
             params: {
               venueName: venueName.toLowerCase()
             }
@@ -225,13 +289,15 @@ export class ElasticTransform {
         query: query,
         functions,
         score_mode: "sum",
-        boost_mode: "sum"
+        boost_mode: "replace"
       }
     }
   }
 
   static createSort({ sortScore, lat, lon }: CreateSort) {
-    const result: any = []
+    const result: any = [{
+      _score: "desc",
+    }]
 
     if (sortScore) {
       result.push({
@@ -308,29 +374,29 @@ export class ElasticTransform {
       sortScore = false
     }
     
-    if (parsedText.number) {
-      const score_exact_address_number = {
-        script_score: {
-          script: {
-            // source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
-            source:
-              "try { 100-params._source.address_parts.number.length() } catch (Exception e) {0}",
-          },
-        },
-      }
-      if (query.function_score) {
-        query.function_score.functions.push(score_exact_address_number)
-      } else {
-        query = {
-          function_score: {
-            query: query,
-            functions: [score_exact_address_number],
-            score_mode: "sum",
-            boost_mode: "sum",
-          },
-        }
-      }
-    }
+    // if (parsedText.number) {
+    //   const score_exact_address_number = {
+    //     script_score: {
+    //       script: {
+    //         // source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
+    //         source:
+    //           "try { 100-params._source.address_parts.number.length() } catch (Exception e) {0}",
+    //       },
+    //     },
+    //   }
+    //   if (query.function_score) {
+    //     query.function_score.functions.push(score_exact_address_number)
+    //   } else {
+    //     query = {
+    //       function_score: {
+    //         query: query,
+    //         functions: [score_exact_address_number],
+    //         score_mode: "sum",
+    //         boost_mode: "replace",
+    //       },
+    //     }
+    //   }
+    // }
 
     // if multiIndexOpts is provided, add extra scoring functions
     if (multiIndexOpts && multiIndexOpts.extraFunctions) {
@@ -360,13 +426,13 @@ export class ElasticTransform {
         },
         {
           filter: { match_all: {} },
-          weight: 2,
-          exp: {
+          weight: 10,
+          gauss: {
             center_point: {
               origin: { lat, lon },
-              scale: "30km",
+              scale: "3km",
               offset: "0km",
-              decay: 0.5
+              decay: 0.1
             }
           }
         }

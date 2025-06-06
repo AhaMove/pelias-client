@@ -126,7 +126,7 @@ export class PeliasClient<
         geocode,
         userId
       })
-
+    
     const result = await this.esClient.search<TResponse>({
       index: alias,
       body,

@@ -58,7 +58,7 @@ interface RescoreFunction {
 
 export class ElasticTransform {
   static createShouldClauses({ parsedText }: CreateShouldClauses) {
-    return _.flow([
+    const componentClauses = _.flow([
       _.toPairs,
       _.map(([key, value]) => {
         let newKey
@@ -68,13 +68,12 @@ export class ElasticTransform {
           case "locality":
             newKey = `parent.${key}`
             break
-          case "number":
-          case "street":
-            newKey = `address_parts.${key}`
-            break
-          case "address":
-            if (!parsedText.street) newKey = "name.default"
-            break
+          // case "number":
+          // case "street":
+          //   newKey = `address_parts.${key}`
+          //   break
+          // case "address":
+          //   return null
           default:
             return null
         }
@@ -89,42 +88,42 @@ export class ElasticTransform {
         if (newKey === "parent.county") {
           if (value.match(/(Quận)\s\D/)) value = value.replace("Quận ", "")
         }
-        if (
-          newKey === "address_parts.street" &&
-          parsedText?.address?.includes("Hà Nội")
-        ) {
-          if (value.match(/^(Phố)\s\D/i)) value = value.replace("Phố ", "")
-        }
+        // if (
+        //   newKey === "address_parts.street" &&
+        //   parsedText?.address?.includes("Hà Nội")
+        // ) {
+        //   if (value.match(/^(Phố)\s\D/i)) value = value.replace("Phố ", "")
+        // }
 
-        if (newKey === "address_parts.number") {
-          // replace all non-number character into space for value string
-          value = value.replace(/[^0-9/]/g, " ")
-          // dedup space for value string
-          value = value.replace(/\s+/g, " ")
-          // trim space for value string
-          value = value.trim()
-          // count parts separated by space in value string
-          // const partCount = value.split(/\s+/).length
-          if (!value) {
-            return null
-          }
+        // if (newKey === "address_parts.number") {
+        //   // replace all non-alphanumeric characters (except /) into space for value string
+        //   value = value.replace(/[^0-9a-zA-Z/]/g, " ")
+        //   // dedup space for value string
+        //   value = value.replace(/\s+/g, " ")
+        //   // trim space for value string
+        //   value = value.trim()
+        //   // count parts separated by space in value string
+        //   // const partCount = value.split(/\s+/).length
+        //   if (!value) {
+        //     return null
+        //   }
 
-          return {
-            intervals: {
-              [newKey]: {
-                match: {
-                  query: value,
-                  filter: {
-                    script: {
-                      source: "interval.start == 0 && interval.gaps == 0",
-                    },
-                  },
-                  ordered: true,
-                },
-              },
-            },
-          }
-        }
+        //   return {
+        //     intervals: {
+        //       [newKey]: {
+        //         match: {
+        //           query: value,
+        //           // filter: {
+        //           //   script: {
+        //           //     source: "interval.start == 0 && interval.gaps == 0",
+        //           //   },
+        //           // },
+        //           ordered: true,
+        //         },
+        //       },
+        //     },
+        //   }
+        // }
 
         return {
           match_phrase: {
@@ -137,50 +136,115 @@ export class ElasticTransform {
       }),
       _.filter((value) => !!value),
     ])(parsedText)
+
+    // Always add a name.default search clause
+    const nameDefaultClause = {
+      bool: {
+        should: [
+          {
+            match: {
+              "name.default": {
+                query: parsedText.venue || parsedText.address || "",
+                operator: "and",
+              }
+            }
+          },
+          {
+            match_phrase: {
+              "name.default": {
+                query: parsedText.address || parsedText.venue || "", 
+                boost: 10,
+              },
+            },
+          }
+        ]
+      }
+      
+    }
+
+    const entrancesClause = {
+      nested: {
+        path: "addendum.geometry.entrances",
+        // currently favorite_location and recent_location don't have addendum.geometry.entrances field
+        ignore_unmapped: true,
+        query: {
+          bool:{
+            should: [
+            {  match: {
+                "addendum.geometry.entrances.name": {
+                  query: parsedText.venue || parsedText.address || "",
+                  operator: "and",
+                }
+              }},
+              {
+                match_phrase: {
+                  "addendum.geometry.entrances.name": {
+                    query: parsedText.venue || parsedText.address || "",
+                    boost: 20,
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+
+    return [nameDefaultClause, entrancesClause, ...componentClauses]
   }
 
   static createQuery({ layer, parsedText }: CreateQuery): Record<string, any> {
     const result: any = {
       bool: {
-        must: [],
-        should: ElasticTransform.createShouldClauses({ parsedText }),
-        minimum_should_match: "100%",
+          must: [],
+          should: ElasticTransform.createShouldClauses({ parsedText }),
+          minimum_should_match: "50%",
       },
-    }
-
-    // if layer is provided, filter for records which have that layer
-    if (layer != "") {
-      result.bool.must.push({
-        term: {
-          layer: layer,
-        },
-      })
-    }
-
-    // if parsedText has venue, filter for records which have that venue in the beginning of "name.default"
-    if (parsedText.venue) {
-      const venue_token_count = parsedText.venue.trim().split(/\s+/).length
-      result.bool.must.push({
-        intervals: {
-          "name.default": {
-            match: {
-              query: parsedText.venue,
-              filter: {
-                script: {
-                  source:
-                    "interval.start >= 0 && interval.end < " +
-                    (venue_token_count + 4) +
-                    " && interval.gaps <= " +
-                    Math.max(venue_token_count - 1, 0),
-                },
+    };
+    // if (layer != "") {
+    //     result.bool.must.push({
+    //         term: {
+    //             layer: layer,
+    //         },
+    //     });
+    // }
+    
+      if (parsedText.venue) {
+          const shouldClauses: any = [
+              {
+                  intervals: {
+                      "name.default": {
+                          match: {
+                              query: parsedText.venue,
+                              filter: {
+                                  script: {
+                                      source: `interval.gaps <= 1`
+                                  },
+                              },
+                              ordered: true,
+                          },
+                      },
+                  },
               },
-              ordered: true,
-            },
-          },
-        },
-      })
-    }
-    return result
+              // {
+              //     nested: {
+              //         path: "addendum.geometry.entrances",
+              //         query: {
+              //             match: {
+              //                 "addendum.geometry.entrances.name": {
+              //                     query: parsedText.venue,
+              //                     operator: "and",
+              //                 }
+              //             }
+              //         }
+              //     }
+              // }
+          ]
+      result.bool.should.push(...shouldClauses);
+      result.bool.minimum_should_match = 1;
+      }
+      return result;
+  
   }
 
   static rescoreQuery({ query, venueName }: RescoreQuery): Record<string, any> {
@@ -195,23 +259,87 @@ export class ElasticTransform {
       {
         script_score: {
           script: {
-            source: "try { return params._source.layer == 'venue' ? 15 : 0; } catch (Exception e) { return 0; }"
+            source: "try { return params._source.layer == 'venue' ? 10 : 0; } catch (Exception e) { return 0; }"
           }
         }
       }
     ]
 
     if (venueName) {
-      functions.push(  {
+      functions.push({
         script_score: {
           script: {
-            source: "try { String name = params._source.name.default.toLowerCase(); int pos = name.indexOf(params.venueName); return pos == 0 ? 10 : (pos > 0 ? 5 : 0); } catch (Exception e) { return 0; }",
+            source: `
+              try {
+                String searchTerm = params.venueName;
+                
+                // Check if name.default contains the search term
+                if (params._source.containsKey('name') && params._source.name.containsKey('default')) {
+                  String mainName = params._source.name.default.toLowerCase();
+                  if (mainName.contains(searchTerm)) {
+                    return 10;
+                  }
+                }
+                
+                // Check if any entrance name contains the search term
+                if (params._source.containsKey('addendum') && 
+                    params._source.addendum.containsKey('geometry') && 
+                    params._source.addendum.geometry.containsKey('entrances')) {
+                  
+                  def entrances = params._source.addendum.geometry.entrances;
+                  if (entrances instanceof List) {
+                    for (def entrance : entrances) {
+                      if (entrance.containsKey('name')) {
+                        String entranceName = entrance.name.toLowerCase();
+                        if (entranceName.contains(searchTerm)) {
+                          return 10;
+                        }
+                      }
+                    }
+                  }
+                }
+                
+                return 0;
+              } catch (Exception e) { 
+                return 0; 
+              }
+            `,
             params: {
               venueName: venueName.toLowerCase()
             }
           }
         }
       })
+
+      functions.push({
+        script_score: {
+          script: {
+            source: `
+              try {
+                String searchTerm = params.venueName;
+                if (searchTerm == null || searchTerm.isEmpty()) {
+                  return 0;
+                }
+                
+                if (params._source.containsKey('name') && params._source.name.containsKey('default')) {
+                  String mainName = params._source.name.default.toLowerCase();
+                  if (mainName.indexOf(searchTerm) == 0) {
+                    return 5;
+                  }
+                }
+                
+                return 0;
+              } catch (Exception e) { 
+                return 0; 
+              }
+            `,
+            params: {
+              venueName: venueName.toLowerCase()
+            }
+          }
+        }
+      })
+
     }
 
     return {
@@ -225,13 +353,15 @@ export class ElasticTransform {
   }
 
   static createSort({ sortScore, lat, lon }: CreateSort) {
-    const result: any = []
+    const result: any = [{
+      _score: "desc",
+    }]
 
-    if (sortScore) {
-      result.push({
-        _score: "desc",
-      })
-    }
+    // if (sortScore) {
+    //   result.push({
+    //     _score: "desc",
+    //   })
+    // }
 
     // if focus lat lon is provided, after sorting by _score, we sort the results from near to far
     if (lat !== undefined && lon !== undefined) {
@@ -254,7 +384,7 @@ export class ElasticTransform {
         _doc: "desc",
       })
     }
-
+    
     return result
   }
 
@@ -302,29 +432,29 @@ export class ElasticTransform {
       sortScore = false
     }
     
-    if (parsedText.number) {
-      const score_exact_address_number = {
-        script_score: {
-          script: {
-            // source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
-            source:
-              "try { 100-params._source.address_parts.number.length() } catch (Exception e) {0}",
-          },
-        },
-      }
-      if (query.function_score) {
-        query.function_score.functions.push(score_exact_address_number)
-      } else {
-        query = {
-          function_score: {
-            query: query,
-            functions: [score_exact_address_number],
-            score_mode: "sum",
-            boost_mode: "replace",
-          },
-        }
-      }
-    }
+    // if (parsedText.number) {
+    //   const score_exact_address_number = {
+    //     script_score: {
+    //       script: {
+    //         // source: `try {params._source.address_parts.number == '${parsedText.number}' ? 1 : 0} catch (Exception e) {0}`,
+    //         source:
+    //           "try { 100-params._source.address_parts.number.length() } catch (Exception e) {0}",
+    //       },
+    //     },
+    //   }
+    //   if (query.function_score) {
+    //     query.function_score.functions.push(score_exact_address_number)
+    //   } else {
+    //     query = {
+    //       function_score: {
+    //         query: query,
+    //         functions: [score_exact_address_number],
+    //         score_mode: "sum",
+    //         boost_mode: "replace",
+    //       },
+    //     }
+    //   }
+    // }
 
     // if multiIndexOpts is provided, add extra scoring functions
     if (multiIndexOpts && multiIndexOpts.extraFunctions) {
@@ -343,7 +473,6 @@ export class ElasticTransform {
     // Add distance-based scoring when coordinates are available
     if (lat !== undefined && lon !== undefined && query.function_score) {
       const nearbyDistanceScore = [
-        // First function: High base score for anything within 30km
         {
           filter: {
             geo_distance: {
@@ -351,18 +480,17 @@ export class ElasticTransform {
               center_point: { lat, lon }
             }
           },
-          weight: 20
+          weight: 25
         },
-        // Second function: Fine-grained distance scoring within the radius
         {
           filter: { match_all: {} },
-          weight: 5,
-          exp: {
+          weight: 10,
+          gauss: {
             center_point: {
               origin: { lat, lon },
-              scale: "15km",
+              scale: "3km",
               offset: "0km",
-              decay: 0.6
+              decay: 0.1
             }
           }
         }

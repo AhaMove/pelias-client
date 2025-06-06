@@ -267,7 +267,41 @@ export class ElasticTransform {
       functions.push(  {
         script_score: {
           script: {
-            source: "try { String name = params._source.name.default.toLowerCase(); int pos = name.indexOf(params.venueName); if (pos == -1) return 0; if (pos == 0) return 10; int nameLength = name.length(); double ratio = 1.0 - ((double)pos / nameLength); return Math.max(1, ratio * 10); } catch (Exception e) { return 0; }",
+            source: `
+              try {
+                String searchTerm = params.venueName;
+                
+                // Check if name.default contains the search term
+                if (params._source.containsKey('name') && params._source.name.containsKey('default')) {
+                  String mainName = params._source.name.default.toLowerCase();
+                  if (mainName.contains(searchTerm)) {
+                    return 10;
+                  }
+                }
+                
+                // Check if any entrance name contains the search term
+                if (params._source.containsKey('addendum') && 
+                    params._source.addendum.containsKey('geometry') && 
+                    params._source.addendum.geometry.containsKey('entrances')) {
+                  
+                  def entrances = params._source.addendum.geometry.entrances;
+                  if (entrances instanceof List) {
+                    for (def entrance : entrances) {
+                      if (entrance.containsKey('name')) {
+                        String entranceName = entrance.name.toLowerCase();
+                        if (entranceName.contains(searchTerm)) {
+                          return 10;
+                        }
+                      }
+                    }
+                  }
+                }
+                
+                return 0;
+              } catch (Exception e) { 
+                return 0; 
+              }
+            `,
             params: {
               venueName: venueName.toLowerCase()
             }

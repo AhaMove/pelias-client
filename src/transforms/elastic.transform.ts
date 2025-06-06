@@ -264,7 +264,7 @@ export class ElasticTransform {
     ]
 
     if (venueName) {
-      functions.push(  {
+      functions.push({
         script_score: {
           script: {
             source: `
@@ -308,6 +308,36 @@ export class ElasticTransform {
           }
         }
       })
+
+      functions.push({
+        script_score: {
+          script: {
+            source: `
+              try {
+                String searchTerm = params.venueName;
+                if (searchTerm == null || searchTerm.isEmpty()) {
+                  return 0;
+                }
+                
+                if (params._source.containsKey('name') && params._source.name.containsKey('default')) {
+                  String mainName = params._source.name.default.toLowerCase();
+                  if (mainName.indexOf(searchTerm) == 0) {
+                    return 5;
+                  }
+                }
+                
+                return 0;
+              } catch (Exception e) { 
+                return 0; 
+              }
+            `,
+            params: {
+              venueName: venueName.toLowerCase()
+            }
+          }
+        }
+      })
+
     }
 
     return {

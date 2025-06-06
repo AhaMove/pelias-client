@@ -165,6 +165,8 @@ export class ElasticTransform {
     const entrancesClause = {
       nested: {
         path: "addendum.geometry.entrances",
+        // currently favorite_location and recent_location don't have addendum.geometry.entrances field
+        ignore_unmapped: true,
         query: {
           bool:{
             should: [

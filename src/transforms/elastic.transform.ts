@@ -39,6 +39,7 @@ interface CreateQuery {
 interface RescoreQuery {
   query: Record<string, any>
   venueName: string
+  parsedText: AddressParts
 }
 
 interface CreateSort {
@@ -247,7 +248,7 @@ export class ElasticTransform {
   
   }
 
-  static rescoreQuery({ query, venueName }: RescoreQuery): Record<string, any> {
+  static rescoreQuery({ query, venueName, parsedText }: RescoreQuery): Record<string, any> {
     const functions: RescoreFunction[] = [
       {
         script_score: {
@@ -265,7 +266,7 @@ export class ElasticTransform {
       }
     ]
 
-    if (venueName) {
+    // if (venueName) {
       functions.push({
         script_score: {
           script: {
@@ -305,7 +306,7 @@ export class ElasticTransform {
               }
             `,
             params: {
-              venueName: venueName.toLowerCase()
+              venueName: venueName.toLowerCase() || parsedText?.address?.toLowerCase() || ""
             }
           }
         }
@@ -334,13 +335,13 @@ export class ElasticTransform {
               }
             `,
             params: {
-              venueName: venueName.toLowerCase()
+              venueName: venueName.toLowerCase() || parsedText?.address?.toLowerCase() || ""
             }
           }
         }
       })
 
-    }
+    // }
 
     return {
       function_score: {
@@ -427,7 +428,7 @@ export class ElasticTransform {
     
     if (!countResult.terminated_early) {
       const venueName = parsedText.venue || ""
-      query = ElasticTransform.rescoreQuery({ query, venueName })
+      query = ElasticTransform.rescoreQuery({ query, venueName, parsedText })
     } else {
       sortScore = false
     }

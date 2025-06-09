@@ -411,7 +411,7 @@ export class ElasticTransform {
     }
     let sortScore = true
 
-    const multiIndexOpts = buildMultiIndexSearchOpts(userId)
+    const multiIndexOpts = userId ? buildMultiIndexSearchOpts(userId) : null
     // create query
     let query = ElasticTransform.createQuery({ layer, parsedText })
     // if multiIndexOpts is provided, add extra filters

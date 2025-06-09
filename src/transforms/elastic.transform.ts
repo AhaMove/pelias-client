@@ -504,16 +504,78 @@ export class ElasticTransform {
     if (multiIndexOpts && multiIndexOpts.overwriteHits) {
       size = 0
     }
+
+    // Create script field for sorted entrances (matching entrances first)
+    const sortedEntrancesScript = {
+      script: {
+        source: `
+          try {
+            if (!params._source.containsKey('addendum') || 
+                !params._source.addendum.containsKey('geometry') || 
+                !params._source.addendum.geometry.containsKey('entrances')) {
+              return [];
+            }
+            
+            def entrances = params._source.addendum.geometry.entrances;
+            if (!(entrances instanceof List) || entrances.isEmpty()) {
+              return [];
+            }
+            
+            String searchTerm = params.searchTerm.toLowerCase();
+            def matchingEntrances = [];
+            def nonMatchingEntrances = [];
+            
+            for (def entrance : entrances) {
+              if (entrance.containsKey('name')) {
+                String entranceName = entrance.name.toLowerCase();
+                if (entranceName.contains(searchTerm)) {
+                  matchingEntrances.add(entrance);
+                } else {
+                  nonMatchingEntrances.add(entrance);
+                }
+              } else {
+                nonMatchingEntrances.add(entrance);
+              }
+            }
+            
+            // Return matching entrances first, then non-matching ones
+            def result = [];
+            result.addAll(matchingEntrances);
+            result.addAll(nonMatchingEntrances);
+            return result;
+            
+          } catch (Exception e) {
+            return [];
+          }
+        `,
+        params: {
+          searchTerm: parsedText.venue || parsedText.address || ""
+        }
+      }
+    };
+
     const body: Record<string, any> = {
       query: query,
       size: size,
       track_scores: true,
       sort: sort,
+      _source: true,
     }
+
+    // Add script field for sorted entrances if we have a search term
+    let scriptFields: Record<string, any> | undefined;
+    if (parsedText.venue || parsedText.address) {
+      scriptFields = {
+        sorted_entrances: sortedEntrancesScript
+      };
+      body.script_fields = scriptFields;
+    }
+
     if (multiIndexOpts && multiIndexOpts.aggregations) {
       body["aggs"] = buildMultiIndexAggregations(
         multiIndexOpts.aggregations,
-        sort
+        sort,
+        scriptFields
       )
     }
 
@@ -577,7 +639,8 @@ export class ElasticTransform {
 
 function buildMultiIndexAggregations(
   aggregations: Record<string, MultiIndexAggregationConfig> | null,
-  sort: any
+  sort: any,
+  scriptFields?: Record<string, any>
 ) {
   // Initialize empty aggregations object
   const aggs: Record<string, any> = {}
@@ -589,15 +652,24 @@ function buildMultiIndexAggregations(
   for (const [aggName, aggConfig] of Object.entries(aggregations)) {
     // Skip if configuration is empty
     if (!aggConfig) continue
+    
+    const topHitsConfig: any = {
+      size: aggConfig.size,
+      track_scores: true,
+      sort: sort,
+      _source: true,
+    };
+    
+    // Add script fields if provided
+    if (scriptFields) {
+      topHitsConfig.script_fields = scriptFields;
+    }
+    
     aggs[aggName] = {
       filter: aggConfig.filter,
       aggs: {
         top_hits: {
-          top_hits: {
-            size: aggConfig.size,
-            track_scores: true,
-            sort: sort,
-          },
+          top_hits: topHitsConfig,
         },
       },
     }

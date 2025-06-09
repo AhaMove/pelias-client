@@ -94,7 +94,11 @@ export class PeliasTransform {
         const { geometry } = addendum
         if (geometry) {
           const jsonGeometry = _.isString(geometry) ? JSON.parse(geometry) : geometry
-          entrances = jsonGeometry?.entrances ?? ""
+          if (value?.fields?.sorted_entrances) {
+            entrances = value?.fields?.sorted_entrances
+          } else {
+            entrances = jsonGeometry?.entrances ?? ""
+          }
           polygon = jsonGeometry?.polygon ?? ""
         } else {
           entrances = source?.addendum?.entrances ?? ""

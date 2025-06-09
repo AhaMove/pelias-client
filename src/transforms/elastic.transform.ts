@@ -737,7 +737,7 @@ function buildMultiIndexSearchOpts(userId: string): MultiIndexOptions {
           must_not: [
             {
               terms: {
-                _index: ["favorite_location"] // exclude both aliases
+                _index: ["favorite_location", "recent_location"] // exclude both aliases
               }
             }
           ]

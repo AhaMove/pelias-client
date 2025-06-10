@@ -6,3 +6,7 @@ lib
 .yarn/*
 yarn.lock
 package-lock.json
+.cursor
+*.json
+sample-config
+.DS_Store

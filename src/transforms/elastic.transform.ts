@@ -61,7 +61,7 @@ export class ElasticTransform {
   static createShouldClauses({ parsedText }: CreateShouldClauses) {
     const componentClauses = _.flow([
       _.toPairs,
-      _.map(([key, value]) => {
+      _.map(([key, value]: [string, any]) => {
         let newKey
         switch (key) {
           case "region":
@@ -140,27 +140,15 @@ export class ElasticTransform {
 
     // Always add a name.default search clause
     const nameDefaultClause = {
-      bool: {
-        should: [
-          {
-            match: {
-              "name.default": {
-                query: parsedText.venue || parsedText.address || "",
-                operator: "and",
-              }
-            }
-          },
-          {
-            match_phrase: {
-              "name.default": {
-                query: parsedText.address || parsedText.venue || "", 
-                boost: 10,
-              },
-            },
+      intervals: {
+        "name.default": {
+          match: {
+            query: parsedText.venue || parsedText.address || "",
+            ordered: true,
+            max_gaps: 1,
           }
-        ]
+        }
       }
-      
     }
 
     const entrancesClause = {
@@ -169,23 +157,14 @@ export class ElasticTransform {
         // currently favorite_location and recent_location don't have addendum.geometry.entrances field
         ignore_unmapped: true,
         query: {
-          bool:{
-            should: [
-            {  match: {
-                "addendum.geometry.entrances.name": {
-                  query: parsedText.venue || parsedText.address || "",
-                  operator: "and",
-                }
-              }},
-              {
-                match_phrase: {
-                  "addendum.geometry.entrances.name": {
-                    query: parsedText.venue || parsedText.address || "",
-                    boost: 20,
-                  }
-                }
+          intervals: {
+            "addendum.geometry.entrances.name": {
+              match: {
+                query: parsedText.venue || parsedText.address || "",
+                ordered: true,
+                max_gaps: 0,
               }
-            ]
+            }
           }
         }
       }
@@ -217,11 +196,7 @@ export class ElasticTransform {
                       "name.default": {
                           match: {
                               query: parsedText.venue,
-                              filter: {
-                                  script: {
-                                      source: `interval.gaps <= 1`
-                                  },
-                              },
+                              max_gaps: 1,
                               ordered: true,
                           },
                       },
@@ -257,13 +232,13 @@ export class ElasticTransform {
           }
         }
       },
-      {
-        script_score: {
-          script: {
-            source: "try { return params._source.layer == 'venue' ? 10 : 0; } catch (Exception e) { return 0; }"
-          }
-        }
-      }
+      // {
+      //   script_score: {
+      //     script: {
+      //       source: "try { return params._source.layer == 'venue' ? 10 : 0; } catch (Exception e) { return 0; }"
+      //     }
+      //   }
+      // }
     ]
 
     // if (venueName) {
@@ -277,7 +252,7 @@ export class ElasticTransform {
                 // Check if name.default contains the search term
                 if (params._source.containsKey('name') && params._source.name.containsKey('default')) {
                   String mainName = params._source.name.default.toLowerCase();
-                  if (mainName.contains(searchTerm)) {
+                  if (mainName.indexOf(searchTerm) >= 0) {
                     return 10;
                   }
                 }
@@ -292,7 +267,7 @@ export class ElasticTransform {
                     for (def entrance : entrances) {
                       if (entrance.containsKey('name')) {
                         String entranceName = entrance.name.toLowerCase();
-                        if (entranceName.contains(searchTerm)) {
+                        if (entranceName.indexOf(searchTerm) >= 0) {
                           return 10;
                         }
                       }
@@ -325,7 +300,7 @@ export class ElasticTransform {
                 if (params._source.containsKey('name') && params._source.name.containsKey('default')) {
                   String mainName = params._source.name.default.toLowerCase();
                   if (mainName.indexOf(searchTerm) == 0) {
-                    return 5;
+                    return 15;
                   }
                 }
                 
@@ -399,7 +374,7 @@ export class ElasticTransform {
     userId
   }: CreateSearchBody) {
     // const formatted = format(text)
-    const formatted = text
+    const formatted = text.trim().replace(/\s{2,}/g, ' ')
     const parsedText = extract(formatted)
     const layer = parsedText.venue ? "venue" : ""
     // if not geocode, ignore admin parts
@@ -549,7 +524,7 @@ export class ElasticTransform {
           }
         `,
         params: {
-          searchTerm: parsedText.venue || parsedText.address || ""
+          searchTerm: parsedText.venue?.toLowerCase() || parsedText.address?.toLowerCase() || ""
         }
       }
     };

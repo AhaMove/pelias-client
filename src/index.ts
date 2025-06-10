@@ -95,7 +95,7 @@ export class PeliasClient<
     alias: string,
     userId = ""
   ): Promise<PeliasResponse> {
-    if (!alias) {
+    if (!alias || !userId) {
       alias = "pelias"
     }
     const { text, size = 10, count_terminate_after = 500 } = params

@@ -374,7 +374,7 @@ export class ElasticTransform {
     userId
   }: CreateSearchBody) {
     // const formatted = format(text)
-    const formatted = text
+    const formatted = text.trim().replace(/\s{2,}/g, ' ')
     const parsedText = extract(formatted)
     const layer = parsedText.venue ? "venue" : ""
     // if not geocode, ignore admin parts

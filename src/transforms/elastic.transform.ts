@@ -162,7 +162,6 @@ export class ElasticTransform {
               match: {
                 query: parsedText.venue || parsedText.address || "",
                 ordered: true,
-                max_gaps: 0,
               }
             }
           }
@@ -484,44 +483,255 @@ export class ElasticTransform {
     const sortedEntrancesScript = {
       script: {
         source: `
-          try {
-            if (!params._source.containsKey('addendum') || 
-                !params._source.addendum.containsKey('geometry') || 
-                !params._source.addendum.geometry.containsKey('entrances')) {
-              return [];
-            }
-            
-            def entrances = params._source.addendum.geometry.entrances;
-            if (!(entrances instanceof List) || entrances.isEmpty()) {
-              return [];
-            }
-            
-            String searchTerm = params.searchTerm.toLowerCase();
-            def matchingEntrances = [];
-            def nonMatchingEntrances = [];
-            
-            for (def entrance : entrances) {
-              if (entrance.containsKey('name')) {
-                String entranceName = entrance.name.toLowerCase();
-                if (entranceName.contains(searchTerm)) {
-                  matchingEntrances.add(entrance);
-                } else {
-                  nonMatchingEntrances.add(entrance);
-                }
-              } else {
-                nonMatchingEntrances.add(entrance);
-              }
-            }
-            
-            // Return matching entrances first, then non-matching ones
-            def result = [];
-            result.addAll(matchingEntrances);
-            result.addAll(nonMatchingEntrances);
-            return result;
-            
-          } catch (Exception e) {
+        try {
+          if (params._index == 'favorite_location' || params._index == 'recent_location') {
             return [];
           }
+
+          if (!params._source.containsKey('addendum') || 
+              !params._source.addendum.containsKey('geometry') || 
+              !params._source.addendum.geometry.containsKey('entrances')) {
+            return [];
+          }
+          
+          def entrances = params._source.addendum.geometry.entrances;
+          if (!(entrances instanceof List) || entrances.isEmpty()) {
+            return [];
+          }
+          
+          String searchTerm = params.searchTerm.toLowerCase().trim();
+          if (searchTerm.isEmpty()) {
+            return entrances;
+          }
+          
+          def searchTokens = [];
+          if (searchTerm.contains(' ')) {
+            def parts = searchTerm.splitOnToken(' ');
+            for (def part : parts) {
+              String trimmedPart = part.trim();
+              if (!trimmedPart.isEmpty()) {
+                searchTokens.add(trimmedPart);
+              }
+            }
+          } else {
+            searchTokens.add(searchTerm);
+          }
+          
+          def fullMatchEntrances = [];
+          def partialMatchEntrances = [];  
+          def noMatchEntrances = [];
+          
+          for (def entrance : entrances) {
+            if (entrance.containsKey('name')) {
+              String entranceName = entrance.name.toLowerCase();
+              
+              def entranceWords = [];
+              if (entranceName.contains(' ')) {
+                def parts = entranceName.splitOnToken(' ');
+                for (def part : parts) {
+                  String trimmedPart = part.trim();
+                  if (!trimmedPart.isEmpty()) {
+                    entranceWords.add(trimmedPart);
+                  }
+                }
+              } else {
+                entranceWords.add(entranceName);
+              }
+              
+              def allTokenMatches = [];
+              for (int i = 0; i < searchTokens.size(); i++) {
+                String searchToken = searchTokens[i];
+                def tokenPositions = [];
+                
+                for (int j = 0; j < entranceWords.size(); j++) {
+                  String entranceWord = entranceWords[j];
+                  if (entranceWord.contains(searchToken)) {
+                    def matchInfo = [:];
+                    matchInfo['searchIndex'] = i;
+                    matchInfo['entranceIndex'] = j;
+                    matchInfo['token'] = searchToken;
+                    matchInfo['word'] = entranceWord;
+                    tokenPositions.add(matchInfo);
+                  }
+                }
+                
+                if (!tokenPositions.isEmpty()) {
+                  allTokenMatches.add(tokenPositions);
+                }
+              }
+              
+              def entranceCopy = [:];
+              for (def key : entrance.keySet()) {
+                entranceCopy[key] = entrance[key];
+              }
+              
+              int matchedTokens = allTokenMatches.size();
+              
+              if (matchedTokens == 0) {
+                noMatchEntrances.add(entranceCopy);
+                continue;
+              }
+              
+              def bestCombination = [];
+              double bestScore = -1.0;
+              
+              if (allTokenMatches.size() == 1) {
+                bestCombination = [allTokenMatches[0][0]];
+                bestScore = 1.0;
+              } else if (allTokenMatches.size() == 2) {
+                def firstTokenOptions = allTokenMatches[0];
+                def secondTokenOptions = allTokenMatches[1];
+                
+                for (def first : firstTokenOptions) {
+                  for (def second : secondTokenOptions) {
+                    def combination = [first, second];
+                    
+                    combination.sort((a, b) -> {
+                      int posA = (int)a['entranceIndex'];
+                      int posB = (int)b['entranceIndex'];
+                      return posA - posB;
+                    });
+                    
+                    int pos1 = (int)combination[0]['entranceIndex'];
+                    int pos2 = (int)combination[1]['entranceIndex'];
+                    
+                    int distance = pos2 - pos1;
+                    if (distance < 0) {
+                      distance = -distance;
+                    }
+                    
+                    double score = 1.0;
+                    if (distance == 1) {
+                      score = 4.0;
+                    } else if (distance == 2) {
+                      score = 2.5;
+                    } else if (distance <= 4) {
+                      score = 1.5;
+                    } else {
+                      score = 0.5;
+                    }
+                    
+                    if (score > bestScore) {
+                      bestScore = score;
+                      bestCombination = [first, second];
+                    }
+                  }
+                }
+              } else if (allTokenMatches.size() == 3) {
+                def firstTokenOptions = allTokenMatches[0];
+                def secondTokenOptions = allTokenMatches[1];
+                def thirdTokenOptions = allTokenMatches[2];
+                
+                for (def first : firstTokenOptions) {
+                  for (def second : secondTokenOptions) {
+                    for (def third : thirdTokenOptions) {
+                      def combination = [first, second, third];
+                      
+                      combination.sort((a, b) -> {
+                        int posA = (int)a['entranceIndex'];
+                        int posB = (int)b['entranceIndex'];
+                        return posA - posB;
+                      });
+                      
+                      double totalScore = 0.0;
+                      int consecutiveBonus = 0;
+                      
+                      for (int k = 0; k < combination.size() - 1; k++) {
+                        int pos1 = (int)combination[k]['entranceIndex'];
+                        int pos2 = (int)combination[k + 1]['entranceIndex'];
+                        int distance = pos2 - pos1;
+                        
+                        if (distance == 1) {
+                          totalScore += 4.0;
+                          consecutiveBonus++;
+                        } else if (distance == 2) {
+                          totalScore += 2.5;
+                        } else if (distance <= 4) {
+                          totalScore += 1.5;
+                        } else {
+                          totalScore += 0.5;
+                        }
+                      }
+                      
+                      if (consecutiveBonus > 0) {
+                        totalScore += consecutiveBonus * 1.0;
+                      }
+                      
+                      int pairCount = combination.size() - 1;
+                      if (pairCount < 1) {
+                        pairCount = 1;
+                      }
+                      double score = totalScore / pairCount;
+                      
+                      if (score > bestScore) {
+                        bestScore = score;
+                        bestCombination = [first, second, third];
+                      }
+                    }
+                  }
+                }
+              } else {
+                for (def tokenOptions : allTokenMatches) {
+                  bestCombination.add(tokenOptions[0]);
+                }
+                bestScore = 1.0;
+              }
+              
+              if (matchedTokens == searchTokens.size()) {
+                entranceCopy['_proximityScore'] = bestScore;
+                fullMatchEntrances.add(entranceCopy);
+              } else {
+                double combinedScore = matchedTokens + (bestScore * 0.5);
+                entranceCopy['_combinedScore'] = combinedScore;
+                partialMatchEntrances.add(entranceCopy);
+              }
+            } else {
+              def entranceCopy = [:];
+              for (def key : entrance.keySet()) {
+                entranceCopy[key] = entrance[key];
+              }
+              noMatchEntrances.add(entranceCopy);
+            }
+          }
+          
+          if (!fullMatchEntrances.isEmpty()) {
+            fullMatchEntrances.sort((a, b) -> {
+              double scoreA = a.containsKey('_proximityScore') ? (double)a['_proximityScore'] : 0.0;
+              double scoreB = b.containsKey('_proximityScore') ? (double)b['_proximityScore'] : 0.0;
+              return Double.compare(scoreB, scoreA);
+            });
+
+            for (def entrance : fullMatchEntrances) {
+              if (entrance.containsKey('_proximityScore')) {
+                entrance.remove('_proximityScore');
+              }
+            }
+          }
+          
+          if (!partialMatchEntrances.isEmpty()) {
+            partialMatchEntrances.sort((a, b) -> {
+              double scoreA = a.containsKey('_combinedScore') ? (double)a['_combinedScore'] : 0.0;
+              double scoreB = b.containsKey('_combinedScore') ? (double)b['_combinedScore'] : 0.0;
+              return Double.compare(scoreB, scoreA);
+            });
+            
+            for (def entrance : partialMatchEntrances) {
+              if (entrance.containsKey('_combinedScore')) {
+                entrance.remove('_combinedScore');
+              }
+            }
+          }
+          
+          def result = [];
+          result.addAll(fullMatchEntrances);
+          result.addAll(partialMatchEntrances);
+          result.addAll(noMatchEntrances);
+          
+          return result;
+          
+        } catch (Exception e) {
+          return [];
+        }
         `,
         params: {
           searchTerm: parsedText.venue?.toLowerCase() || parsedText.address?.toLowerCase() || ""
@@ -636,7 +846,7 @@ function buildMultiIndexAggregations(
     };
     
     // Add script fields if provided
-    if (scriptFields) {
+    if (scriptFields && aggName === "pelias") {
       topHitsConfig.script_fields = scriptFields;
     }
     

@@ -29,11 +29,12 @@ interface CreateSearchBody {
 
 interface CreateShouldClauses {
   parsedText: AddressParts
+  formatted: string
 }
 
 interface CreateQuery {
-  layer: string
   parsedText: AddressParts
+  formatted: string
 }
 
 interface RescoreQuery {
@@ -58,7 +59,7 @@ interface RescoreFunction {
 }
 
 export class ElasticTransform {
-  static createShouldClauses({ parsedText }: CreateShouldClauses) {
+  static createShouldClauses({ parsedText, formatted }: CreateShouldClauses) {
     const componentClauses = _.flow([
       _.toPairs,
       _.map(([key, value]: [string, any]) => {
@@ -143,7 +144,7 @@ export class ElasticTransform {
       intervals: {
         "name.default": {
           match: {
-            query: parsedText.venue || parsedText.address || "",
+            query: formatted,
             ordered: true,
             max_gaps: 1,
           }
@@ -160,7 +161,7 @@ export class ElasticTransform {
           intervals: {
             "addendum.geometry.entrances.name": {
               match: {
-                query: parsedText.venue || parsedText.address || "",
+                query: formatted,
                 ordered: true,
               }
             }
@@ -172,11 +173,11 @@ export class ElasticTransform {
     return [nameDefaultClause, entrancesClause, ...componentClauses]
   }
 
-  static createQuery({ layer, parsedText }: CreateQuery): Record<string, any> {
+  static createQuery({  parsedText, formatted}: CreateQuery): Record<string, any> {
     const result: any = {
       bool: {
           must: [],
-          should: ElasticTransform.createShouldClauses({ parsedText }),
+          should: ElasticTransform.createShouldClauses({ parsedText, formatted }),
           minimum_should_match: "50%",
       },
     };
@@ -387,7 +388,7 @@ export class ElasticTransform {
 
     const multiIndexOpts = userId ? buildMultiIndexSearchOpts(userId) : null
     // create query
-    let query = ElasticTransform.createQuery({ layer, parsedText })
+    let query = ElasticTransform.createQuery({ parsedText, formatted })
     // if multiIndexOpts is provided, add extra filters
     if (multiIndexOpts) {
       if (multiIndexOpts.extraFilters) {

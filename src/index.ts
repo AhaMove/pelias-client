@@ -362,3 +362,5 @@ export function formatAddress(address: string): string {
 export function extractAddress(address: string): AddressParts {
   return extract(address)
 }
+
+export { sortBySimilarity, calculateSimilarity } from './utils/string-sort'

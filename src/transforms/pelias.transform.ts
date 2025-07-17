@@ -142,6 +142,14 @@ export class PeliasTransform {
         },
       }
 
+      if (addendum.contact_name) {
+        result.properties.contact_name = addendum.contact_name
+      }
+
+      if (addendum.contact_number) {
+        result.properties.contact_number = addendum.contact_number
+      }
+
       const locality = _.get("locality.0", parent)
       if (locality) {
         result.properties = {

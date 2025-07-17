@@ -10,3 +10,5 @@ package-lock.json
 *.json
 sample-config
 .DS_Store
+CLAUDE.md
+.claude

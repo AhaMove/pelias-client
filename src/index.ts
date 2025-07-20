@@ -92,12 +92,9 @@ export class PeliasClient<
     params: SearchParams,
     geocode: boolean,
     adminMatch: boolean,
-    alias: string,
+    alias = "pelias",
     userId = ""
   ): Promise<PeliasResponse> {
-    if (!alias || !userId) {
-      alias = "pelias"
-    }
     const { text, size = 10, count_terminate_after = 500 } = params
 
     const countFunc = async (

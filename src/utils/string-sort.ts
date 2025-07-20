@@ -1,40 +1,42 @@
 import deaccents from '../format/vietnam/deaccents'
+import levenshteinDistance from 'fast-levenshtein'
+import { bigram, nGram } from 'n-gram'
 
 interface SimilarityScore {
   text: string
   score: number
 }
 
-function levenshteinDistance(a: string, b: string): number {
-  if (a.length === 0) return b.length
-  if (b.length === 0) return a.length
+// function levenshteinDistance(a: string, b: string): number {
+//   if (a.length === 0) return b.length
+//   if (b.length === 0) return a.length
 
-  const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null))
+//   const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null))
 
-  for (let i = 0; i <= a.length; i++) {
-    matrix[0][i] = i
-  }
+//   for (let i = 0; i <= a.length; i++) {
+//     matrix[0][i] = i
+//   }
 
-  for (let j = 0; j <= b.length; j++) {
-    matrix[j][0] = j
-  }
+//   for (let j = 0; j <= b.length; j++) {
+//     matrix[j][0] = j
+//   }
 
-  for (let j = 1; j <= b.length; j++) {
-    for (let i = 1; i <= a.length; i++) {
-      if (a[i - 1] === b[j - 1]) {
-        matrix[j][i] = matrix[j - 1][i - 1]
-      } else {
-        matrix[j][i] = Math.min(
-          matrix[j - 1][i] + 1,
-          matrix[j][i - 1] + 1,
-          matrix[j - 1][i - 1] + 1
-        )
-      }
-    }
-  }
+//   for (let j = 1; j <= b.length; j++) {
+//     for (let i = 1; i <= a.length; i++) {
+//       if (a[i - 1] === b[j - 1]) {
+//         matrix[j][i] = matrix[j - 1][i - 1]
+//       } else {
+//         matrix[j][i] = Math.min(
+//           matrix[j - 1][i] + 1,
+//           matrix[j][i - 1] + 1,
+//           matrix[j - 1][i - 1] + 1
+//         )
+//       }
+//     }
+//   }
 
-  return matrix[b.length][a.length]
-}
+//   return matrix[b.length][a.length]
+// }
 
 function jaroWinklerSimilarity(a: string, b: string): number {
   if (a === b) return 1.0
@@ -98,19 +100,32 @@ function jaccardIndex(a: string, b: string): number {
   return union.size === 0 ? 0 : intersection.size / union.size
 }
 
+// function nGramSimilarity(a: string, b: string, n = 2): number {
+//   if (a.length < n || b.length < n) return 0
+
+//   const getNGrams = (str: string): Set<string> => {
+//     const grams = new Set<string>()
+//     for (let i = 0; i <= str.length - n; i++) {
+//       grams.add(str.substr(i, n))
+//     }
+//     return grams
+//   }
+
+//   const gramsA = getNGrams(a.toLowerCase())
+//   const gramsB = getNGrams(b.toLowerCase())
+  
+//   const intersection = new Set([...gramsA].filter(x => gramsB.has(x)))
+//   const union = new Set([...gramsA, ...gramsB])
+  
+//   return union.size === 0 ? 0 : intersection.size / union.size
+// }
+
 function nGramSimilarity(a: string, b: string, n = 2): number {
   if (a.length < n || b.length < n) return 0
 
-  const getNGrams = (str: string): Set<string> => {
-    const grams = new Set<string>()
-    for (let i = 0; i <= str.length - n; i++) {
-      grams.add(str.substr(i, n))
-    }
-    return grams
-  }
-
-  const gramsA = getNGrams(a.toLowerCase())
-  const gramsB = getNGrams(b.toLowerCase())
+  const gramFunction = n === 2 ? bigram : nGram(n)
+  const gramsA = new Set(gramFunction(a.toLowerCase()))
+  const gramsB = new Set(gramFunction(b.toLowerCase()))
   
   const intersection = new Set([...gramsA].filter(x => gramsB.has(x)))
   const union = new Set([...gramsA, ...gramsB])
@@ -144,10 +159,10 @@ function calculateSimilarity(input: string, target: string): number {
   const normalizedInput = normalizeText(input)
   const normalizedTarget = normalizeText(target)
 
-  if (normalizedInput === normalizedTarget) return 1.0
+  if (normalizedInput === normalizedTarget || normalizedTarget.includes(normalizedInput)) return 1.0
 
   const jaroWinkler = jaroWinklerSimilarity(normalizedInput, normalizedTarget)
-  const levenshtein = 1 - (levenshteinDistance(normalizedInput, normalizedTarget) / Math.max(normalizedInput.length, normalizedTarget.length))
+  const levenshtein = 1 - (levenshteinDistance.get(normalizedInput, normalizedTarget) / Math.max(normalizedInput.length, normalizedTarget.length))
   const jaccard = jaccardIndex(normalizedInput, normalizedTarget)
   const nGram = nGramSimilarity(normalizedInput, normalizedTarget, 2)
   const lcs = longestCommonSubstring(normalizedInput, normalizedTarget)

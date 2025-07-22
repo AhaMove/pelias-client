@@ -1,6 +1,7 @@
 import deaccents from '../format/vietnam/deaccents'
 import levenshteinDistance from 'fast-levenshtein'
 import { bigram, nGram } from 'n-gram'
+import { extract } from '../format/vietnam/extract.js'
 
 interface SimilarityScore {
   text: string
@@ -159,7 +160,7 @@ function calculateSimilarity(input: string, target: string): number {
   const normalizedInput = normalizeText(input)
   const normalizedTarget = normalizeText(target)
 
-  if (normalizedInput === normalizedTarget || normalizedTarget.includes(normalizedInput)) return 1.0
+  if (normalizedInput === normalizedTarget || (normalizedTarget.includes(normalizedInput) && extract(normalizedInput).address === extract(normalizedTarget).address)) return 1.0
 
   const jaroWinkler = jaroWinklerSimilarity(normalizedInput, normalizedTarget)
   const levenshtein = 1 - (levenshteinDistance.get(normalizedInput, normalizedTarget) / Math.max(normalizedInput.length, normalizedTarget.length))

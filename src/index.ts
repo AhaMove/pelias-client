@@ -92,12 +92,9 @@ export class PeliasClient<
     params: SearchParams,
     geocode: boolean,
     adminMatch: boolean,
-    alias: string,
+    alias = "pelias",
     userId = ""
   ): Promise<PeliasResponse> {
-    if (!alias || !userId) {
-      alias = "pelias"
-    }
     const { text, size = 10, count_terminate_after = 500 } = params
 
     const countFunc = async (
@@ -362,3 +359,5 @@ export function formatAddress(address: string): string {
 export function extractAddress(address: string): AddressParts {
   return extract(address)
 }
+
+export { sortBySimilarity, calculateSimilarity } from './utils/string-sort'

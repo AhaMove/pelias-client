@@ -32,6 +32,8 @@ export interface PeliasProperties {
   locality_id: string
   county_id: string
   score: number
+  contact_name?: string
+  contact_number?: string
 }
 
 export interface PeliasFeatureModel {

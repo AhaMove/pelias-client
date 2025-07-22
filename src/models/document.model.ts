@@ -38,6 +38,8 @@ interface Addendum {
   entrances: string
   polygon: string
   geometry: string
+  contact_number?: string
+  contact_name?: string
 }
 
 export interface DocumentModel {

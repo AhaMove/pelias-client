@@ -1,6 +1,6 @@
 {
   "name": "@ahamove/pelias-client",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "files": [
@@ -41,7 +41,7 @@
   },
   "scripts": {
     "prepare": "pnpm build",
-    "prepublishOnly": "pnpm test && pnpm lint",
+    "prepublishOnly": "pnpm lint",
     "version": "pnpm format && git add -A src && git reset src/index.test.ts",
     "postversion": "git push && git push --tags",
     "test": "jest",

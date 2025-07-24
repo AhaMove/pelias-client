@@ -58,6 +58,11 @@ interface RescoreFunction {
   }
 }
 
+interface GeocodeParams {
+  text: string
+  addressParts?: { number?: string, street?: string, region?: string, locality?: string }
+}
+
 export class ElasticTransform {
   static createShouldClauses({ parsedText, formatted }: CreateShouldClauses) {
     const componentClauses = _.flow([
@@ -820,6 +825,84 @@ export class ElasticTransform {
     }
 
     return nearByBody
+  }
+
+  static createGeocodeBody(params: GeocodeParams): Record<string, any> {
+    const { text, addressParts } = params
+    const shouldClauses: Record<string, any>[] = []
+
+    // Add admin region matching
+    if (addressParts?.region) {
+      shouldClauses.push({
+        match_phrase: {
+          "parent.region": {
+            analyzer: "peliasQuery",
+            query: addressParts.region
+          }
+        }
+      })
+    }
+
+    // Add admin locality matching  
+    if (addressParts?.locality) {
+      shouldClauses.push({
+        match_phrase: {
+          "parent.locality": {
+            analyzer: "peliasQuery",
+            query: addressParts.locality
+          }
+        }
+      })
+    }
+
+    // Add address number matching with intervals
+    if (addressParts?.number) {
+      shouldClauses.push({
+        intervals: {
+          "address_parts.number": {
+            match: {
+              query: addressParts.number,
+              filter: {
+                script: {
+                  source: "interval.start == 0 && interval.gaps == 0"
+                }
+              },
+              ordered: true
+            }
+          }
+        }
+      })
+    }
+
+    // Add street name matching
+    if (addressParts?.street) {
+      shouldClauses.push({
+        match_phrase: {
+          "address_parts.street": {
+            analyzer: "peliasQuery",
+            query: addressParts.street
+          }
+        }
+      })
+    }
+
+    // If no specific criteria provided, fall back to default name matching
+    if (shouldClauses.length === 0) {
+      shouldClauses.push({
+        match: {
+          "name.default": text
+        }
+      })
+    }
+
+    return {
+      query: {
+        bool: {
+          must: shouldClauses
+        }
+      },
+      size: 1
+    }
   }
 }
 

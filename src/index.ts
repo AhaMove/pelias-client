@@ -337,7 +337,28 @@ export class PeliasClient<
     }
   }
 
-  async findById(_id: string) {
+  async geocode(
+    text: string, 
+    index = "pelias", 
+    addressParts: { 
+      number?: string, 
+      street?: string,
+      region?: string, 
+      locality?: string } | undefined = undefined
+  ): Promise<TModel | undefined> {
+    const body = ElasticTransform.createGeocodeBody({
+      text,
+      addressParts
+    })
+
+    const result = await this.esClient.search<TResponse>({
+      index,
+      body
+    })
+    return result.body.hits.hits[0]?._source
+  }
+
+  async findById(_id: string): Promise<any> {
     const result = await this.esClient.search({
       index: "pelias",
       body: {

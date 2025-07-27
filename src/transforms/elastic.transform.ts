@@ -60,7 +60,7 @@ interface RescoreFunction {
 
 interface GeocodeParams {
   text: string
-  addressParts?: { number?: string, street?: string, region?: string, locality?: string }
+  addressParts?: { number?: string, street?: string, region?: string, locality?: string, county?: string }
 }
 
 export class ElasticTransform {
@@ -829,12 +829,19 @@ export class ElasticTransform {
 
   static createGeocodeBody(params: GeocodeParams): Record<string, any> {
     const { text, addressParts } = params
-    const shouldClauses: Record<string, any>[] = []
+    const shouldClauses: Record<string, any>[] = [{
+      match: {
+        "name.default": {
+          query: text,
+          analyzer: "peliasQuery"
+        }
+      }
+    }]
 
     // Add admin region matching
     if (addressParts?.region) {
       shouldClauses.push({
-        match_phrase: {
+        match: {
           "parent.region": {
             analyzer: "peliasQuery",
             query: addressParts.region
@@ -843,10 +850,21 @@ export class ElasticTransform {
       })
     }
 
+    if (addressParts?.county) {
+      shouldClauses.push({
+        match: {
+          "parent.county": {
+            analyzer: "peliasQuery",
+            query: addressParts.county
+          }
+        }
+      })
+    }
+
     // Add admin locality matching  
     if (addressParts?.locality) {
       shouldClauses.push({
-        match_phrase: {
+        match: {
           "parent.locality": {
             analyzer: "peliasQuery",
             query: addressParts.locality
@@ -858,17 +876,11 @@ export class ElasticTransform {
     // Add address number matching with intervals
     if (addressParts?.number) {
       shouldClauses.push({
-        intervals: {
+        match_phrase: {
           "address_parts.number": {
-            match: {
-              query: addressParts.number,
-              filter: {
-                script: {
-                  source: "interval.start == 0 && interval.gaps == 0"
-                }
-              },
-              ordered: true
-            }
+            analyzer: "peliasQuery",
+            query: addressParts.number,
+            boost: 1.2
           }
         }
       })
@@ -882,15 +894,6 @@ export class ElasticTransform {
             analyzer: "peliasQuery",
             query: addressParts.street
           }
-        }
-      })
-    }
-
-    // If no specific criteria provided, fall back to default name matching
-    if (shouldClauses.length === 0) {
-      shouldClauses.push({
-        match: {
-          "name.default": text
         }
       })
     }

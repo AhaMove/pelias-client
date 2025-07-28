@@ -841,7 +841,7 @@ export class ElasticTransform {
     // Add admin region matching
     if (addressParts?.region) {
       shouldClauses.push({
-        match: {
+        match_phrase: {
           "parent.region": {
             analyzer: "peliasQuery",
             query: addressParts.region
@@ -852,7 +852,7 @@ export class ElasticTransform {
 
     if (addressParts?.county) {
       shouldClauses.push({
-        match: {
+        match_phrase: {
           "parent.county": {
             analyzer: "peliasQuery",
             query: addressParts.county
@@ -864,7 +864,7 @@ export class ElasticTransform {
     // Add admin locality matching  
     if (addressParts?.locality) {
       shouldClauses.push({
-        match: {
+        match_phrase: {
           "parent.locality": {
             analyzer: "peliasQuery",
             query: addressParts.locality

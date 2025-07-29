@@ -833,7 +833,7 @@ export class ElasticTransform {
       match: {
         "name.default": {
           query: text,
-          analyzer: "peliasQuery"
+          minimum_should_match: "90%"
         }
       }
     }]
@@ -843,7 +843,6 @@ export class ElasticTransform {
       shouldClauses.push({
         match_phrase: {
           "parent.region": {
-            analyzer: "peliasQuery",
             query: addressParts.region
           }
         }
@@ -854,7 +853,6 @@ export class ElasticTransform {
       shouldClauses.push({
         match_phrase: {
           "parent.county": {
-            analyzer: "peliasQuery",
             query: addressParts.county
           }
         }
@@ -866,7 +864,6 @@ export class ElasticTransform {
       shouldClauses.push({
         match_phrase: {
           "parent.locality": {
-            analyzer: "peliasQuery",
             query: addressParts.locality
           }
         }
@@ -878,9 +875,7 @@ export class ElasticTransform {
       shouldClauses.push({
         match_phrase: {
           "address_parts.number": {
-            analyzer: "peliasQuery",
             query: addressParts.number,
-            boost: 1.2
           }
         }
       })
@@ -891,7 +886,6 @@ export class ElasticTransform {
       shouldClauses.push({
         match_phrase: {
           "address_parts.street": {
-            analyzer: "peliasQuery",
             query: addressParts.street
           }
         }

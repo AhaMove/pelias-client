@@ -829,14 +829,38 @@ export class ElasticTransform {
 
   static createGeocodeBody(params: GeocodeParams): Record<string, any> {
     const { text, addressParts } = params
-    const shouldClauses: Record<string, any>[] = [{
-      match: {
-        "name.default": {
-          query: text,
-          minimum_should_match: "90%"
+    const {venue}  = extract(text)
+
+    const shouldClauses: Record<string, any>[] = []
+
+    if (venue) {
+      shouldClauses.push({
+        bool: {
+          must: [
+            {
+              match_phrase: {
+                "name.default": {
+                  query: venue
+                }
+              }
+            },
+            {
+              term: {
+                layer: "venue"
+              }
+            }
+          ]
         }
-      }
-    }]
+      })
+    } else {
+      shouldClauses.push({
+        match_phrase: {
+          "name.default": {
+            query: text
+          }
+        }
+      })
+    }
 
     // Add admin region matching
     if (addressParts?.region) {

@@ -829,12 +829,13 @@ export class ElasticTransform {
 
   static createGeocodeBody(params: GeocodeParams): Record<string, any> {
     const { text, addressParts } = params
-    const {venue}  = extract(text)
+    const {venue, number, street}  = extract(text)
 
     const shouldClauses: Record<string, any>[] = []
+    const mustClauses: Record<string, any>[] = []
 
     if (venue) {
-      shouldClauses.push({
+      mustClauses.push({
         bool: {
           must: [
             {
@@ -853,7 +854,7 @@ export class ElasticTransform {
         }
       })
     } else {
-      shouldClauses.push({
+      mustClauses.push({
         match_phrase: {
           "name.default": {
             query: text
@@ -861,6 +862,28 @@ export class ElasticTransform {
         }
       })
     }
+
+        // Add address number matching with intervals
+        if (number) {
+          mustClauses.push({
+            match_phrase: {
+              "address_parts.number": {
+                query: number,
+              }
+            }
+          })
+        }
+    
+        // Add street name matching
+        if (street) {
+          mustClauses.push({
+            match_phrase: {
+              "address_parts.street": {
+                query: street
+              }
+            }
+          })
+        }
 
     // Add admin region matching
     if (addressParts?.region) {
@@ -874,10 +897,18 @@ export class ElasticTransform {
     }
 
     if (addressParts?.county) {
+      let countyQuery = addressParts.county
+      
+      // Map old districts to Thu Duc City
+      const thuDucRegex = /(Quận\s*2|Q\.?\s*2|Quan\s*2|Quận\s*9|Q\.?\s*9|Quan\s*9|Quận\s*Thủ\s*Đức|Q\.?\s*T\.?\s*D|Q\.?\s*TD|QTD|Q\s*Thu\s*Duc|Q\s*Thủ\s*Đức|Quan\s*Thu\s*Duc|Quan\s*Thủ\s*Đức|Thủ\s*Đức|Thu\s*Duc)/i
+      if (countyQuery.match(thuDucRegex)) {
+        countyQuery = "Thành Phố Thủ Đức"
+      }
+      
       shouldClauses.push({
         match_phrase: {
           "parent.county": {
-            query: addressParts.county
+            query: countyQuery
           }
         }
       })
@@ -894,32 +925,14 @@ export class ElasticTransform {
       })
     }
 
-    // Add address number matching with intervals
-    if (addressParts?.number) {
-      shouldClauses.push({
-        match_phrase: {
-          "address_parts.number": {
-            query: addressParts.number,
-          }
-        }
-      })
-    }
 
-    // Add street name matching
-    if (addressParts?.street) {
-      shouldClauses.push({
-        match_phrase: {
-          "address_parts.street": {
-            query: addressParts.street
-          }
-        }
-      })
-    }
 
     return {
       query: {
         bool: {
-          must: shouldClauses
+          must: mustClauses,
+          should: shouldClauses,
+          minimum_should_match: shouldClauses.length - 1
         }
       },
       size: 1

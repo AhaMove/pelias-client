@@ -841,7 +841,8 @@ export class ElasticTransform {
             {
               match_phrase: {
                 "name.default": {
-                  query: venue
+                  query: venue,
+                  slop: 1
                 }
               }
             },

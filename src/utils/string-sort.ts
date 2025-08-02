@@ -174,7 +174,16 @@ function containsWholeWords(target: string, input: string): boolean {
   // Check if input words appear consecutively in target
   for (let i = 0; i <= targetWords.length - inputWords.length; i++) {
     const consecutive = inputWords.every(
-      (word, index) => targetWords[i + index] === word
+      (word, index) => {
+        const targetWord = targetWords[i + index]
+        const isLastWord = index === inputWords.length - 1
+        
+        // Last word allows prefix match, others require exact match
+        if (isLastWord) {
+          return targetWord === word || targetWord.startsWith(word)
+        }
+        return targetWord === word
+      }
     )
     if (consecutive) return true
   }

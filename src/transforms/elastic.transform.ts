@@ -854,6 +854,23 @@ export class ElasticTransform {
           ]
         }
       })
+    } else if (number && street) {
+      mustClauses.push({
+        match_phrase: {
+          "address_parts.number": {
+            query: number,
+          }
+        }
+      });
+
+      mustClauses.push({
+        match_phrase: {
+          "address_parts.street": {
+            query: street
+          }
+        }
+      });
+  
     } else {
       mustClauses.push({
         match_phrase: {
@@ -864,27 +881,7 @@ export class ElasticTransform {
       })
     }
 
-        // Add address number matching with intervals
-        if (number) {
-          mustClauses.push({
-            match_phrase: {
-              "address_parts.number": {
-                query: number,
-              }
-            }
-          })
-        }
-    
-        // Add street name matching
-        if (street) {
-          mustClauses.push({
-            match_phrase: {
-              "address_parts.street": {
-                query: street
-              }
-            }
-          })
-        }
+     
 
     // Add admin region matching
     if (addressParts?.region) {

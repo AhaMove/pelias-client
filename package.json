@@ -61,5 +61,5 @@
     "url": "https://github.com/AhaMove/pelias-client/issues"
   },
   "homepage": "https://github.com/AhaMove/pelias-client#readme",
-  "packageManager": "pnpm@9.15.0"
+  "packageManager": "pnpm@10.13.0"
 }

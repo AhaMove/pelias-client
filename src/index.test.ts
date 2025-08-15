@@ -1,4 +1,5 @@
-import { extractAddress } from "./index";
+import { extractV2 } from "./format/vietnam/extractV2";
+import { AddressParts } from "./models/address-parts.model";
 
 // const client = new PeliasClient({
 //   node: process.env.PELIAS_URL,
@@ -839,73 +840,163 @@ import { extractAddress } from "./index";
 // })
 
 describe("extractAddress", () => {
-  test.each([
+  test.each<[string, Partial<AddressParts>]>([
     // Basic address with number and street
-    // [
-    //   "7/28 Thành Thái", 
-    //   { number: "7/28", street: "Thành Thái", address: "7/28 Thành Thái" }
-    // ],
-    // // Number only - should extract the number but have empty street
-    // [
-    //   "7/28", 
-    //   { number: "7/28", street: undefined, address: "7/28" }
-    // ],
-    // // With leading zero in number
-    // [
-    //   "07/28 Thành Thái", 
-    //   { number: "07/28", street: "Thành Thái", address: "07/28 Thành Thái" }
-    // ],
-    // // With trailing space
-    // [
-    //   "7/28 ", 
-    //   { number: "7/28", street: undefined, address: "7/28" }
-    // ],
-    // // Complex number format
-    // [
-    //   "A2-15/3 ", 
-    //   { number: "A2-15/3", street: undefined, address: "A2-15/3" }
-    // ],
-    // // Number starting with letter
-    // [
-    //   "B12 Nguyễn Văn Cừ", 
-    //   { number: "B12", street: "Nguyễn Văn Cừ", address: "B12 Nguyễn Văn Cừ" }
-    // ],
-    // // Street with comma
-    // [
-    //   "10 Lê Văn Sỹ,", 
-    //   { number: "10", street: "Lê Văn Sỹ", address: "10 Lê Văn Sỹ" }
-    // ],
-    // // Address with "Phố" format
-    // [
-    //   "123 Phố Huế", 
-    //   { number: "123", street: "Phố Huế", address: "123 Phố Huế" }
-    // ],
-    // [
-    //   "59C Nguyễn Đình Chiểu",
-    //   { number: "59C", street: "Nguyễn Đình Chiểu", address: "59C Nguyễn Đình Chiểu" }
-    // ],
-    // [
-    //   "G Campus, Z06 Đường Số 13, Phường Tân Thuận Đông, Quận 7, Hồ Chí Minh, Việt Nam",
-    //   { number: "Z06", street: "Đường Số 13", address: "Z06 Đường Số 13" }
-    // ],
-    // [
-    //   "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-    //   { number: "7/28", street: "Thành Thái", address: "7/28 Thành Thái" }
-    // ],
-    // [
-    //   "Rivera Park Sài Gòn, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-    //   { number: undefined, street: undefined, address: "Rivera Park Sài Gòn" }
-    // ], 
+    [
+      "7/28 Thành Thái", 
+      { number: "7/28", street: "Thành Thái", address: "7/28 Thành Thái" }
+    ],
+    // Number only - should extract the number but have empty street
+    [
+      "7/28", 
+      { number: "7/28", address: "7/28" }
+    ],
+    // With leading zero in number
+    [
+      "07/28 Thành Thái", 
+      { number: "07/28", street: "Thành Thái", address: "07/28 Thành Thái" }
+    ],
+    // With trailing space
+    [
+      "7/28 ", 
+      { number: "7/28", address: "7/28" }
+    ],
+    // Complex number format
+    [
+      "A2-15/3 ", 
+      { number: "A2-15/3", address: "A2-15/3" }
+    ],
+    // Number starting with letter
+    [
+      "B12 Nguyễn Văn Cừ", 
+      { number: "B12", street: "Nguyễn Văn Cừ", address: "B12 Nguyễn Văn Cừ" }
+    ],
+    [
+      "10 Lê Văn Sỹ,", 
+      { number: "10", street: "Lê Văn Sỹ", address: "10 Lê Văn Sỹ" }
+    ],
+    [
+      "123 Phố Huế", 
+      { number: "123", street: "Phố Huế", address: "123 Phố Huế" }
+    ],
+    [
+      "59C Nguyễn Đình Chiểu",
+      { number: "59C", street: "Nguyễn Đình Chiểu", address: "59C Nguyễn Đình Chiểu" }
+    ],
+    [
+      "G Campus, Z06 Đường Số 13, Phường Tân Thuận Đông, Quận 7, Hồ Chí Minh, Việt Nam",
+      { number: "Z06", street: "Đường Số 13", venue: "G Campus", locality: "Tân Thuận Đông", county: "Quận 7"}
+    ],
+    [
+      "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      { number: "7/28", street: "Thành Thái", venue: "Rivera Park Sài Gòn", locality: "Phường 14", county: "Quận 10"}
+    ],
+    [
+      "Rivera Park Sài Gòn, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      {  venue: "Rivera Park Sài Gòn", locality: "Phường 14", county: "Quận 10"}
+    ], 
     [
       "Tịnh xá Ngọc Phương, Phường 1, Quận Gò Vấp, Hồ Chí Minh",
-      { number: undefined, street: undefined, address: "Tịnh xá Ngọc Phương" }
-    ]
+      { venue: "Tịnh xá Ngọc Phương", locality: "Phường 1", county: "Gò Vấp"}
+    ],
+    ["chung cư akari city nam long, An Lạc, Thành Phố Hồ Chí Minh", {
+      venue: "chung cư akari city nam long",
+      locality: "An Lạc",
+      region: "Thành Phố Hồ Chí Minh"
+    }],
+    ["chung cư akari city nam long, An Lạc, quận bình tân", {
+      venue: "chung cư akari city nam long",
+      locality: "An Lạc",
+      county: "Bình Tân"
+    }],
+    ["chung cư akari city nam long, An Lạc, bình tân, Thành Phố Hồ Chí Minh", {
+      venue: "chung cư akari city nam long",
+      locality: "An Lạc",
+      county: "Bình Tân",
+      region: "Thành Phố Hồ Chí Minh"
+    }],
+    ["Toà B, chung cư lexington, Phường An Phú, Quận 2, Hồ Chí Minh", {
+      venue: "Toà B, chung cư lexington",
+      locality: "An Phú",
+      county: "Thủ Đức",
+      region: "Hồ Chí Minh",
+      countyAlternatives: [
+        { name: 'Quận 2', id: '769', match: 'Quận 2' },
+        { name: 'Quận 9', id: '769', match: 'Quận 2' }
+      ]
+    }],[
+      "K356/H115/35 Hoàng Diệu, Phường Bình Thuận, Quận Hải Châu, Thành phố Đà Nẵng, Việt Nam",
+      {
+        number: "K356/H115/35",
+        street: "Hoàng Diệu",
+        locality: "Bình Thuận",
+        county: "Hải Châu",
+        region: "Đà Nẵng"
+      }
+    ],["5 Ngõ 21 Đông Lai, Liên Hồng, Đan Phượng, Thành phố Hà Nội, Việt Nam", {
+      number: "5",
+      street: "Ngõ 21 Đông Lai",
+      locality: "Liên Hồng",
+      county: "Đan Phượng",
+      region: "Hà Nội"
+    }],["436/17/23 Tô Ngọc Vân, Phường Thạnh Xuân, Quận 12, Hồ Chí Minh", {
+      number: "436/17/23",
+      street: "Tô Ngọc Vân",
+      locality: "Thạnh Xuân",
+      county: "Quận 12",
+      region: "Hồ Chí Minh"
+    }],["4 Đường Số 14, Phường An Khánh, Quận 2, Thành phố Hồ Chí Minh", {
+      number: "4",
+      street: "Đường Số 14",
+      locality: "An Khánh",
+      county: "Thủ Đức",
+      region: "Hồ Chí Minh"
+    }],["Toà S216, Xã Đa Tốn, Huyện Gia Lâm, Thành phố Hà Nội", {
+      locality: "Đa Tốn",
+      county: "Gia Lâm",
+      region: "Hà Nội",
+      venue: "Toà S216"
+    }],["Chung Cư Trung Đô Mới, Phường Hưng Dũng, Thành phố Vinh, Tỉnh Nghệ An, Việt Nam", {
+      venue: "Chung Cư Trung Đô Mới",
+      locality: "Hưng Dũng",
+      county: "Vinh",
+      region: "Nghệ An"
+    }]
   ])("should correctly parse '%s'", (text, expected) => {
-    const result = extractAddress(text);
-    console.log(result)
-    expect(result.number).toBe(expected.number);
-    expect(result.street).toBe(expected.street);
-    expect(result.address).toBe(expected.address);
+    const result = extractV2(text);
+    try {
+      if (expected.number) {
+        expect(result.number).toBe(expected.number);
+      }
+      if (expected.street) {
+        expect(result.street).toBe(expected.street);
+      }
+      if (expected.venue) {
+        expect(result.venue).toBeDefined();
+        expect(result.venue).toBe(expected.venue);
+      }
+      if (expected.locality) {
+        expect(result.locality).toBeDefined();
+        expect(result.locality).toBe(expected.locality);
+      }
+      if (expected.county) {
+        expect(result.county).toBeDefined();
+        expect(result.county).toBe(expected.county);
+      }
+      if (expected.countyAlternatives) {
+        expect(result.countyAlternatives).toBeDefined();
+        expect(Array.isArray(result?.countyAlternatives)).toBe(true);
+        if (Array.isArray(result?.countyAlternatives) && result?.countyAlternatives?.length > 0) {
+          expect(result.countyAlternatives.length).toEqual(expected.countyAlternatives.length);
+          for (let i = 0; i < expected.countyAlternatives.length; i++) {
+            expect(result.countyAlternatives[i].name).toEqual(expected.countyAlternatives[i].name);
+          }
+        }
+      }
+    } catch (error) {
+      console.log(result);
+      throw error;
+    }
   });
 
 });

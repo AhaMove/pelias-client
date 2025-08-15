@@ -7,4 +7,9 @@ export interface AddressParts {
   number?: string
   street?: string
   address?: string
+  countyAlternatives?: Array<{
+    name: string
+    id: string
+    match: string
+  }>
 }

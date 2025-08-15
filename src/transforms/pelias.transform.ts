@@ -89,11 +89,14 @@ export class PeliasTransform {
       const name = Array.isArray(nameDefault) ? nameDefault[0] : nameDefault
 
       const { addendum } = source
-      let entrances = "", polygon = "";
+      let entrances = "",
+        polygon = ""
       if (addendum) {
         const { geometry } = addendum
         if (geometry) {
-          const jsonGeometry = _.isString(geometry) ? JSON.parse(geometry) : geometry
+          const jsonGeometry = _.isString(geometry)
+            ? JSON.parse(geometry)
+            : geometry
           if (value?.fields?.sorted_entrances) {
             entrances = value?.fields?.sorted_entrances
           } else {
@@ -136,7 +139,7 @@ export class PeliasTransform {
           locality_a: "",
           locality_gid: "",
           locality_id: _.get("locality_id.0", parent),
-          entrances,  
+          entrances,
           polygon,
           score,
         },

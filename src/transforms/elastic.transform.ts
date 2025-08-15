@@ -24,7 +24,7 @@ interface CreateSearchBody {
   countFunc: (queryBody: Record<string, any>) => Promise<CountModel>
   geocode: boolean
   multiIndexOpts?: MultiIndexOptions | null
-  userId: string 
+  userId: string
 }
 
 interface CreateShouldClauses {
@@ -52,7 +52,7 @@ interface CreateSort {
 interface RescoreFunction {
   script_score: {
     script: {
-      source: string,
+      source: string
       params?: Record<string, any>
     }
   }
@@ -60,7 +60,13 @@ interface RescoreFunction {
 
 interface GeocodeParams {
   text: string
-  addressParts?: { number?: string, street?: string, region?: string, locality?: string, county?: string }
+  addressParts?: {
+    number?: string
+    street?: string
+    region?: string
+    locality?: string
+    county?: string
+  }
 }
 
 export class ElasticTransform {
@@ -152,9 +158,9 @@ export class ElasticTransform {
             query: formatted,
             ordered: true,
             max_gaps: 1,
-          }
-        }
-      }
+          },
+        },
+      },
     }
 
     const entrancesClause = {
@@ -168,24 +174,27 @@ export class ElasticTransform {
               match: {
                 query: formatted,
                 ordered: true,
-              }
-            }
-          }
-        }
-      }
+              },
+            },
+          },
+        },
+      },
     }
 
     return [nameDefaultClause, entrancesClause, ...componentClauses]
   }
 
-  static createQuery({  parsedText, formatted}: CreateQuery): Record<string, any> {
+  static createQuery({
+    parsedText,
+    formatted,
+  }: CreateQuery): Record<string, any> {
     const result: any = {
       bool: {
-          must: [],
-          should: ElasticTransform.createShouldClauses({ parsedText, formatted }),
-          minimum_should_match: "50%",
+        must: [],
+        should: ElasticTransform.createShouldClauses({ parsedText, formatted }),
+        minimum_should_match: "50%",
       },
-    };
+    }
     // if (layer != "") {
     //     result.bool.must.push({
     //         term: {
@@ -193,49 +202,53 @@ export class ElasticTransform {
     //         },
     //     });
     // }
-    
-      if (parsedText.venue) {
-          const shouldClauses: any = [
-              {
-                  intervals: {
-                      "name.default": {
-                          match: {
-                              query: parsedText.venue,
-                              max_gaps: 1,
-                              ordered: true,
-                          },
-                      },
-                  },
+
+    if (parsedText.venue) {
+      const shouldClauses: any = [
+        {
+          intervals: {
+            "name.default": {
+              match: {
+                query: parsedText.venue,
+                max_gaps: 1,
+                ordered: true,
               },
-              // {
-              //     nested: {
-              //         path: "addendum.geometry.entrances",
-              //         query: {
-              //             match: {
-              //                 "addendum.geometry.entrances.name": {
-              //                     query: parsedText.venue,
-              //                     operator: "and",
-              //                 }
-              //             }
-              //         }
-              //     }
-              // }
-          ]
-      result.bool.should.push(...shouldClauses);
-      result.bool.minimum_should_match = 1;
-      }
-      return result;
-  
+            },
+          },
+        },
+        // {
+        //     nested: {
+        //         path: "addendum.geometry.entrances",
+        //         query: {
+        //             match: {
+        //                 "addendum.geometry.entrances.name": {
+        //                     query: parsedText.venue,
+        //                     operator: "and",
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+      ]
+      result.bool.should.push(...shouldClauses)
+      result.bool.minimum_should_match = 1
+    }
+    return result
   }
 
-  static rescoreQuery({ query, venueName, parsedText }: RescoreQuery): Record<string, any> {
+  static rescoreQuery({
+    query,
+    venueName,
+    parsedText,
+  }: RescoreQuery): Record<string, any> {
     const functions: RescoreFunction[] = [
       {
         script_score: {
           script: {
-            source: "try { return params._source.addendum.containsKey('geometry') ? 10 : 0; } catch (Exception e) { return 0; }"
-          }
-        }
+            source:
+              "try { return params._source.addendum.containsKey('geometry') ? 10 : 0; } catch (Exception e) { return 0; }",
+          },
+        },
       },
       // {
       //   script_score: {
@@ -247,10 +260,10 @@ export class ElasticTransform {
     ]
 
     // if (venueName) {
-      functions.push({
-        script_score: {
-          script: {
-            source: `
+    functions.push({
+      script_score: {
+        script: {
+          source: `
               try {
                 String searchTerm = params.venueName;
                 
@@ -285,17 +298,20 @@ export class ElasticTransform {
                 return 0; 
               }
             `,
-            params: {
-              venueName: venueName.toLowerCase() || parsedText?.address?.toLowerCase() || ""
-            }
-          }
-        }
-      })
+          params: {
+            venueName:
+              venueName.toLowerCase() ||
+              parsedText?.address?.toLowerCase() ||
+              "",
+          },
+        },
+      },
+    })
 
-      functions.push({
-        script_score: {
-          script: {
-            source: `
+    functions.push({
+      script_score: {
+        script: {
+          source: `
               try {
                 String searchTerm = params.venueName;
                 if (searchTerm == null || searchTerm.isEmpty()) {
@@ -314,12 +330,15 @@ export class ElasticTransform {
                 return 0; 
               }
             `,
-            params: {
-              venueName: venueName.toLowerCase() || parsedText?.address?.toLowerCase() || ""
-            }
-          }
-        }
-      })
+          params: {
+            venueName:
+              venueName.toLowerCase() ||
+              parsedText?.address?.toLowerCase() ||
+              "",
+          },
+        },
+      },
+    })
 
     // }
 
@@ -328,15 +347,17 @@ export class ElasticTransform {
         query: query,
         functions,
         score_mode: "sum",
-        boost_mode: "replace"
-      }
+        boost_mode: "replace",
+      },
     }
   }
 
   static createSort({ sortScore, lat, lon }: CreateSort) {
-    const result: any = [{
-      _score: "desc",
-    }]
+    const result: any = [
+      {
+        _score: "desc",
+      },
+    ]
 
     // if (sortScore) {
     //   result.push({
@@ -365,7 +386,7 @@ export class ElasticTransform {
         _doc: "desc",
       })
     }
-    
+
     return result
   }
 
@@ -376,10 +397,10 @@ export class ElasticTransform {
     lon,
     countFunc,
     geocode = false,
-    userId
+    userId,
   }: CreateSearchBody) {
     // const formatted = format(text)
-    const formatted = text.trim().replace(/\s{2,}/g, ' ')
+    const formatted = text.trim().replace(/\s{2,}/g, " ")
     const parsedText = extract(formatted)
     const layer = parsedText.venue ? "venue" : ""
     // if not geocode, ignore admin parts
@@ -405,14 +426,14 @@ export class ElasticTransform {
     const countResult = await countFunc({
       query: query,
     })
-    
+
     if (!countResult.terminated_early) {
       const venueName = parsedText.venue || ""
       query = ElasticTransform.rescoreQuery({ query, venueName, parsedText })
     } else {
       sortScore = false
     }
-    
+
     // if (parsedText.number) {
     //   const score_exact_address_number = {
     //     script_score: {
@@ -440,16 +461,16 @@ export class ElasticTransform {
     // if multiIndexOpts is provided, add extra scoring functions
     if (multiIndexOpts && multiIndexOpts.extraFunctions) {
       if (!query.function_score) {
-          query = {
-              function_score: {
-                  query: query,
-                  functions: []
-              }
-          };
+        query = {
+          function_score: {
+            query: query,
+            functions: [],
+          },
+        }
       }
-      query.function_score.functions = query.function_score.functions || [];
-      query.function_score.functions.push(...multiIndexOpts.extraFunctions);
-  }
+      query.function_score.functions = query.function_score.functions || []
+      query.function_score.functions.push(...multiIndexOpts.extraFunctions)
+    }
 
     // Add distance-based scoring when coordinates are available
     if (lat !== undefined && lon !== undefined && query.function_score) {
@@ -458,10 +479,10 @@ export class ElasticTransform {
           filter: {
             geo_distance: {
               distance: "30km",
-              center_point: { lat, lon }
-            }
+              center_point: { lat, lon },
+            },
           },
-          weight: 25
+          weight: 25,
         },
         {
           filter: { match_all: {} },
@@ -471,13 +492,13 @@ export class ElasticTransform {
               origin: { lat, lon },
               scale: "3km",
               offset: "0km",
-              decay: 0.1
-            }
-          }
-        }
-      ];
-      
-      query.function_score.functions.push(...nearbyDistanceScore);
+              decay: 0.1,
+            },
+          },
+        },
+      ]
+
+      query.function_score.functions.push(...nearbyDistanceScore)
     }
 
     const sort = ElasticTransform.createSort({ sortScore, lat, lon })
@@ -740,10 +761,13 @@ export class ElasticTransform {
         }
         `,
         params: {
-          searchTerm: parsedText.venue?.toLowerCase() || parsedText.address?.toLowerCase() || ""
-        }
-      }
-    };
+          searchTerm:
+            parsedText.venue?.toLowerCase() ||
+            parsedText.address?.toLowerCase() ||
+            "",
+        },
+      },
+    }
 
     const body: Record<string, any> = {
       query: query,
@@ -754,12 +778,12 @@ export class ElasticTransform {
     }
 
     // Add script field for sorted entrances if we have a search term
-    let scriptFields: Record<string, any> | undefined;
+    let scriptFields: Record<string, any> | undefined
     if (parsedText.venue || parsedText.address) {
       scriptFields = {
-        sorted_entrances: sortedEntrancesScript
-      };
-      body.script_fields = scriptFields;
+        sorted_entrances: sortedEntrancesScript,
+      }
+      body.script_fields = scriptFields
     }
 
     if (multiIndexOpts && multiIndexOpts.aggregations) {
@@ -829,7 +853,7 @@ export class ElasticTransform {
 
   static createGeocodeBody(params: GeocodeParams): Record<string, any> {
     const { text, addressParts } = params
-    const {venue, number, street}  = extract(text)
+    const { venue, number, street } = extract(text)
 
     const shouldClauses: Record<string, any>[] = []
     const mustClauses: Record<string, any>[] = []
@@ -842,101 +866,100 @@ export class ElasticTransform {
               match_phrase: {
                 "name.default": {
                   query: venue,
-                  slop: 1
-                }
-              }
+                  slop: 1,
+                },
+              },
             },
             {
               term: {
-                layer: "venue"
-              }
-            }
-          ]
-        }
+                layer: "venue",
+              },
+            },
+          ],
+        },
       })
     } else {
       mustClauses.push({
         match_phrase: {
           "name.default": {
-            query: text
-          }
-        }
+            query: text,
+          },
+        },
       })
     }
 
-        // Add address number matching with intervals
-        if (number) {
-          mustClauses.push({
-            match_phrase: {
-              "address_parts.number": {
-                query: number,
-              }
-            }
-          })
-        }
-    
-        // Add street name matching
-        if (street) {
-          mustClauses.push({
-            match_phrase: {
-              "address_parts.street": {
-                query: street
-              }
-            }
-          })
-        }
+    // Add address number matching with intervals
+    if (number) {
+      mustClauses.push({
+        match_phrase: {
+          "address_parts.number": {
+            query: number,
+          },
+        },
+      })
+    }
+
+    // Add street name matching
+    if (street) {
+      mustClauses.push({
+        match_phrase: {
+          "address_parts.street": {
+            query: street,
+          },
+        },
+      })
+    }
 
     // Add admin region matching
     if (addressParts?.region) {
       shouldClauses.push({
         match_phrase: {
           "parent.region": {
-            query: addressParts.region
-          }
-        }
+            query: addressParts.region,
+          },
+        },
       })
     }
 
     if (addressParts?.county) {
       let countyQuery = addressParts.county
-      
+
       // Map old districts to Thu Duc City
-      const thuDucRegex = /(Quận\s*2|Q\.?\s*2|Quan\s*2|Quận\s*9|Q\.?\s*9|Quan\s*9|Quận\s*Thủ\s*Đức|Q\.?\s*T\.?\s*D|Q\.?\s*TD|QTD|Q\s*Thu\s*Duc|Q\s*Thủ\s*Đức|Quan\s*Thu\s*Duc|Quan\s*Thủ\s*Đức|Thủ\s*Đức|Thu\s*Duc)/i
+      const thuDucRegex =
+        /(Quận\s*2|Q\.?\s*2|Quan\s*2|Quận\s*9|Q\.?\s*9|Quan\s*9|Quận\s*Thủ\s*Đức|Q\.?\s*T\.?\s*D|Q\.?\s*TD|QTD|Q\s*Thu\s*Duc|Q\s*Thủ\s*Đức|Quan\s*Thu\s*Duc|Quan\s*Thủ\s*Đức|Thủ\s*Đức|Thu\s*Duc)/i
       if (countyQuery.match(thuDucRegex)) {
         countyQuery = "Thành Phố Thủ Đức"
       }
-      
+
       shouldClauses.push({
         match_phrase: {
           "parent.county": {
-            query: countyQuery
-          }
-        }
+            query: countyQuery,
+          },
+        },
       })
     }
 
-    // Add admin locality matching  
+    // Add admin locality matching
     if (addressParts?.locality) {
       shouldClauses.push({
         match_phrase: {
           "parent.locality": {
-            query: addressParts.locality
-          }
-        }
+            query: addressParts.locality,
+          },
+        },
       })
     }
-
-
 
     return {
       query: {
         bool: {
           must: mustClauses,
           should: shouldClauses,
-          minimum_should_match: shouldClauses.length - 1
-        }
+          minimum_should_match: shouldClauses.length - 1,
+        },
       },
-      size: 1
+      size: 1,
     }
   }
 }
@@ -956,19 +979,19 @@ function buildMultiIndexAggregations(
   for (const [aggName, aggConfig] of Object.entries(aggregations)) {
     // Skip if configuration is empty
     if (!aggConfig) continue
-    
+
     const topHitsConfig: any = {
       size: aggConfig.size,
       track_scores: true,
       sort: sort,
       _source: true,
-    };
-    
+    }
+
     // Add script fields if provided
     if (scriptFields && aggName === "pelias") {
-      topHitsConfig.script_fields = scriptFields;
+      topHitsConfig.script_fields = scriptFields
     }
-    
+
     aggs[aggName] = {
       filter: aggConfig.filter,
       aggs: {
@@ -981,7 +1004,6 @@ function buildMultiIndexAggregations(
   return aggs
 }
 
-
 function buildMultiIndexSearchOpts(userId: string): MultiIndexOptions {
   // Filters for favorite and recent locations
   const favoriteLocationFilter = {
@@ -991,13 +1013,13 @@ function buildMultiIndexSearchOpts(userId: string): MultiIndexOptions {
           bool: {
             must: [
               { term: { _index: "favorite_location" } },
-              { bool: { must_not: [{ term: { user_id: userId } }] } }
-            ]
-          }
-        }
-      ]
-    }
-  };
+              { bool: { must_not: [{ term: { user_id: userId } }] } },
+            ],
+          },
+        },
+      ],
+    },
+  }
 
   const recentLocationFilter = {
     bool: {
@@ -1006,55 +1028,57 @@ function buildMultiIndexSearchOpts(userId: string): MultiIndexOptions {
           bool: {
             must: [
               { term: { _index: "recent_location" } },
-              { bool: { must_not: [{ term: { user_id: userId } }] } }
-            ]
-          }
-        }
-      ]
-    }
-  };
+              { bool: { must_not: [{ term: { user_id: userId } }] } },
+            ],
+          },
+        },
+      ],
+    },
+  }
 
   // Function scores for boosting
   const favoriteLocationFuncScore = {
     filter: { term: { _index: "favorite_location" } },
-    weight: 60
-  };
+    weight: 60,
+  }
 
   const recentLocationFuncScore = {
     filter: { term: { _index: "recent_location" } },
-    weight: 30
-  };
+    weight: 30,
+  }
 
   // Aggregations
   const aggs = {
-    "favorite_location": {
+    favorite_location: {
       filter: { term: { _index: "favorite_location" } },
-      size: 2
+      size: 2,
     },
-    "recent_location": {
+    recent_location: {
       filter: { term: { _index: "recent_location" } },
-      size: 2
+      size: 2,
     },
-    "pelias": {
+    pelias: {
       filter: {
         bool: {
           must_not: [
             {
               terms: {
-                _index: ["favorite_location", "recent_location"] // exclude both aliases
-              }
-            }
-          ]
-        }
+                _index: ["favorite_location", "recent_location"], // exclude both aliases
+              },
+            },
+          ],
+        },
       },
-      size: 10
-    }
-  };
+      size: 10,
+    },
+  }
 
   return {
     extraFilters: [favoriteLocationFilter, recentLocationFilter],
     extraFunctions: [favoriteLocationFuncScore, recentLocationFuncScore],
     aggregations: aggs,
-    overwriteHits: true
-  };
+    overwriteHits: true,
+  }
 }
+
+export { buildMultiIndexAggregations, buildMultiIndexSearchOpts }

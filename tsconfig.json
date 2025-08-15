@@ -17,15 +17,26 @@
     "baseUrl": ".",
     "incremental": true,
     "paths": {
-      "src/*": ["src/*"]
+      "src/*": [
+        "src/*"
+      ]
     },
     "allowSyntheticDefaultImports": true
   },
   "typedocOptions": {
     "out": "docs",
     "entryPoints": "src",
-    "exclude": ["**/*.test.ts"]
+    "exclude": [
+      "**/*.test.ts"
+    ]
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "lib", "src/**/*.test.ts"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "lib",
+    "src/**/*.test.ts",
+    "src/index.test.ts"
+  ]
 }

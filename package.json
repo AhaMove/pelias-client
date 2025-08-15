@@ -8,7 +8,7 @@
   ],
   "description": "A simple pelias client",
   "repository": "git@github.com:AhaMove/pelias-client.git",
-  "author": "linrium <linrium@gmail.com>",
+  "author": "vunguyen <vunh@ahamove.com>",
   "license": "MIT",
   "dependencies": {
     "@elastic/elasticsearch": "^7.12.0",
@@ -27,10 +27,13 @@
     "@types/fast-levenshtein": "^0.0.4",
     "@types/jest": "^26.0.23",
     "@types/lodash": "^4.14.168",
+    "@types/node": "^24.2.1",
     "@typescript-eslint/eslint-plugin": "^4.22.1",
     "@typescript-eslint/parser": "^4.22.1",
     "babel-jest": "^26.6.3",
     "eslint": "^7.25.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
     "jest": "^26.6.3",
     "prettier": "^2.2.1",
     "ts-jest": "^26.5.6",
@@ -47,7 +50,9 @@
     "test": "jest",
     "build": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./lib",
     "lint": "eslint . --ext .ts",
-    "format": "prettier --write \"src/**/*.ts\" --ignore-path .prettierignore"
+    "format": "prettier --write \"src/**/*.ts\" --ignore-path .prettierignore",
+    "convert:aliases": "ts-node scripts/convert-aliases-to-regex.ts",
+    "convert:regex": "ts-node src/scripts/convert-to-regex.ts"
   },
   "respository": {
     "type": "git",
@@ -61,5 +66,5 @@
     "url": "https://github.com/AhaMove/pelias-client/issues"
   },
   "homepage": "https://github.com/AhaMove/pelias-client#readme",
-  "packageManager": "pnpm@10.13.0"
+  "packageManager": "pnpm@10.14.0"
 }

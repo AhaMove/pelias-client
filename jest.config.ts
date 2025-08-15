@@ -66,18 +66,10 @@ export default {
   // maxWorkers: "50%",
 
   // An array of directory names to be searched recursively up from the requiring module's location
-  moduleDirectories: [
-    "<rootDir>/src",
-    "node_modules"
-  ],
+  moduleDirectories: ["<rootDir>/src", "node_modules"],
 
   // An array of file extensions your modules use
-  moduleFileExtensions: [
-    "js",
-    "json",
-    "ts",
-    "node"
-  ],
+  moduleFileExtensions: ["js", "json", "ts", "node"],
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   moduleNameMapper: {
@@ -126,7 +118,7 @@ export default {
   // runner: "jest-runner",
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
-  setupFiles: ['dotenv/config'],
+  setupFiles: ["dotenv/config"],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
   // setupFilesAfterEnv: [],
@@ -147,10 +139,7 @@ export default {
   // testLocationInResults: false,
 
   // The glob patterns Jest uses to detect test files
-  testMatch: [
-    "**/__tests__/**/*.[jt]s?(x)",
-    "**/?(*.)+(spec|test).[tj]s?(x)"
-  ],
+  testMatch: ["**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[tj]s?(x)"],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
   // testPathIgnorePatterns: [
@@ -174,13 +163,11 @@ export default {
 
   // A map from regular expressions to paths to transformers
   transform: {
-    "^.+\\.[tj]s$": "ts-jest"
+    "^.+\\.[tj]s$": "ts-jest",
   },
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
-  transformIgnorePatterns: [
-    "<rootDir>/node_modules/(?!@escape-string-regexp)"
-  ],
+  transformIgnorePatterns: ["<rootDir>/node_modules/(?!@escape-string-regexp)"],
 
   // An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
   // unmockedModulePathPatterns: undefined,
@@ -193,4 +180,4 @@ export default {
 
   // Whether to use watchman for file crawling
   // watchman: true,
-};
+}

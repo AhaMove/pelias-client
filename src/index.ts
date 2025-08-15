@@ -1,6 +1,4 @@
-import {
-  ElasticTransform
-} from "src/transforms/elastic.transform"
+import { ElasticTransform } from "src/transforms/elastic.transform"
 import { PeliasTransform, AdminAreas } from "src/transforms/pelias.transform"
 import { NearbyParams } from "src/resources/nearby.params"
 import { SearchByNameParams, SearchParams } from "src/resources/search.params"
@@ -21,6 +19,9 @@ import {
 } from "@elastic/elasticsearch/lib/Transport"
 import { HitsModel } from "src/models/hits.model"
 import { CountModel } from "src/models/count.model"
+
+import * as elasticTransformV2 from "./transforms/elasticTransformV2"
+import { extractV2 } from "./format/vietnam/extractV2.js"
 
 interface ClientConfig extends ClientOptions {
   /**
@@ -45,18 +46,9 @@ export class PeliasClient<
   TContext = Context
 > {
   private esClient: Client
-  private format = format
-  private extract = extract
 
   constructor(params: ClientConfig) {
     this.esClient = new Client(params)
-    if (params.format) {
-      this.format = params.format
-    }
-
-    if (params.extract) {
-      this.extract = params.extract
-    }
   }
 
   ping(
@@ -121,9 +113,9 @@ export class PeliasClient<
           : undefined,
         countFunc,
         geocode,
-        userId
+        userId,
       })
-    
+
     const result = await this.esClient.search<TResponse>({
       index: alias,
       body,
@@ -155,7 +147,6 @@ export class PeliasClient<
       : undefined
 
     const data = PeliasTransform.filterHits(hits, geocode, adminAreas)
-    // console.log("Hits:\n", JSON.stringify(data, null, 2))
 
     const points = {
       "focus.point.lon": parseFloat(params["focus.point.lon"] || "0"),
@@ -338,22 +329,25 @@ export class PeliasClient<
   }
 
   async geocode(
-    text: string, 
-    index = "pelias", 
-    addressParts: { 
-      number?: string, 
-      street?: string,
-      region?: string, 
-      locality?: string } | undefined = undefined
+    text: string,
+    index = "pelias",
+    addressParts:
+      | {
+          number?: string
+          street?: string
+          region?: string
+          locality?: string
+        }
+      | undefined = undefined
   ): Promise<TModel | undefined> {
     const body = ElasticTransform.createGeocodeBody({
       text,
-      addressParts
+      addressParts,
     })
 
     const result = await this.esClient.search<TResponse>({
       index,
-      body
+      body,
     })
     return result.body.hits.hits[0]?._source
   }
@@ -371,6 +365,108 @@ export class PeliasClient<
     })
     return result.body.hits.hits[0]
   }
+
+  async searchV2(
+    params: SearchParams,
+    geocode: boolean,
+    adminMatch: boolean,
+    alias = "pelias",
+    userId = ""
+  ): Promise<PeliasResponse> {
+    const { text, size = 10, count_terminate_after = 500 } = params
+    try {
+      const countFunc = async (
+        queryBody: Record<string, any>
+      ): Promise<CountModel> => {
+        const result = await this.esClient.count<TCountResponse>({
+          index: alias,
+          terminate_after: count_terminate_after,
+          body: queryBody,
+        })
+
+        return result.body
+      }
+
+      const { body, formatted, parsedText, layer, multiIndexOpts } =
+        await elasticTransformV2.createSearchBody({
+          text,
+          size: size,
+          lat: params["focus.point.lat"]
+            ? parseFloat(params["focus.point.lat"])
+            : undefined,
+          lon: params["focus.point.lon"]
+            ? parseFloat(params["focus.point.lon"])
+            : undefined,
+          countFunc,
+          geocode,
+          userId,
+        })
+      const result = await this.esClient.search<TResponse>({
+        index: alias,
+        body,
+      })
+
+      let hits = result.body.hits.hits
+      if (multiIndexOpts?.overwriteHits) {
+        const aggregations = (result.body as any).aggregations
+        hits = []
+        for (const key in aggregations) {
+          const bucket = aggregations[key]
+          if (bucket.top_hits) {
+            const topHits = bucket.top_hits.hits.hits
+            for (const hit of topHits) {
+              hits.push(hit)
+            }
+          }
+        }
+        hits.sort((a, b) => {
+          return b._score - a._score
+        })
+      }
+
+      const adminAreas: AdminAreas | undefined = adminMatch
+        ? {
+            county: parsedText.county,
+            locality: parsedText.locality,
+          }
+        : undefined
+
+      const data = PeliasTransform.filterHits(hits, geocode, adminAreas)
+
+      const points = {
+        "focus.point.lon": parseFloat(params["focus.point.lon"] || "0"),
+        "focus.point.lat": parseFloat(params["focus.point.lat"] || "0"),
+      }
+
+      return {
+        geocoding: {
+          version: "0.1",
+          query: {
+            text,
+            size: hits.length,
+            querySize: size,
+            parser: "pelias",
+            parsed_text: parsedText,
+            formatted,
+            layer,
+            ...points,
+          },
+        },
+        type: "FeatureCollection",
+        features: PeliasTransform.toFeatures(data, {
+          points: Object.values(points),
+        }),
+      }
+    } catch (error) {
+      return {
+        geocoding: {
+          version: "0.1",
+        },
+        type: "FeatureCollection",
+        features: [],
+      }
+    }
+  }
 }
 
 export function formatAddress(address: string): string {
@@ -381,4 +477,8 @@ export function extractAddress(address: string): AddressParts {
   return extract(address)
 }
 
-export { sortBySimilarity, calculateSimilarity } from './utils/string-sort'
+export function extractAddressV2(address: string): AddressParts {
+  return extractV2(address)
+}
+
+export { sortBySimilarity, calculateSimilarity } from "./utils/string-sort"

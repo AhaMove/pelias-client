@@ -976,7 +976,30 @@ describe("extractAddress", () => {
       locality: "Tăng Nhơn Phú A",
       county: "Thủ Đức",
       region: "Hồ Chí Minh"
-    }]
+    }], ["12b13 Ngõ 51 Cảm Hội, Phường Đống Mác", {
+      number: "12b13",
+      street: "Ngõ 51 Cảm Hội",
+      locality: "Đống Mác",
+      address: "12b13 Ngõ 51 Cảm Hội"
+    }],["1 Ngách 38/24/5, Phường Xuân La, Quận Tây Hồ", {
+      number: "1",
+      street: "Ngách 38/24/5",
+      locality: "Xuân La",
+      county: "Tây Hồ",
+      address: "1 Ngách 38/24/5"
+    }],["Tháp B - Golden Palace, Phường Mễ Trì, Quận Nam Từ Liêm, Thành phố Hà Nội, Việt Nam",{
+      venue: "Tháp B - Golden Palace",
+      locality: "Mễ Trì",
+      county: "Nam Từ Liêm",
+      region: "Hà Nội"
+    }],["162 Phan Chu Trinh, Phường Cốc Lếu, Thành phố Lào Cai, Tỉnh Lào Cai, Việt Nam",
+      {
+        number: "162",
+        street: "Phan Chu Trinh",
+        locality: "Cốc Lếu",
+        county: "Lào Cai",
+        region: "Lào Cai"
+      }]
   ])("should correctly parse '%s'", (text, expected) => {
     const result = extractV2(text);
     try {

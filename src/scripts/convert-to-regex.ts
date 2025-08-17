@@ -272,9 +272,8 @@ function convertFile(
         // Districts should be grouped by province only (first parent)
         parentKey = region.parent_ids[0]
       } else if (type === "ward") {
-        // Wards should be grouped by province + district (first two parents)
-        // Keep region+county order, don't sort
-        parentKey = region.parent_ids.slice(0, 2).join(",")
+        // Wards should be grouped by district only (second parent)
+        parentKey = region.parent_ids[1]
       } else {
         // Fallback to original logic for any other cases
         parentKey = region.parent_ids.sort().join(",")

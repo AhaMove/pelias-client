@@ -961,6 +961,21 @@ describe("extractAddress", () => {
       locality: "Hưng Dũng",
       county: "Vinh",
       region: "Nghệ An"
+    }], ["Thôn Tân Tích, Đông Xá, Đông Hưng", {
+      locality: "Đông Xá",
+      county: "Đông Hưng",
+      venue: "Thôn Tân Tích"
+    }],["76 Chu Mạnh, Phường Khuê Trung, Quận Cẩm Lệ", {
+      locality: "Khuê Trung",
+      county: "Cẩm Lệ",
+      number: "76",
+      street: "Chu Mạnh"
+    }],["C13/6C Đường Số 455, Phường Tăng Nhơn Phú A, Thành phố Thủ Đức, Thành phố Hồ Chí Minh, Việt Nam",{
+      number: "C13/6C",
+      street: "Đường Số 455",
+      locality: "Tăng Nhơn Phú A",
+      county: "Thủ Đức",
+      region: "Hồ Chí Minh"
     }]
   ])("should correctly parse '%s'", (text, expected) => {
     const result = extractV2(text);

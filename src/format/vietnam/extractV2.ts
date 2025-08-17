@@ -41,23 +41,21 @@ const getDistrictsForRegion = (regionId: string) => {
   return compiled
 }
 
-// Helper function to get wards for specific region and county IDs
-const getWardsForCounty = (regionId: string, countyId: string) => {
-  const parentKey = `${regionId},${countyId}` // Note: region_id,district_id format
-
+// Helper function to get wards for specific district ID
+const getWardsForCounty = (countyId: string) => {
   // Check cache first
-  if (wardRegexCache.has(parentKey)) {
-    return wardRegexCache.get(parentKey)!
+  if (wardRegexCache.has(countyId)) {
+    return wardRegexCache.get(countyId)!
   }
 
-  // Compile and cache patterns for this county
-  const wards = (wardsRegex as any)[parentKey] || {}
+  // Compile and cache patterns for this district
+  const wards = (wardsRegex as any)[countyId] || {}
   const compiled = Object.entries(wards).map(([nameWithId, pattern]) => ({
     nameWithId,
     regex: new RegExp(pattern as string, "gi"),
   }))
 
-  wardRegexCache.set(parentKey, compiled)
+  wardRegexCache.set(countyId, compiled)
   return compiled
 }
 
@@ -113,15 +111,13 @@ const findAllLocalityMatches = (text: string) => {
     name: string
     id: string
     countyId: string
-    regionId: string
     nameWithId: string
     match: string
     index: number
   }> = []
 
-  // Search through all parent keys and their wards
-  Object.entries(wardsRegex).forEach(([parentKey, wards]) => {
-    const [regionId, countyId] = parentKey.split(",")
+  // Search through all district keys and their wards
+  Object.entries(wardsRegex).forEach(([countyId, wards]) => {
     Object.entries(wards as any).forEach(([nameWithId, pattern]) => {
       const regex = new RegExp(pattern as string, "gi")
       const match = text.match(regex)
@@ -131,7 +127,6 @@ const findAllLocalityMatches = (text: string) => {
           name,
           id,
           countyId,
-          regionId,
           nameWithId,
           match: match[0],
           index: text.indexOf(match[0]),
@@ -150,38 +145,22 @@ const selectBestLocalityMatch = (
     name: string
     id: string
     countyId: string
-    regionId: string
     nameWithId: string
     match: string
     index: number
   }>,
-  regionId?: string,
   countyId?: string
 ) => {
   if (matches.length === 0) return null
   if (matches.length === 1) return matches[0]
 
-  // Priority 1: Both region and county match
-  if (regionId && countyId) {
-    const exact = matches.find(
-      (m) => m.regionId === regionId && m.countyId === countyId
-    )
-    if (exact) return exact
-  }
-
-  // Priority 2: Region matches
-  if (regionId) {
-    const regionMatch = matches.find((m) => m.regionId === regionId)
-    if (regionMatch) return regionMatch
-  }
-
-  // Priority 3: County matches (less reliable without region context)
+  // Priority 1: County matches
   if (countyId) {
     const countyMatch = matches.find((m) => m.countyId === countyId)
     if (countyMatch) return countyMatch
   }
 
-  // Priority 4: Default to first match (longest match due to sorting)
+  // Priority 2: Default to first match (longest match due to sorting)
   return matches[0]
 }
 
@@ -315,16 +294,14 @@ const findCountyByRegex = (text: string, regionId?: string) => {
 
 const findLocalityByRegex = (
   text: string,
-  regionId?: string,
   countyId?: string,
   excludeNames?: string[]
 ) => {
   let bestMatch = null
   let longestMatchLength = 0
 
-  // If both regionId and countyId are provided, only search wards in that county
-  const wardPatterns =
-    regionId && countyId ? getWardsForCounty(regionId, countyId) : []
+  // If countyId is provided, only search wards in that county
+  const wardPatterns = countyId ? getWardsForCounty(countyId) : []
 
   for (const { nameWithId, regex } of wardPatterns) {
     const match = text.match(regex)
@@ -599,35 +576,90 @@ export const extractV2 = (text: string): AddressParts => {
   const excludeNames = [regionMatch?.name, countyMatch?.name].filter(
     Boolean
   ) as string[]
-  let localityMatch =
-    regionMatch && countyMatch
-      ? findLocalityByRegex(
-          originalText,
-          regionMatch.id,
-          countyMatch.id,
-          excludeNames
-        )
-      : null
+  let localityMatch = countyMatch
+    ? findLocalityByRegex(originalText, countyMatch.id, excludeNames)
+    : null
 
   // If no locality found, try fallback search with context validation
   if (!localityMatch) {
-    const allLocalityMatches = findAllLocalityMatches(originalText)
+    let allLocalityMatches: Array<{
+      name: string
+      id: string
+      countyId: string
+      nameWithId: string
+      match: string
+      index: number
+    }> = []
+
+    // If we have a region but no district, search wards within all districts of that region
+    if (regionMatch && !countyMatch) {
+      const regionDistricts = getDistrictsForRegion(regionMatch.id)
+      for (const district of regionDistricts) {
+        const { id: districtId } = splitNameId(district.nameWithId)
+        const wardPatterns = getWardsForCounty(districtId)
+
+        for (const { nameWithId, regex } of wardPatterns) {
+          const match = originalText.match(regex)
+          if (match) {
+            const { name, id } = splitNameId(nameWithId)
+            // Filter out matches that have the same name as already matched admin divisions
+            if (name !== regionMatch?.name) {
+              allLocalityMatches.push({
+                name,
+                id,
+                countyId: districtId,
+                nameWithId,
+                match: match[0],
+                index: originalText.indexOf(match[0]),
+              })
+            }
+          }
+        }
+      }
+
+      // Sort by match length (longest first) for better accuracy
+      allLocalityMatches.sort((a, b) => b.match.length - a.match.length)
+    } else {
+      // Fallback to global search if no region context
+      allLocalityMatches = findAllLocalityMatches(originalText)
+      // Filter out matches that have the same name as already matched admin divisions
+      allLocalityMatches = allLocalityMatches.filter(
+        (m) => m.name !== regionMatch?.name && m.name !== countyMatch?.name
+      )
+    }
+
     if (allLocalityMatches.length > 0) {
       localityMatch = selectBestLocalityMatch(
         allLocalityMatches,
-        regionMatch?.id,
         countyMatch?.id
       )
     }
+  }
+
+  // Helper function to check if a match has explicit administrative prefix
+  const hasAdminPrefix = (match: string) => {
+    return /^(Phường|Quận|Huyện|Thành phố|Tỉnh|P\.|Q\.|H\.|TP\.)/.test(
+      match.trim()
+    )
   }
 
   // Collect all potential administrative matches
   const allAdminMatches: Array<{ name: string; match: string; index: number }> =
     []
   if (regionMatch) allAdminMatches.push(regionMatch)
-  if (countyMatch && (!hasStreetAddressPattern || regionMatch))
+  if (
+    countyMatch &&
+    (!hasStreetAddressPattern ||
+      regionMatch ||
+      hasAdminPrefix(countyMatch.match))
+  )
     allAdminMatches.push(countyMatch)
-  if (localityMatch && (!hasStreetAddressPattern || regionMatch))
+  if (
+    localityMatch &&
+    (!hasStreetAddressPattern ||
+      regionMatch ||
+      hasAdminPrefix(localityMatch.match))
+  )
     allAdminMatches.push(localityMatch)
 
   // Remove overlapping matches, keeping the longest ones

@@ -384,7 +384,9 @@ async function createSearchBody({
 }: CreateSearchBody) {
   // const formatted = format(text)
   const formatted = text.trim().replace(/\s{2,}/g, " ")
+  console.time("extractV2")
   const parsedText = extractV2(formatted)
+  console.timeEnd("extractV2")
   const layer = parsedText.venue ? "venue" : ""
   // if not geocode, ignore admin parts
   // if (!geocode) {

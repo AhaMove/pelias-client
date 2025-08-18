@@ -558,13 +558,20 @@ export const extractV2 = (text: string): AddressParts => {
   // Extract administrative divisions using hybrid hierarchical + fallback approach
   const regionMatch = findRegionByRegex(originalText)
 
+  // Check if text has multiple parts (comma-separated) for expensive admin fallback searches
+  const parts = originalText
+    .split(",")
+    .map((p) => p.trim())
+    .filter((p) => p)
+  const hasMultipleParts = parts.length > 1
+
   // Try hierarchical search for county first
   let countyMatch = regionMatch
     ? findCountyByRegex(originalText, regionMatch.id)
     : null
 
-  // If no county found, try fallback search with context validation
-  if (!countyMatch) {
+  // If no county found, try fallback search with context validation (only for multi-part addresses)
+  if (!countyMatch && hasMultipleParts) {
     const allCountyMatches = findAllCountyMatches(originalText)
     if (allCountyMatches.length > 0) {
       countyMatch = selectBestCountyMatch(allCountyMatches, regionMatch?.id)
@@ -580,8 +587,8 @@ export const extractV2 = (text: string): AddressParts => {
     ? findLocalityByRegex(originalText, countyMatch.id, excludeNames)
     : null
 
-  // If no locality found, try fallback search with context validation
-  if (!localityMatch) {
+  // If no locality found, try fallback search with context validation (only for multi-part addresses)
+  if (!localityMatch && hasMultipleParts) {
     let allLocalityMatches: Array<{
       name: string
       id: string

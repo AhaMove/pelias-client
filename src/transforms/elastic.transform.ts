@@ -779,7 +779,7 @@ export class ElasticTransform {
 
     // Add script field for sorted entrances if we have a search term
     let scriptFields: Record<string, any> | undefined
-    if (parsedText.venue || parsedText.address) {
+    if (parsedText.venue) {
       scriptFields = {
         sorted_entrances: sortedEntrancesScript,
       }

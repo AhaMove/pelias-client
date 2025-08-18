@@ -137,61 +137,42 @@ function createShouldClauses({ parsedText, formatted }: CreateShouldClauses) {
     _.filter((value) => !!value),
   ])(parsedText)
 
-  // Always add a name.default search clause
-  const nameDefaultClause = {
-    intervals: {
-      "name.default": {
-        match: {
-          query: formatted,
-          ordered: true,
-          max_gaps: 1,
-        },
-      },
-    },
-  }
-
-  const entrancesClause = {
-    nested: {
-      path: "addendum.geometry.entrances",
-      // currently favorite_location and recent_location don't have addendum.geometry.entrances field
-      ignore_unmapped: true,
-      query: {
-        intervals: {
-          "addendum.geometry.entrances.name": {
-            match: {
-              query: formatted,
-              ordered: true,
-            },
-          },
-        },
-      },
-    },
-  }
-
-  return [nameDefaultClause, entrancesClause, ...componentClauses]
+  return componentClauses
 }
 
 function createQuery({
   parsedText,
   formatted,
 }: CreateQuery): Record<string, any> {
+  const should = createShouldClauses({ parsedText, formatted })
   const result: any = {
     bool: {
       must: [],
-      should: createShouldClauses({ parsedText, formatted }),
-      minimum_should_match: "50%",
+      should,
     },
   }
-  // if (layer != "") {
-  //     result.bool.must.push({
-  //         term: {
-  //             layer: layer,
-  //         },
-  //     });
-  // }
 
+  let shouldClauses: any = []
   if (parsedText.venue) {
-    const shouldClauses: any = [
+    const entrancesClause = {
+      nested: {
+        path: "addendum.geometry.entrances",
+        // currently favorite_location and recent_location don't have addendum.geometry.entrances field
+        ignore_unmapped: true,
+        query: {
+          intervals: {
+            "addendum.geometry.entrances.name": {
+              match: {
+                query: parsedText.venue,
+                ordered: true,
+              },
+            },
+          },
+        },
+      },
+    }
+    shouldClauses = [
+      entrancesClause,
       {
         intervals: {
           "name.default": {
@@ -203,23 +184,31 @@ function createQuery({
           },
         },
       },
-      // {
-      //     nested: {
-      //         path: "addendum.geometry.entrances",
-      //         query: {
-      //             match: {
-      //                 "addendum.geometry.entrances.name": {
-      //                     query: parsedText.venue,
-      //                     operator: "and",
-      //                 }
-      //             }
-      //         }
-      //     }
-      // }
     ]
-    result.bool.should.push(...shouldClauses)
-    result.bool.minimum_should_match = 1
+
+    result.bool.must.push({
+      term: {
+        layer: "venue",
+      },
+    })
+  } else {
+    shouldClauses = [
+      {
+        intervals: {
+          "name.default": {
+            match: {
+              query: formatted,
+              ordered: true,
+              max_gaps: 1,
+            },
+          },
+        },
+      },
+    ]
   }
+
+  result.bool.should.push(...shouldClauses)
+  result.bool.minimum_should_match = result.bool.should.length - 1
   return result
 }
 
@@ -386,6 +375,7 @@ async function createSearchBody({
   const formatted = text.trim().replace(/\s{2,}/g, " ")
   console.time("extractV2")
   const parsedText = extractV2(formatted)
+  console.log("parsedText", parsedText)
   console.timeEnd("extractV2")
   const layer = parsedText.venue ? "venue" : ""
   // if not geocode, ignore admin parts

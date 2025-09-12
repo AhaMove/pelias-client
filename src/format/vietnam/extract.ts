@@ -234,7 +234,8 @@ export const extractVenue = (text: string): string => {
 export const extract = (text: string): AddressParts => {
   const arr = text.split(",")
   if (arr.length === 1) {
-    return {address: text, locality: "", county: "", region: "", country: ""}
+    const { number, street, address } = extractAddress(text)
+    return {address, locality: "", county: "", region: "", country: "", number, street}
   }
 
   const country = findCountry(text)

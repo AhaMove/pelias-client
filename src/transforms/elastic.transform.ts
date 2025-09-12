@@ -186,13 +186,15 @@ export class ElasticTransform {
           minimum_should_match: "50%",
       },
     };
-    // if (layer != "") {
-    //     result.bool.must.push({
-    //         term: {
-    //             layer: layer,
-    //         },
-    //     });
-    // }
+    if (parsedText.number) {
+      result.bool.must.push({
+        match_phrase: {
+          "address_parts.number": {
+            query: parsedText.number,
+          },
+        },
+      });
+    }
     
       if (parsedText.venue) {
           const shouldClauses: any = [

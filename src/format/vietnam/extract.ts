@@ -94,9 +94,10 @@ const extractAddressParts = (arr: string[]) => {
 // Helper function to check if a number is valid for Vietnamese addresses
 const isValidAddressNumber = (number: string): boolean => {
   if (!number) return false
-  // Allow numbers with at least one digit OR short alphabetic codes (like building codes)
-  // Also allow common Vietnamese patterns like "7/28", "A2-15/3", etc.
-  return /[0-9]/.test(number) || /^[A-Za-z]{1,3}$/.test(number)
+  // Must contain at least one digit to be a valid address number
+  // This handles: "123", "7/28", "A2", "B12", "Z06", "A2-15/3", etc.
+  // But rejects pure letters like "vin", "spa", "bar"
+  return /[0-9]/.test(number)
 }
 
 // Helper function to detect if text looks like a venue name

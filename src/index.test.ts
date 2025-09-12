@@ -841,64 +841,90 @@ import { extractAddress } from "./index";
 describe("extractAddress", () => {
   test.each([
     // Basic address with number and street
-    // [
-    //   "7/28 Thành Thái", 
-    //   { number: "7/28", street: "Thành Thái", address: "7/28 Thành Thái" }
-    // ],
-    // // Number only - should extract the number but have empty street
-    // [
-    //   "7/28", 
-    //   { number: "7/28", street: undefined, address: "7/28" }
-    // ],
-    // // With leading zero in number
-    // [
-    //   "07/28 Thành Thái", 
-    //   { number: "07/28", street: "Thành Thái", address: "07/28 Thành Thái" }
-    // ],
-    // // With trailing space
-    // [
-    //   "7/28 ", 
-    //   { number: "7/28", street: undefined, address: "7/28" }
-    // ],
-    // // Complex number format
-    // [
-    //   "A2-15/3 ", 
-    //   { number: "A2-15/3", street: undefined, address: "A2-15/3" }
-    // ],
-    // // Number starting with letter
-    // [
-    //   "B12 Nguyễn Văn Cừ", 
-    //   { number: "B12", street: "Nguyễn Văn Cừ", address: "B12 Nguyễn Văn Cừ" }
-    // ],
-    // // Street with comma
-    // [
-    //   "10 Lê Văn Sỹ,", 
-    //   { number: "10", street: "Lê Văn Sỹ", address: "10 Lê Văn Sỹ" }
-    // ],
-    // // Address with "Phố" format
-    // [
-    //   "123 Phố Huế", 
-    //   { number: "123", street: "Phố Huế", address: "123 Phố Huế" }
-    // ],
-    // [
-    //   "59C Nguyễn Đình Chiểu",
-    //   { number: "59C", street: "Nguyễn Đình Chiểu", address: "59C Nguyễn Đình Chiểu" }
-    // ],
-    // [
-    //   "G Campus, Z06 Đường Số 13, Phường Tân Thuận Đông, Quận 7, Hồ Chí Minh, Việt Nam",
-    //   { number: "Z06", street: "Đường Số 13", address: "Z06 Đường Số 13" }
-    // ],
-    // [
-    //   "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-    //   { number: "7/28", street: "Thành Thái", address: "7/28 Thành Thái" }
-    // ],
-    // [
-    //   "Rivera Park Sài Gòn, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
-    //   { number: undefined, street: undefined, address: "Rivera Park Sài Gòn" }
-    // ], 
+    [
+      "7/28 Thành Thái", 
+      { number: "7/28", street: "Thành Thái", address: "7/28 Thành Thái" }
+    ],
+    // Number only - should extract the number but have empty street
+    [
+      "7/28", 
+      { number: "7/28", street: undefined, address: "7/28" }
+    ],
+    // With leading zero in number
+    [
+      "07/28 Thành Thái", 
+      { number: "07/28", street: "Thành Thái", address: "07/28 Thành Thái" }
+    ],
+    // With trailing space
+    [
+      "7/28 ", 
+      { number: "7/28", street: undefined, address: "7/28" }
+    ],
+    // Complex number format
+    [
+      "A2-15/3 ", 
+      { number: "A2-15/3", street: undefined, address: "A2-15/3" }
+    ],
+    // Number starting with letter
+    [
+      "B12 Nguyễn Văn Cừ", 
+      { number: "B12", street: "Nguyễn Văn Cừ", address: "B12 Nguyễn Văn Cừ" }
+    ],
+    // Street with comma
+    [
+      "10 Lê Văn Sỹ,", 
+      { number: "10", street: "Lê Văn Sỹ", address: "10 Lê Văn Sỹ" }
+    ],
+    // Address with "Phố" format
+    [
+      "123 Phố Huế", 
+      { number: "123", street: "Phố Huế", address: "123 Phố Huế" }
+    ],
+    [
+      "59C Nguyễn Đình Chiểu",
+      { number: "59C", street: "Nguyễn Đình Chiểu", address: "59C Nguyễn Đình Chiểu" }
+    ],
+    [
+      "G Campus, Z06 Đường Số 13, Phường Tân Thuận Đông, Quận 7, Hồ Chí Minh, Việt Nam",
+      { number: "Z06", street: "Đường Số 13", address: "Z06 Đường Số 13" }
+    ],
+    [
+      "Rivera Park Sài Gòn, 7/28 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      { number: "7/28", street: "Thành Thái", address: "7/28 Thành Thái" }
+    ],
+    [
+      "Rivera Park Sài Gòn, Phường 14, Quận 10, Hồ Chí Minh, Việt Nam",
+      { number: undefined, street: undefined, address: "Rivera Park Sài Gòn" }
+    ], 
     [
       "Tịnh xá Ngọc Phương, Phường 1, Quận Gò Vấp, Hồ Chí Minh",
       { number: undefined, street: undefined, address: "Tịnh xá Ngọc Phương" }
+    ],
+    // Test cases for the fix: venue names should not extract pure letters as address numbers
+    [
+      "vin park 2",
+      { number: undefined, street: undefined, address: "vin park 2" }
+    ],
+    [
+      "spa wellness center",
+      { number: undefined, street: undefined, address: "spa wellness center" }
+    ],
+    [
+      "bar nightclub 123",
+      { number: undefined, street: undefined, address: "bar nightclub 123" }
+    ],
+    // Ensure valid building codes with digits still work
+    [
+      "A2 Nguyen Van Cu",
+      { number: "A2", street: "Nguyen Van Cu", address: "A2 Nguyen Van Cu" }
+    ],
+    [
+      "B12 Thanh Thai",
+      { number: "B12", street: "Thanh Thai", address: "B12 Thanh Thai" }
+    ],
+    [
+      "Z06 Duong So 13",
+      { number: "Z06", street: "Duong So 13", address: "Z06 Duong So 13" }
     ]
   ])("should correctly parse '%s'", (text, expected) => {
     const result = extractAddress(text);

@@ -833,7 +833,6 @@ export class ElasticTransform {
     const { text, addressParts } = params
     const {venue, number, street}  = extract(text)
 
-    const shouldClauses: Record<string, any>[] = []
     const mustClauses: Record<string, any>[] = []
 
     if (venue) {
@@ -890,7 +889,7 @@ export class ElasticTransform {
 
     // Add admin region matching
     if (addressParts?.region) {
-      shouldClauses.push({
+      mustClauses.push({
         match_phrase: {
           "parent.region": {
             query: addressParts.region
@@ -908,7 +907,7 @@ export class ElasticTransform {
         countyQuery = "Thành Phố Thủ Đức"
       }
       
-      shouldClauses.push({
+      mustClauses.push({
         match_phrase: {
           "parent.county": {
             query: countyQuery
@@ -919,7 +918,7 @@ export class ElasticTransform {
 
     // Add admin locality matching  
     if (addressParts?.locality) {
-      shouldClauses.push({
+      mustClauses.push({
         match_phrase: {
           "parent.locality": {
             query: addressParts.locality
@@ -933,9 +932,7 @@ export class ElasticTransform {
     return {
       query: {
         bool: {
-          must: mustClauses,
-          should: shouldClauses,
-          minimum_should_match: shouldClauses.length - 1
+          must: mustClauses
         }
       },
       size: 1

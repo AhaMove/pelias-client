@@ -65,7 +65,7 @@ interface GeocodeParams {
 }
 
 const VIETNAMESE_DEACCENT_FUNCTION = `
-  String removeVietnameseAccents(String text) {
+  String removeVietnameseAccents(String text, boolean isLowercase) {
     if (text == null || text.isEmpty()) {
       return text;
     }
@@ -102,8 +102,11 @@ const VIETNAMESE_DEACCENT_FUNCTION = `
     StringBuilder result = new StringBuilder();
     for (int i = 0; i < text.length(); i++) {
       String character = text.substring(i, i + 1);
-      String replacement = (String) accentMap.get(character);
+      def replacement = accentMap.get(character);
       result.append(replacement != null ? replacement : character);
+    }
+    if (isLowercase) {
+      return result.toString().toLowerCase();
     }
     return result.toString();
   }
@@ -285,64 +288,8 @@ export class ElasticTransform {
           }
         }
       },
-      // {
-      //   script_score: {
-      //     script: {
-      //       source: "try { return params._source.layer == 'venue' ? 10 : 0; } catch (Exception e) { return 0; }"
-      //     }
-      //   }
-      // }
     ]
 
-    // if (venueName) {
-      functions.push({
-        script_score: {
-          script: {
-            source: `
-
-              ${VIETNAMESE_DEACCENT_FUNCTION}
-              try {
-                String searchTerm = params.venueName;
-                
-                // Check if name.default contains the search term
-                if (params._source.containsKey('name') && params._source.name.containsKey('default')) {
-                  String mainName = params._source.name.default.toLowerCase();
-                  String deaccentedMainName = removeVietnameseAccents(mainName);
-                  if (deaccentedMainName.indexOf(searchTerm) >= 0) {
-                    return 10;
-                  }
-                }
-                
-                // Check if any entrance name contains the search term
-                if (params._source.containsKey('addendum') && 
-                    params._source.addendum.containsKey('geometry') && 
-                    params._source.addendum.geometry.containsKey('entrances')) {
-                  
-                  def entrances = params._source.addendum.geometry.entrances;
-                  if (entrances instanceof List) {
-                    for (def entrance : entrances) {
-                      if (entrance.containsKey('name')) {
-                        String entranceName = entrance.name.toLowerCase();
-                        String deaccentedEntranceName = removeVietnameseAccents(entranceName);
-                        if (deaccentedEntranceName.indexOf(searchTerm) >= 0) {
-                          return 10;
-                        }
-                      }
-                    }
-                  }
-                }
-                
-                return 0;
-              } catch (Exception e) { 
-                return 0; 
-              }
-            `,
-            params: {
-              venueName: deaccents(venueName.toLowerCase() || parsedText?.address?.toLowerCase() || "")
-            }
-          }
-        }
-      })
 
       functions.push({
         script_score: {
@@ -354,18 +301,42 @@ export class ElasticTransform {
                 if (searchTerm == null || searchTerm.isEmpty()) {
                   return 0;
                 }
-                
+
+                // Check name.default for prefix match (highest score) or substring match
                 if (params._source.containsKey('name') && params._source.name.containsKey('default')) {
-                  String mainName = params._source.name.default.toLowerCase();
-                  String deaccentedMainName = removeVietnameseAccents(mainName);
+                  String deaccentedMainName = removeVietnameseAccents(params._source.name.default, true);
+
+                  // Prefix match gets higher score
                   if (deaccentedMainName.indexOf(searchTerm) == 0) {
                     return 15;
                   }
+                  // Substring match gets lower score
+                  else if (deaccentedMainName.indexOf(searchTerm) >= 0) {
+                    return 10;
+                  }
                 }
-                
+
+                // Check if any entrance name contains the search term
+                if (params._source.containsKey('addendum') &&
+                    params._source.addendum.containsKey('geometry') &&
+                    params._source.addendum.geometry.containsKey('entrances')) {
+
+                  def entrances = params._source.addendum.geometry.entrances;
+                  if (entrances instanceof List) {
+                    for (def entrance : entrances) {
+                      if (entrance.containsKey('name')) {
+                        String deaccentedEntranceName = removeVietnameseAccents(entrance.name, true);
+                        if (deaccentedEntranceName.indexOf(searchTerm) >= 0) {
+                          return 10;
+                        }
+                      }
+                    }
+                  }
+                }
+
                 return 0;
-              } catch (Exception e) { 
-                return 0; 
+              } catch (Exception e) {
+                return 0;
               }
             `,
             params: {
@@ -374,8 +345,6 @@ export class ElasticTransform {
           }
         }
       })
-
-    // }
 
     return {
       function_score: {

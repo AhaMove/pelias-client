@@ -1,67 +1,74 @@
-import * as _ from "lodash/fp"
-import { extract } from "src/format/vietnam"
-import { NearbyParams } from "src/resources/nearby.params"
-import { CountModel } from "src/models/count.model"
-import { AddressParts } from "src/models/address-parts.model"
-import deaccents from "../format/vietnam/deaccents.js"
+import * as _ from "lodash/fp";
+import { extract } from "src/format/vietnam";
+import { AddressParts } from "src/models/address-parts.model";
+import { CountModel } from "src/models/count.model";
+import { NearbyParams } from "src/resources/nearby.params";
+
+import deaccents from "../format/vietnam/deaccents.js";
 
 export interface MultiIndexOptions {
-  extraFilters?: Array<any>
-  extraFunctions?: Array<any>
-  aggregations?: Record<string, MultiIndexAggregationConfig> | null
-  overwriteHits?: boolean
+  extraFilters?: Array<any>;
+  extraFunctions?: Array<any>;
+  aggregations?: Record<string, MultiIndexAggregationConfig> | null;
+  overwriteHits?: boolean;
 }
 
 export interface MultiIndexAggregationConfig {
-  filter: any
-  size: number
+  filter: any;
+  size: number;
 }
 
 interface CreateSearchBody {
-  text: string
-  size: number
-  lat?: number
-  lon?: number
-  countFunc: (queryBody: Record<string, any>) => Promise<CountModel>
-  geocode: boolean
-  multiIndexOpts?: MultiIndexOptions | null
-  userId: string 
+  text: string;
+  size: number;
+  lat?: number;
+  lon?: number;
+  countFunc: (queryBody: Record<string, any>) => Promise<CountModel>;
+  geocode: boolean;
+  multiIndexOpts?: MultiIndexOptions | null;
+  userId: string;
 }
 
 interface CreateShouldClauses {
-  parsedText: AddressParts
-  formatted: string
+  parsedText: AddressParts;
+  formatted: string;
 }
 
 interface CreateQuery {
-  parsedText: AddressParts
-  formatted: string
+  parsedText: AddressParts;
+  formatted: string;
 }
 
 interface RescoreQuery {
-  query: Record<string, any>
-  venueName: string
-  parsedText: AddressParts
+  query: Record<string, any>;
+  venueName: string;
+  parsedText: AddressParts;
 }
 
 interface CreateSort {
-  sortScore: boolean
-  lat?: number
-  lon?: number
+  sortScore: boolean;
+  lat?: number;
+  lon?: number;
 }
 
 interface RescoreFunction {
   script_score: {
     script: {
-      source: string,
-      params?: Record<string, any>
-    }
-  }
+      source: string;
+      params?: Record<string, any>;
+    };
+  };
 }
 
 interface GeocodeParams {
-  text: string
-  addressParts?: { number?: string, street?: string, region?: string, locality?: string, county?: string }
+  text: string;
+  addressParts?: {
+    number?: string;
+    street?: string;
+    region?: string;
+    locality?: string;
+    county?: string;
+  };
 }
 
 const VIETNAMESE_DEACCENT_FUNCTION = `
@@ -117,13 +124,13 @@ export class ElasticTransform {
     const componentClauses = _.flow([
       _.toPairs,
       _.map(([key, value]: [string, any]) => {
-        let newKey
+        let newKey;
         switch (key) {
           case "region":
           case "county":
           case "locality":
-            newKey = `parent.${key}`
-            break
+            newKey = `parent.${key}`;
+            break;
           // case "number":
           // case "street":
           //   newKey = `address_parts.${key}`
@@ -131,18 +138,18 @@ export class ElasticTransform {
           // case "address":
           //   return null
           default:
-            return null
+            return null;
         }
 
         if (!value || !newKey) {
-          return null
+          return null;
         }
 
         if (newKey === "parent.locality") {
-          if (value.match(/(Phường)\s\D/)) value = value.replace("Phường ", "")
+          if (value.match(/(Phường)\s\D/)) value = value.replace("Phường ", "");
         }
         if (newKey === "parent.county") {
-          if (value.match(/(Quận)\s\D/)) value = value.replace("Quận ", "")
+          if (value.match(/(Quận)\s\D/)) value = value.replace("Quận ", "");
         }
         // if (
         //   newKey === "address_parts.street" &&
@@ -188,10 +195,10 @@ export class ElasticTransform {
               query: value,
             },
           },
-        }
+        };
       }),
       _.filter((value) => !!value),
-    ])(parsedText)
+    ])(parsedText);
 
     // Always add a name.default search clause
     const nameDefaultClause = {
@@ -201,10 +208,10 @@ export class ElasticTransform {
             query: formatted,
             ordered: true,
             max_gaps: 1,
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    };
 
     const entrancesClause = {
       nested: {
@@ -217,22 +224,22 @@ export class ElasticTransform {
               match: {
                 query: formatted,
                 ordered: true,
-              }
-            }
-          }
-        }
-      }
-    }
+              },
+            },
+          },
+        },
+      },
+    };
 
-    return [nameDefaultClause, entrancesClause, ...componentClauses]
+    return [nameDefaultClause, entrancesClause, ...componentClauses];
   }
 
-  static createQuery({  parsedText, formatted}: CreateQuery): Record<string, any> {
+  static createQuery({ parsedText, formatted }: CreateQuery): Record<string, any> {
     const result: any = {
       bool: {
-          must: [],
-          should: ElasticTransform.createShouldClauses({ parsedText, formatted }),
-          minimum_should_match: "50%",
+        must: [],
+        should: ElasticTransform.createShouldClauses({ parsedText, formatted }),
+        minimum_should_match: "50%",
       },
     };
     if (parsedText.number) {
@@ -244,39 +251,38 @@ export class ElasticTransform {
         },
       });
     }
-    
-      if (parsedText.venue) {
-          const shouldClauses: any = [
-              {
-                  intervals: {
-                      "name.default": {
-                          match: {
-                              query: parsedText.venue,
-                              max_gaps: 1,
-                              ordered: true,
-                          },
-                      },
-                  },
+
+    if (parsedText.venue) {
+      const shouldClauses: any = [
+        {
+          intervals: {
+            "name.default": {
+              match: {
+                query: parsedText.venue,
+                max_gaps: 1,
+                ordered: true,
               },
-              // {
-              //     nested: {
-              //         path: "addendum.geometry.entrances",
-              //         query: {
-              //             match: {
-              //                 "addendum.geometry.entrances.name": {
-              //                     query: parsedText.venue,
-              //                     operator: "and",
-              //                 }
-              //             }
-              //         }
-              //     }
-              // }
-          ]
+            },
+          },
+        },
+        // {
+        //     nested: {
+        //         path: "addendum.geometry.entrances",
+        //         query: {
+        //             match: {
+        //                 "addendum.geometry.entrances.name": {
+        //                     query: parsedText.venue,
+        //                     operator: "and",
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+      ];
       result.bool.should.push(...shouldClauses);
       result.bool.minimum_should_match = 1;
-      }
-      return result;
-  
+    }
+    return result;
   }
 
   static rescoreQuery({ query, venueName, parsedText }: RescoreQuery): Record<string, any> {
@@ -284,17 +290,17 @@ export class ElasticTransform {
       {
         script_score: {
           script: {
-            source: "try { return params._source.addendum.containsKey('geometry') ? 10 : 0; } catch (Exception e) { return 0; }"
-          }
-        }
+            source:
+              "try { return params._source.addendum.containsKey('geometry') ? 10 : 0; } catch (Exception e) { return 0; }",
+          },
+        },
       },
-    ]
+    ];
 
-
-      functions.push({
-        script_score: {
-          script: {
-            source: `
+    functions.push({
+      script_score: {
+        script: {
+          source: `
               ${VIETNAMESE_DEACCENT_FUNCTION}
               try {
                 String searchTerm = params.venueName;
@@ -339,27 +345,29 @@ export class ElasticTransform {
                 return 0;
               }
             `,
-            params: {
-              venueName: deaccents(venueName.toLowerCase() || parsedText?.address?.toLowerCase() || "")
-            }
-          }
-        }
-      })
+          params: {
+            venueName: deaccents(venueName.toLowerCase() || parsedText?.address?.toLowerCase() || ""),
+          },
+        },
+      },
+    });
 
     return {
       function_score: {
         query: query,
         functions,
         score_mode: "sum",
-        boost_mode: "replace"
-      }
-    }
+        boost_mode: "replace",
+      },
+    };
   }
 
-  static createSort({ sortScore, lat, lon }: CreateSort) {
-    const result: any = [{
-      _score: "desc",
-    }]
+  static createSort({ sortScore: _sortScore, lat, lon }: CreateSort) {
+    const result: any = [
+      {
+        _score: "desc",
+      },
+    ];
 
     // if (sortScore) {
     //   result.push({
@@ -379,17 +387,17 @@ export class ElasticTransform {
           unit: "m",
           distance_type: "plane",
         },
-      })
+      });
     }
 
     // if result is empty array, we default to sort by index order
     if (result.length === 0) {
       result.push({
         _doc: "desc",
-      })
+      });
     }
-    
-    return result
+
+    return result;
   }
 
   static async createSearchBody({
@@ -399,43 +407,43 @@ export class ElasticTransform {
     lon,
     countFunc,
     geocode = false,
-    userId
+    userId,
   }: CreateSearchBody) {
     // const formatted = format(text)
-    const formatted = text.trim().replace(/\s{2,}/g, ' ')
-    const parsedText = extract(formatted)
-    const layer = parsedText.venue ? "venue" : ""
+    const formatted = text.trim().replace(/\s{2,}/g, " ");
+    const parsedText = extract(formatted);
+    const layer = parsedText.venue ? "venue" : "";
     // if not geocode, ignore admin parts
     if (!geocode) {
-      parsedText.country = ""
-      parsedText.county = ""
-      parsedText.locality = ""
-      parsedText.region = ""
+      parsedText.country = "";
+      parsedText.county = "";
+      parsedText.locality = "";
+      parsedText.region = "";
     }
-    let sortScore = true
+    let sortScore = true;
 
-    const multiIndexOpts = userId ? buildMultiIndexSearchOpts(userId) : null
+    const multiIndexOpts = userId ? buildMultiIndexSearchOpts(userId) : null;
     // create query
-    let query = ElasticTransform.createQuery({ parsedText, formatted })
+    let query = ElasticTransform.createQuery({ parsedText, formatted });
     // if multiIndexOpts is provided, add extra filters
     if (multiIndexOpts) {
       if (multiIndexOpts.extraFilters) {
-        query.bool.filter = query.bool.filter || []
-        query.bool.filter.push(...multiIndexOpts.extraFilters)
+        query.bool.filter = query.bool.filter || [];
+        query.bool.filter.push(...multiIndexOpts.extraFilters);
       }
     }
     // count the number of records that match the query. If return terminated_early == true, we won't recalculate the score
     const countResult = await countFunc({
       query: query,
-    })
-    
+    });
+
     if (!countResult.terminated_early) {
-      const venueName = parsedText.venue || ""
-      query = ElasticTransform.rescoreQuery({ query, venueName, parsedText })
+      const venueName = parsedText.venue || "";
+      query = ElasticTransform.rescoreQuery({ query, venueName, parsedText });
     } else {
-      sortScore = false
+      sortScore = false;
     }
-    
+
     // if (parsedText.number) {
     //   const score_exact_address_number = {
     //     script_score: {
@@ -463,16 +471,16 @@ export class ElasticTransform {
     // if multiIndexOpts is provided, add extra scoring functions
     if (multiIndexOpts && multiIndexOpts.extraFunctions) {
       if (!query.function_score) {
-          query = {
-              function_score: {
-                  query: query,
-                  functions: []
-              }
-          };
+        query = {
+          function_score: {
+            query: query,
+            functions: [],
+          },
+        };
       }
       query.function_score.functions = query.function_score.functions || [];
       query.function_score.functions.push(...multiIndexOpts.extraFunctions);
-  }
+    }
 
     // Add distance-based scoring when coordinates are available
     if (lat !== undefined && lon !== undefined && query.function_score) {
@@ -481,10 +489,10 @@ export class ElasticTransform {
           filter: {
             geo_distance: {
               distance: "30km",
-              center_point: { lat, lon }
-            }
+              center_point: { lat, lon },
+            },
           },
-          weight: 25
+          weight: 25,
         },
         {
           filter: { match_all: {} },
@@ -494,18 +502,18 @@ export class ElasticTransform {
               origin: { lat, lon },
               scale: "3km",
               offset: "0km",
-              decay: 0.1
-            }
-          }
-        }
+              decay: 0.1,
+            },
+          },
+        },
       ];
-      
+
       query.function_score.functions.push(...nearbyDistanceScore);
     }
 
-    const sort = ElasticTransform.createSort({ sortScore, lat, lon })
+    const sort = ElasticTransform.createSort({ sortScore, lat, lon });
     if (multiIndexOpts && multiIndexOpts.overwriteHits) {
-      size = 0
+      size = 0;
     }
 
     // Create script field for sorted entrances (matching entrances first)
@@ -763,9 +771,9 @@ export class ElasticTransform {
         }
         `,
         params: {
-          searchTerm: parsedText.venue?.toLowerCase() || parsedText.address?.toLowerCase() || ""
-        }
-      }
+          searchTerm: parsedText.venue?.toLowerCase() || parsedText.address?.toLowerCase() || "",
+        },
+      },
     };
 
     const body: Record<string, any> = {
@@ -774,23 +782,19 @@ export class ElasticTransform {
       track_scores: true,
       sort: sort,
       _source: true,
-    }
+    };
 
     // Add script field for sorted entrances if we have a search term
     let scriptFields: Record<string, any> | undefined;
     if (parsedText.venue || parsedText.address) {
       scriptFields = {
-        sorted_entrances: sortedEntrancesScript
+        sorted_entrances: sortedEntrancesScript,
       };
       body.script_fields = scriptFields;
     }
 
     if (multiIndexOpts && multiIndexOpts.aggregations) {
-      body["aggs"] = buildMultiIndexAggregations(
-        multiIndexOpts.aggregations,
-        sort,
-        scriptFields
-      )
+      body["aggs"] = buildMultiIndexAggregations(multiIndexOpts.aggregations, sort, scriptFields);
     }
 
     return {
@@ -799,11 +803,11 @@ export class ElasticTransform {
       parsedText,
       layer,
       multiIndexOpts,
-    }
+    };
   }
 
   static createNearByBody(params: NearbyParams) {
-    const size = params.size ?? "10"
+    const size = params.size ?? "10";
     const nearByBody: any = {
       query: {
         bool: {
@@ -829,14 +833,14 @@ export class ElasticTransform {
           order: "asc",
         },
       },
-    }
+    };
 
     if (params.sources) {
       nearByBody.query.bool.must.push({
         terms: {
           source: params.sources.split(","),
         },
-      })
+      });
     }
 
     if (params.layers) {
@@ -844,17 +848,17 @@ export class ElasticTransform {
         terms: {
           layer: params.layers.split(","),
         },
-      })
+      });
     }
 
-    return nearByBody
+    return nearByBody;
   }
 
   static createGeocodeBody(params: GeocodeParams): Record<string, any> {
-    const { text, addressParts } = params
-    const {venue, number, street}  = extract(text)
+    const { text, addressParts } = params;
+    const { venue, number, street } = extract(text);
 
-    const mustClauses: Record<string, any>[] = []
+    const mustClauses: Record<string, any>[] = [];
 
     if (venue) {
       mustClauses.push({
@@ -864,100 +868,99 @@ export class ElasticTransform {
               match_phrase: {
                 "name.default": {
                   query: venue,
-                  slop: 1
-                }
-              }
+                  slop: 1,
+                },
+              },
             },
             {
               term: {
-                layer: "venue"
-              }
-            }
-          ]
-        }
-      })
+                layer: "venue",
+              },
+            },
+          ],
+        },
+      });
     } else {
       mustClauses.push({
         match_phrase: {
           "name.default": {
-            query: text
-          }
-        }
-      })
+            query: text,
+          },
+        },
+      });
     }
 
-        // Add address number matching with intervals
-        if (number) {
-          mustClauses.push({
-            match_phrase: {
-              "address_parts.number": {
-                query: number,
-              }
-            }
-          })
-        }
-    
-        // Add street name matching
-        if (street) {
-          mustClauses.push({
-            match_phrase: {
-              "address_parts.street": {
-                query: street
-              }
-            }
-          })
-        }
+    // Add address number matching with intervals
+    if (number) {
+      mustClauses.push({
+        match_phrase: {
+          "address_parts.number": {
+            query: number,
+          },
+        },
+      });
+    }
+
+    // Add street name matching
+    if (street) {
+      mustClauses.push({
+        match_phrase: {
+          "address_parts.street": {
+            query: street,
+          },
+        },
+      });
+    }
 
     // Add admin region matching
     if (addressParts?.region) {
       mustClauses.push({
         match_phrase: {
           "parent.region": {
-            query: addressParts.region
-          }
-        }
-      })
+            query: addressParts.region,
+          },
+        },
+      });
     }
 
     if (addressParts?.county) {
-      let countyQuery = addressParts.county
-      
+      let countyQuery = addressParts.county;
+
       // Map old districts to Thu Duc City
-      const thuDucRegex = /(Quận\s*2|Q\.?\s*2|Quan\s*2|Quận\s*9|Q\.?\s*9|Quan\s*9|Quận\s*Thủ\s*Đức|Q\.?\s*T\.?\s*D|Q\.?\s*TD|QTD|Q\s*Thu\s*Duc|Q\s*Thủ\s*Đức|Quan\s*Thu\s*Duc|Quan\s*Thủ\s*Đức|Thủ\s*Đức|Thu\s*Duc)/i
+      const thuDucRegex =
+        /(Quận\s*2|Q\.?\s*2|Quan\s*2|Quận\s*9|Q\.?\s*9|Quan\s*9|Quận\s*Thủ\s*Đức|Q\.?\s*T\.?\s*D|Q\.?\s*TD|QTD|Q\s*Thu\s*Duc|Q\s*Thủ\s*Đức|Quan\s*Thu\s*Duc|Quan\s*Thủ\s*Đức|Thủ\s*Đức|Thu\s*Duc)/i;
       if (countyQuery.match(thuDucRegex)) {
-        countyQuery = "Thành Phố Thủ Đức"
+        countyQuery = "Thành Phố Thủ Đức";
       }
-      
+
       mustClauses.push({
         match_phrase: {
           "parent.county": {
-            query: countyQuery
-          }
-        }
-      })
+            query: countyQuery,
+          },
+        },
+      });
     }
 
-    // Add admin locality matching  
+    // Add admin locality matching
     if (addressParts?.locality) {
       mustClauses.push({
         match_phrase: {
           "parent.locality": {
-            query: addressParts.locality
-          }
-        }
-      })
+            query: addressParts.locality,
+          },
+        },
+      });
     }
-
-
 
     return {
       query: {
         bool: {
-          must: mustClauses
-        }
+          must: mustClauses,
+        },
       },
-      size: 1
-    }
+      size: 1,
+    };
   }
 }
 
@@ -967,28 +970,28 @@ function buildMultiIndexAggregations(
   scriptFields?: Record<string, any>
 ) {
   // Initialize empty aggregations object
-  const aggs: Record<string, any> = {}
+  const aggs: Record<string, any> = {};
   // Return empty object if aggregations is null
   if (!aggregations) {
-    return aggs
+    return aggs;
   }
   // Loop through each aggregation configuration
   for (const [aggName, aggConfig] of Object.entries(aggregations)) {
     // Skip if configuration is empty
-    if (!aggConfig) continue
-    
+    if (!aggConfig) continue;
+
     const topHitsConfig: any = {
       size: aggConfig.size,
       track_scores: true,
       sort: sort,
       _source: true,
     };
-    
+
     // Add script fields if provided
     if (scriptFields && aggName === "pelias") {
       topHitsConfig.script_fields = scriptFields;
     }
-    
+
     aggs[aggName] = {
       filter: aggConfig.filter,
       aggs: {
@@ -996,11 +999,10 @@ function buildMultiIndexAggregations(
           top_hits: topHitsConfig,
         },
       },
-    }
+    };
   }
-  return aggs
+  return aggs;
 }
-
 
 function buildMultiIndexSearchOpts(userId: string): MultiIndexOptions {
   // Filters for favorite and recent locations
@@ -1011,12 +1013,12 @@ function buildMultiIndexSearchOpts(userId: string): MultiIndexOptions {
           bool: {
             must: [
               { term: { _index: "favorite_location" } },
-              { bool: { must_not: [{ term: { user_id: userId } }] } }
-            ]
-          }
-        }
-      ]
-    }
+              { bool: { must_not: [{ term: { user_id: userId } }] } },
+            ],
+          },
+        },
+      ],
+    },
   };
 
   const recentLocationFilter = {
@@ -1026,55 +1028,55 @@ function buildMultiIndexSearchOpts(userId: string): MultiIndexOptions {
           bool: {
             must: [
               { term: { _index: "recent_location" } },
-              { bool: { must_not: [{ term: { user_id: userId } }] } }
-            ]
-          }
-        }
-      ]
-    }
+              { bool: { must_not: [{ term: { user_id: userId } }] } },
+            ],
+          },
+        },
+      ],
+    },
   };
 
   // Function scores for boosting
   const favoriteLocationFuncScore = {
     filter: { term: { _index: "favorite_location" } },
-    weight: 60
+    weight: 60,
   };
 
   const recentLocationFuncScore = {
     filter: { term: { _index: "recent_location" } },
-    weight: 30
+    weight: 30,
   };
 
   // Aggregations
   const aggs = {
-    "favorite_location": {
+    favorite_location: {
       filter: { term: { _index: "favorite_location" } },
-      size: 2
+      size: 2,
     },
-    "recent_location": {
+    recent_location: {
       filter: { term: { _index: "recent_location" } },
-      size: 2
+      size: 2,
     },
-    "pelias": {
+    pelias: {
       filter: {
         bool: {
           must_not: [
             {
               terms: {
-                _index: ["favorite_location", "recent_location"] // exclude both aliases
-              }
-            }
-          ]
-        }
+                _index: ["favorite_location", "recent_location"], // exclude both aliases
+              },
+            },
+          ],
+        },
       },
-      size: 10
-    }
+      size: 10,
+    },
   };
 
   return {
     extraFilters: [favoriteLocationFilter, recentLocationFilter],
     extraFunctions: [favoriteLocationFuncScore, recentLocationFuncScore],
     aggregations: aggs,
-    overwriteHits: true
+    overwriteHits: true,
   };
 }

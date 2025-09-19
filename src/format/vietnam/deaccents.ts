@@ -1,4 +1,4 @@
-import { flow, replace } from "lodash/fp"
+import { flow, replace } from "lodash/fp";
 
 const deaccents = flow([
   replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g, "a"),
@@ -15,6 +15,6 @@ const deaccents = flow([
   replace(/[ÙÚỤỦŨƯỪỨỰỬỮ]/g, "U"),
   replace(/[ỲÝỴỶỸ]/g, "Y"),
   replace(/Đ/g, "D"),
-])
+]);
 
-export default deaccents
+export default deaccents;

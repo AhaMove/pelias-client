@@ -1,2 +1,2 @@
-export * from "./extract"
-export * from "./format"
+export * from "./extract";
+export * from "./format";

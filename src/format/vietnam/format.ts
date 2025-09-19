@@ -1,29 +1,20 @@
-import * as _ from "lodash/fp"
-import regex from "src/data/vietnam/regex.json"
-import abbreviations from "src/data/vietnam/abbreviations.json"
-import dictionary from "src/data/vietnam/dictionary.json"
-import deaccents from "src/format/vietnam/deaccents"
+import * as _ from "lodash/fp";
+import abbreviations from "src/data/vietnam/abbreviations.json";
+import dictionary from "src/data/vietnam/dictionary.json";
+import regex from "src/data/vietnam/regex.json";
+import deaccents from "src/format/vietnam/deaccents";
 
-const dedupSpaces = _.replace(/\s+/g, " ")
+const dedupSpaces = _.replace(/\s+/g, " ");
 
-const trimAll = _.flow([
-  _.split(","),
-  _.map(_.trim),
-  _.filter((_) => _ != ""),
-  _.join(", "),
-])
+const trimAll = _.flow([_.split(","), _.map(_.trim), _.filter((_) => _ != ""), _.join(", ")]);
 
 const capitalizeAll = _.flow([
   _.split(","),
   _.map(_.flow([_.trim, _.split(" "), _.map(_.upperFirst), _.join(" ")])),
   _.join(", "),
-])
+]);
 
-const dedupString = _.flow([
-  _.split(","),
-  _.uniqBy(_.flow([deaccents, _.lowerCase])),
-  _.join(", "),
-])
+const dedupString = _.flow([_.split(","), _.uniqBy(_.flow([deaccents, _.lowerCase])), _.join(", ")]);
 
 const sanitizeStreet = _.flow([
   _.replace(/(?<=^|\W)(Đường\s|đường\s)/gi, " Đường "),
@@ -32,33 +23,30 @@ const sanitizeStreet = _.flow([
   (text: string) => {
     // handle phố ở Hà Nội
     if (!text.includes("Hà Nội")) {
-      return text
+      return text;
     }
 
-    text = text.replace(/(?<=^|\W)(Phố\s)/gi, " Phố ")
-    text = text.replace(
-      /(?<=[A-Z]?[0-9][A-Z\-/0-9]*)[\s,]*(P\s|P\.)/gi,
-      " Phố "
-    )
+    text = text.replace(/(?<=^|\W)(Phố\s)/gi, " Phố ");
+    text = text.replace(/(?<=[A-Z]?[0-9][A-Z\-/0-9]*)[\s,]*(P\s|P\.)/gi, " Phố ");
 
-    return text
+    return text;
   },
   // _.replace(/(?<=^|\W)Đường\s+(\d{1,3})(?=$|\W)/gi, " Đường số $1, "),
-])
+]);
 
 const encodeDictionaryWord = (text: string) => {
-  const re = dictionary.map((value) => `(${value})`).join("|")
+  const re = dictionary.map((value) => `(${value})`).join("|");
 
   return text.replace(new RegExp(re, "gi"), (m, ...p) => {
-    return "#" + p.findIndex((value) => !!value)
-  })
-}
+    return "#" + p.findIndex((value) => !!value);
+  });
+};
 
 const decodeDictionaryWord = (text: string) => {
   return text.replace(new RegExp(/(#)(\d+)/, "g"), (m, p1, p2) => {
-    return dictionary[parseInt(p2)]
-  })
-}
+    return dictionary[parseInt(p2)];
+  });
+};
 
 const cleanBracketContents = (text: string) => {
   //cleanBracketContents will remove all content that is inside brackets
@@ -68,32 +56,29 @@ const cleanBracketContents = (text: string) => {
   //For example: "123 (abc (xyz) def" will be transformed to "123 to 123 abc xyz def",
   //For example: "123 (abc (xyz) def) 456" will be transformed to "123 456"
 
-  let result = ""
-  let count = 0
+  let result = "";
+  let count = 0;
   for (let i = 0; i < text.length; i++) {
-    const char = text[i]
+    const char = text[i];
     if (char === "(") {
-      count++
+      count++;
     } else if (char === ")") {
       if (count > 0) {
-        count--
+        count--;
       }
     } else if (count === 0) {
-      result += char
+      result += char;
     }
   }
-  if (count != 0) return text.replace(/(\(|\))/g, "")
-  return result
-}
+  if (count != 0) return text.replace(/(\(|\))/g, "");
+  return result;
+};
 
 const cleanAddress = _.flow([
   cleanBracketContents,
   _.replace(/(?<=^|\W)(Vietnam|Việt Nam|Viet Nam|ViệtNam)(?=$|\W)/gi, ""),
   _.replace(/(?<=^|,|\s)(VN)(?=$|,|\s)/gi, ""),
-  _.replace(
-    /(?<=^|,|\s)(Đ\/c|đ\/c|Đc|đc|Địa Chỉ|địa chỉ|D\/c|Dc|Dia Chi)(?=$|,|\s)/gi,
-    ""
-  ),
+  _.replace(/(?<=^|,|\s)(Đ\/c|đ\/c|Đc|đc|Địa Chỉ|địa chỉ|D\/c|Dc|Dia Chi)(?=$|,|\s)/gi, ""),
   _.replace(/\b(?<!\.)0+([1-9][0-9]*)/g, "$1"), // xoá các số 0 leading 1 phrase
   _.replace(/(?<=^|\W)\d{5,6}(?=$|\W)/gi, " "), // clean VN postal code
   _.replace(/(?<=^|\W)(\+84|0)(9|8|1[2689])([0-9]{8})(?=$|\W)/g, " "), // xoá số điện thoại Việt Nam
@@ -138,26 +123,25 @@ const cleanAddress = _.flow([
   //   ])(str)
   // },
   // _.replace(/@/g, "-"),
-])
+]);
 
 const addLeadingZero = function (text: string) {
   return _.replace(/(Quận|Phường)(\s+)(\d+)/gi, (_, p1, p2, p3) => {
-    return p1 + " " + p3.trim() //.padStart(2, "0")
-  })(text)
-}
+    return p1 + " " + p3.trim(); //.padStart(2, "0")
+  })(text);
+};
 
-const sanitizeWithoutFirst =
-  (regex: RegExp, replacement: string) => (text: string) => {
-    const [p1, ...rest] = text.split(",")
+const sanitizeWithoutFirst = (regex: RegExp, replacement: string) => (text: string) => {
+  const [p1, ...rest] = text.split(",");
 
-    if (rest.length === 0) {
-      return text
-    }
-
-    const formatted = rest.join(",").replace(regex, replacement)
-
-    return [p1].concat(formatted).join(",")
+  if (rest.length === 0) {
+    return text;
   }
+
+  const formatted = rest.join(",").replace(regex, replacement);
+
+  return [p1].concat(formatted).join(",");
+};
 
 const sanitizeRegion = _.flow([
   // sanitizeWithoutFirst(/(?<=^|\W)City(?=$|\W)/gi, ","),
@@ -166,160 +150,155 @@ const sanitizeRegion = _.flow([
   sanitizeWithoutFirst(/(?<=^|,|\s)(Tp\s|Tp\.)/gi, ", Thành Phố "),
   sanitizeWithoutFirst(/(?<=^|\W)(Tỉnh\s)/gi, ", Tỉnh "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(T\s|T\.)/gi, ", Tỉnh "),
-])
+]);
 
 const sanitizeCounty = _.flow([
   _.replace(/(District((?:(?!District).)*?(?=,|$)))/gi, (_, p1, p2) => {
     if (p2 && !isNaN(p2)) {
-      return ", Quận " + p2 + ", "
+      return ", Quận " + p2 + ", ";
     }
 
-    return ", " + p2 + ", "
+    return ", " + p2 + ", ";
   }),
   sanitizeWithoutFirst(/(?<=^|\W)(Quận\s)/gi, ", Quận "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(Q\s|Q\.)/gi, ", Quận "),
   sanitizeWithoutFirst(/(?<=^|,|\s)q(\d{1,2})(?=$|,|\s)/gi, ", Quận $1, "),
-  sanitizeWithoutFirst(
-    /(?<=^|,|\s)Quận\s0(\d{1,2})(?=$|,|\s)/gi,
-    ", Quận $1, "
-  ),
+  sanitizeWithoutFirst(/(?<=^|,|\s)Quận\s0(\d{1,2})(?=$|,|\s)/gi, ", Quận $1, "),
   sanitizeWithoutFirst(/(?<=^|\W)(Huyện\s)/gi, ", Huyện "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(H\s|H\.)/gi, ", Huyện "),
   sanitizeWithoutFirst(/(?<=^|\W)(Thị Xã\s|Thi Xa\s)/gi, ", Thị Xã "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(Tx\s|Tx\.)/gi, ", Thị Xã "),
-])
+]);
 
 export const removeCountyPrefix = function (county: string) {
   // remove "Thành Phố", "Quận" "Huyện" "Thị Xã" from county string
-  return county
-    .replace(/(?<=^|\W)(Thành Phố\s|Quận\s|Huyện\s|Thị Xã\s)/gi, "")
-    .trim()
-}
+  return county.replace(/(?<=^|\W)(Thành Phố\s|Quận\s|Huyện\s|Thị Xã\s)/gi, "").trim();
+};
 
 const sanitizeLocality = _.flow([
   _.replace(/(Ward((?:(?!Ward).)*?(?=,|$)))/gi, (_, p1, p2) => {
     if (p2 && !isNaN(p2)) {
-      return ", Phường " + p2 + ", "
+      return ", Phường " + p2 + ", ";
     }
 
-    return ", " + p2 + ", "
+    return ", " + p2 + ", ";
   }),
   sanitizeWithoutFirst(/(?<=^|\W)(Phường\s)(?![^,]*Phường)/gi, " Phường "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(F\s|F\.)/gi, ", Phường "),
   (text: string) => {
     // tránh lầm giữa phố vs phường ở Hà Nội
     if (text.includes("Hà Nội")) {
-      return text
+      return text;
     }
 
-    return sanitizeWithoutFirst(/(?<=^|,|\s)(P\s|P\.)/gi, ", Phường ")(text)
+    return sanitizeWithoutFirst(/(?<=^|,|\s)(P\s|P\.)/gi, ", Phường ")(text);
   },
   sanitizeWithoutFirst(/(?<=^|,|\s)[pf](\d{1,2})(?=$|,|\s)/gi, ", Phường $1, "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(X\s|X\.)/gi, ", Xã "),
   sanitizeWithoutFirst(/(?<=^|\W)(?<!Thị\s)(Xã\s)/gi, ", Xã "),
   sanitizeWithoutFirst(/(?<=^|\W)(Thị Trấn\s|Thi Tran\s)/gi, ", Thị Trấn "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(Tt\s|Tt\.)/gi, ", Thị Trấn "),
-])
+]);
 
 export const removeLocalityPrefix = function (locality: string) {
   // remove "Phường" "Xã" "Thị Trấn" from locality string
-  return locality.replace(/(?<=^|\W)(Phường\s|Xã\s|Thị Trấn\s)/gi, "").trim()
-}
+  return locality.replace(/(?<=^|\W)(Phường\s|Xã\s|Thị Trấn\s)/gi, "").trim();
+};
 
 const transformAll = function (text: string) {
   let arr = text
     .split(",")
     .map((item) => item.trim())
-    .filter((item) => item !== "")
+    .filter((item) => item !== "");
 
   let locality = "",
     county = "",
-    region = ""
-  const regexLocality = new RegExp("^(Phường|Xã|Thị Trấn)", "i")
-  const regexCounty = new RegExp("^(Thành Phố|Quận|Huyện|Thị Xã)", "i")
+    region = "";
+  const regexLocality = new RegExp("^(Phường|Xã|Thị Trấn)", "i");
+  const regexCounty = new RegExp("^(Thành Phố|Quận|Huyện|Thị Xã)", "i");
 
   for (let i = 0; i < arr.length; i++) {
-    const item = arr[i]
+    const item = arr[i];
     if (regexLocality.test(item)) {
       if (locality == "") {
-        locality = item
+        locality = item;
       } else {
-        arr[i] = ""
+        arr[i] = "";
       }
     }
   }
 
   for (let i = 0; i < arr.length; i++) {
-    const item = arr[i]
+    const item = arr[i];
     if (regexCounty.test(item)) {
       if (county == "") {
-        county = item
+        county = item;
       } else {
-        arr[i] = ""
+        arr[i] = "";
       }
     }
   }
 
-  const regionKeys = Object.keys(regex)
+  const regionKeys = Object.keys(regex);
   for (let i = 0; i < arr.length; i++) {
-    const item = arr[i]
+    const item = arr[i];
     if (regionKeys.includes(item)) {
       if (region == "") {
-        region = item
+        region = item;
       } else {
-        arr[i] = ""
+        arr[i] = "";
       }
     }
   }
 
-  text = arr.filter((item) => item !== "").join(", ")
+  text = arr.filter((item) => item !== "").join(", ");
 
   if (locality != "" && county != "" && region != "") {
     arr = text
       .split(",")
       .map((item) => item.trim())
-      .filter((item) => item !== "")
+      .filter((item) => item !== "");
 
-    text = ""
+    text = "";
 
     for (let i = 0; i < arr.length; i++) {
-      const item = arr[i]
+      const item = arr[i];
       if (item != locality && item != county && item != region) {
-        text += item + ", "
+        text += item + ", ";
       } else {
-        break
+        break;
       }
     }
 
-    text += locality + ", " + county + ", " + region
+    text += locality + ", " + county + ", " + region;
   }
 
   if (region != "") {
-    text += ", Việt Nam"
+    text += ", Việt Nam";
   }
 
-  return text
-}
+  return text;
+};
 
 // const reverseString = _.flow([_.split(","), _.reverse, _.join(",")])
 
 const transformAbbreviations = (text: string) => {
   for (const [key, value] of Object.entries(abbreviations)) {
-    const re = new RegExp(value, "gi")
-    text = text.replace(re, key)
+    const re = new RegExp(value, "gi");
+    text = text.replace(re, key);
   }
 
-  return text
-}
+  return text;
+};
 
 const transformRegion = (text: string) => {
   for (const [key, value] of Object.entries(regex)) {
-    const re = new RegExp(value, "gi")
-    text = text.replace(re, key)
+    const re = new RegExp(value, "gi");
+    text = text.replace(re, key);
   }
 
-  return text
-}
+  return text;
+};
 
 export const format = _.flow([
   dedupSpaces,
@@ -340,4 +319,4 @@ export const format = _.flow([
   dedupSpaces,
   trimAll,
   transformAll,
-])
+]);

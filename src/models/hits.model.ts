@@ -1,7 +1,7 @@
-import { ResponseModel } from "src/models/response.model"
+import { ResponseModel } from "src/models/response.model";
 
 export interface HitsModel<T> {
   hits: {
-    hits: Array<ResponseModel<T>>
-  }
+    hits: Array<ResponseModel<T>>;
+  };
 }

@@ -7,8 +7,9 @@ lib
 yarn.lock
 package-lock.json
 .cursor
-*.json
 sample-config
 .DS_Store
 CLAUDE.md
 .claude
+repomix-output.xml
+*.json

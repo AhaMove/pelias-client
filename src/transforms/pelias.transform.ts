@@ -1,35 +1,35 @@
-import * as turf from "@turf/turf"
-import { Position } from "@turf/turf"
-import * as _ from "lodash/fp"
-import { PeliasFeatureModel } from "src/models/pelias-feature.model"
-import { DocumentModel } from "src/models/document.model"
-import { ResponseModel } from "src/models/response.model"
-import deaccents from "src/format/vietnam/deaccents"
-import { removeCountyPrefix, removeLocalityPrefix } from "src/format/vietnam"
+import * as turf from "@turf/turf";
+import { Position } from "@turf/turf";
+import * as _ from "lodash/fp";
+import { removeCountyPrefix, removeLocalityPrefix } from "src/format/vietnam";
+import deaccents from "src/format/vietnam/deaccents";
+import { DocumentModel } from "src/models/document.model";
+import { PeliasFeatureModel } from "src/models/pelias-feature.model";
+import { ResponseModel } from "src/models/response.model";
 
 type FeatureOps = {
-  points?: Position
-}
+  points?: Position;
+};
 
 export interface AdminAreas {
-  county: string
-  locality: string
+  county: string;
+  locality: string;
 }
 
 export class PeliasTransform {
   static createGId(value: string): string {
-    return `whosonfirst:region:${value}`
+    return `whosonfirst:region:${value}`;
   }
 
   static getDistance(startPosition: Position, endPosition: Position): number {
     if (!Array.isArray(startPosition) || !Array.isArray(endPosition)) {
-      return 0
+      return 0;
     }
 
-    const from = turf.point(startPosition)
-    const to = turf.point(endPosition)
+    const from = turf.point(startPosition);
+    const to = turf.point(endPosition);
 
-    return turf.distance(from, to)
+    return turf.distance(from, to);
   }
 
   static filterHits<T extends DocumentModel>(
@@ -40,38 +40,38 @@ export class PeliasTransform {
     if (geocode) {
       if (!adminAreas) {
         if (hits.length > 0) {
-          return [hits[0]]
+          return [hits[0]];
         }
-        return hits
+        return hits;
       }
 
       adminAreas = {
         county: deaccents(removeCountyPrefix(adminAreas.county)),
         locality: deaccents(removeLocalityPrefix(adminAreas.locality)),
-      }
+      };
 
       for (let i = 0; i < hits.length; i++) {
-        const nameDefault = deaccents(hits[i]._source.name.default)
+        const nameDefault = deaccents(hits[i]._source.name.default);
 
         if (adminAreas.county) {
           if (!nameDefault.includes(adminAreas.county)) {
-            continue
+            continue;
           }
         }
 
         if (adminAreas.locality) {
           if (!nameDefault.includes(adminAreas.locality)) {
-            continue
+            continue;
           }
         }
 
-        return [hits[i]]
+        return [hits[i]];
       }
 
-      return []
+      return [];
     }
 
-    return hits
+    return hits;
   }
 
   static toFeatures<T extends DocumentModel>(
@@ -81,28 +81,29 @@ export class PeliasTransform {
     }
   ): PeliasFeatureModel[] {
     return hits.map((value) => {
-      const score = value._score
-      const source = value._source
-      const parent = source.parent
-      const coordinates = [source.center_point.lon, source.center_point.lat]
-      const nameDefault = source.name.default
-      const name = Array.isArray(nameDefault) ? nameDefault[0] : nameDefault
+      const score = value._score;
+      const source = value._source;
+      const parent = source.parent;
+      const coordinates = [source.center_point.lon, source.center_point.lat];
+      const nameDefault = source.name.default;
+      const name = Array.isArray(nameDefault) ? nameDefault[0] : nameDefault;
 
-      const { addendum } = source
-      let entrances = "", polygon = "";
+      const { addendum } = source;
+      let entrances = "",
+        polygon = "";
       if (addendum) {
-        const { geometry } = addendum
+        const { geometry } = addendum;
         if (geometry) {
-          const jsonGeometry = _.isString(geometry) ? JSON.parse(geometry) : geometry
+          const jsonGeometry = _.isString(geometry) ? JSON.parse(geometry) : geometry;
           if (value?.fields?.sorted_entrances) {
-            entrances = value?.fields?.sorted_entrances
+            entrances = value?.fields?.sorted_entrances;
           } else {
-            entrances = jsonGeometry?.entrances ?? ""
+            entrances = jsonGeometry?.entrances ?? "";
           }
-          polygon = jsonGeometry?.polygon ?? ""
+          polygon = jsonGeometry?.polygon ?? "";
         } else {
-          entrances = source?.addendum?.entrances ?? ""
-          polygon = source?.addendum?.polygon ?? ""
+          entrances = source?.addendum?.entrances ?? "";
+          polygon = source?.addendum?.polygon ?? "";
         }
       }
 
@@ -136,32 +137,30 @@ export class PeliasTransform {
           locality_a: "",
           locality_gid: "",
           locality_id: _.get("locality_id.0", parent),
-          entrances,  
+          entrances,
           polygon,
           score,
         },
-      }
+      };
 
       if (addendum.contact_name) {
-        result.properties.contact_name = addendum.contact_name
+        result.properties.contact_name = addendum.contact_name;
       }
 
       if (addendum.contact_number) {
-        result.properties.contact_number = addendum.contact_number
+        result.properties.contact_number = addendum.contact_number;
       }
 
-      const locality = _.get("locality.0", parent)
+      const locality = _.get("locality.0", parent);
       if (locality) {
         result.properties = {
           ...result.properties,
           ...{
             locality,
-            locality_gid: PeliasTransform.createGId(
-              _.get("locality_id.0", parent)
-            ),
+            locality_gid: PeliasTransform.createGId(_.get("locality_id.0", parent)),
             locality_a: _.get("locality_a.0", parent),
           },
-        }
+        };
       } else {
         result.properties = {
           ...result.properties,
@@ -170,22 +169,19 @@ export class PeliasTransform {
             locality_gid: result.properties.county_gid,
             locality_a: result.properties.county_a,
           },
-        }
+        };
       }
 
       if (source.address_parts) {
-        result.properties.housenumber = source.address_parts.number
-        result.properties.street = source.address_parts.street
+        result.properties.housenumber = source.address_parts.number;
+        result.properties.street = source.address_parts.street;
       }
 
       if (Array.isArray(opts.points) && opts.points[0] && opts.points[1]) {
-        result.properties.distance = PeliasTransform.getDistance(
-          opts.points,
-          coordinates
-        )
+        result.properties.distance = PeliasTransform.getDistance(opts.points, coordinates);
       }
 
-      return result
-    })
+      return result;
+    });
   }
 }

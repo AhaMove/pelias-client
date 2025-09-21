@@ -196,9 +196,10 @@ export class ElasticTransform {
     };
     if (parsedText.number) {
       result.bool.must.push({
-        match_phrase: {
-          "address_parts.number": {
-            query: parsedText.number,
+        regexp: {
+          "address_parts.number.keyword": {
+            value: `${parsedText.number}([\\/\\-].*)?`,
+            flags: "ALL",
           },
         },
       });

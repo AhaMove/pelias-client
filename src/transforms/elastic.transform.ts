@@ -284,7 +284,7 @@ export class ElasticTransform {
                   if (entrances instanceof List) {
                     for (def entrance : entrances) {
                       if (entrance.containsKey('normalized')) {
-                        String normalizedEntranceName = entrance.normalized;
+                        String normalizedEntranceName = entrance.normalized.toLowerCase();
                         if (normalizedEntranceName != null && !normalizedEntranceName.isEmpty() && normalizedEntranceName.indexOf(searchTerm) >= 0) {
                           return 10;
                         }

@@ -12,4 +12,4 @@ sample-config
 CLAUDE.md
 .claude
 repomix-output.xml
-*.json
+src/data/vietnam/

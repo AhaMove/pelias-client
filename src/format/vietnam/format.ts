@@ -125,6 +125,69 @@ const cleanAddress = _.flow([
   // _.replace(/@/g, "-"),
 ]);
 
+const sanitizeBuildingPrefix = (text: string) => {
+  // Remove Vietnamese building prefixes only when they appear as standalone building references
+  // Preserve them when there are multiple address components (complex addresses)
+  let result = text;
+
+  // Handle prefixes followed directly by comma first (like "Chung cư,")
+  result = result.replace(/(?<=^|,\s*)(chung\s*c[ưu]|cc)\s*,\s*/gi, "");
+
+  // Check if this is a complex address with multiple components
+  const components = text
+    .split(",")
+    .map((c) => c.trim())
+    .filter((c) => c.length > 0);
+  const hasMultipleComponents = components.length > 1;
+
+  // If it's a simple address (single component), remove building prefixes
+  if (!hasMultipleComponents) {
+    // Only remove Vietnamese building prefixes at the beginning when it's a standalone building reference
+    result = result.replace(/^(chung\s*c[ưu]|cc)\s+(?=[A-Z])/gi, "");
+    result = result.replace(/^(t[òo]a\s*nh[àa])\s+(?=[A-Z])/gi, "");
+    result = result.replace(/^(cao\s*[ốo]c)\s+(?=[A-Z])/gi, "");
+    result = result.replace(/^(khu\s*d[âa]n\s*c[ưu]|kdc)\s+(?=[A-Z])/gi, "");
+    result = result.replace(/^(khu\s*[đd][ôo]\s*th[ịi]|kdt)\s+(?=[A-Z])/gi, "");
+    result = result.replace(/^(v[ăa]n\s*ph[òo]ng|vp)\s+(?=[A-Z])/gi, "");
+    result = result.replace(/^(nh[àa]\s*ph[ốo])\s+(?=[A-Z])/gi, "");
+    result = result.replace(/^(bi[ệe]t\s*th[ựu]|bt)\s+(?=[A-Z])/gi, "");
+    result = result.replace(/^(block|l[ôo])\s+(?=[A-Z])/gi, "");
+  } else {
+    // For complex addresses, remove prefixes only if they are at the beginning of the entire address
+    // and the rest is just a building name (first component is just prefix + building name)
+    const firstComponent = components[0];
+    const isPureBuilding =
+      /^(chung\s*c[ưu]|cc|t[òo]a\s*nh[àa]|cao\s*[ốo]c|khu\s*d[âa]n\s*c[ưu]|kdc|khu\s*[đd][ôo]\s*th[ịi]|kdt|v[ăa]n\s*ph[òo]ng|vp|nh[àa]\s*ph[ốo]|bi[ệe]t\s*th[ựu]|bt|block|l[ôo])\s+[A-Z]/gi.test(
+        firstComponent
+      );
+
+    if (isPureBuilding) {
+      // Only remove prefix from the first component
+      const modifiedFirstComponent = firstComponent
+        .replace(/^(chung\s*c[ưu]|cc)\s+(?=[A-Z])/gi, "")
+        .replace(/^(t[òo]a\s*nh[àa])\s+(?=[A-Z])/gi, "")
+        .replace(/^(cao\s*[ốo]c)\s+(?=[A-Z])/gi, "")
+        .replace(/^(khu\s*d[âa]n\s*c[ưu]|kdc)\s+(?=[A-Z])/gi, "")
+        .replace(/^(khu\s*[đd][ôo]\s*th[ịi]|kdt)\s+(?=[A-Z])/gi, "")
+        .replace(/^(v[ăa]n\s*ph[òo]ng|vp)\s+(?=[A-Z])/gi, "")
+        .replace(/^(nh[àa]\s*ph[ốo])\s+(?=[A-Z])/gi, "")
+        .replace(/^(bi[ệe]t\s*th[ựu]|bt)\s+(?=[A-Z])/gi, "")
+        .replace(/^(block|l[ôo])\s+(?=[A-Z])/gi, "");
+
+      result = [modifiedFirstComponent, ...components.slice(1)].join(", ");
+    }
+    // Otherwise, preserve building prefixes in complex addresses
+  }
+
+  // Clean up any resulting double spaces or commas
+  result = result
+    .replace(/,\s*,/g, ",")
+    .replace(/^\s*,\s*/, "")
+    .replace(/\s+/g, " ");
+
+  return result.trim();
+};
+
 const addLeadingZero = function (text: string) {
   return _.replace(/(Quận|Phường)(\s+)(\d+)/gi, (_, p1, p2, p3) => {
     return p1 + " " + p3.trim(); //.padStart(2, "0")
@@ -284,8 +347,21 @@ const transformAll = function (text: string) {
 
 const transformAbbreviations = (text: string) => {
   for (const [key, value] of Object.entries(abbreviations)) {
-    const re = new RegExp(value, "gi");
-    text = text.replace(re, key);
+    // Special handling for "Tòa Nhà" - ignore "Tower" transformation
+    if (key === "Tòa Nhà") {
+      // Only transform Vietnamese patterns, skip "Tower"
+      const patterns = value.split("|");
+      for (const pattern of patterns) {
+        if (pattern.toLowerCase() !== "tower") {
+          const re = new RegExp(pattern, "gi");
+          text = text.replace(re, key);
+        }
+      }
+    } else {
+      // Normal transformation for other abbreviations
+      const re = new RegExp(value, "gi");
+      text = text.replace(re, key);
+    }
   }
 
   return text;
@@ -305,6 +381,7 @@ export const format = _.flow([
   transformAbbreviations,
   encodeDictionaryWord,
   cleanAddress,
+  sanitizeBuildingPrefix,
   decodeDictionaryWord,
   dedupSpaces,
   sanitizeStreet,

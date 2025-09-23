@@ -1,3 +1,4 @@
+import buildingPrefixes from "src/data/vietnam/building-prefixes.json";
 import { AddressParts } from "src/models/address-parts.model";
 
 const hasCountry = (text: string) => {
@@ -224,12 +225,24 @@ export const extractVenue = (text: string): string => {
     return "";
   }
 
-  const venue = text.split(",")[0];
-  if (!venue.replace(/[^a-z0-9À-ỹ]/gi, "")) {
+  const parts = text.split(",");
+  const firstPart = parts[0].trim();
+
+  // Check if first part is just a building prefix without a name
+  const prefixOnlyPattern = new RegExp(`^(${Object.values(buildingPrefixes.patterns).join("|")})$`, "i");
+
+  if (prefixOnlyPattern.test(firstPart)) {
+    // If it's just a prefix, try to extract from the full text
+    // Example: "Chung cư, 123 Nguyen Van Linh" should not have venue
     return "";
   }
 
-  return venue.trim();
+  // Original logic for valid venue names
+  if (!firstPart.replace(/[^a-z0-9À-ỹ]/gi, "")) {
+    return "";
+  }
+
+  return firstPart;
 };
 
 export const extract = (text: string): AddressParts => {

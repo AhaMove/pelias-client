@@ -1,0 +1,24 @@
+{
+  "prefixes": {
+    "chung_cu": ["chung cư", "chung cu", "cc", "chungcu"],
+    "toa_nha": ["tòa nhà", "toa nha", "toanha", "tòa", "tower"],
+    "cao_oc": ["cao ốc", "cao oc", "caooc"],
+    "khu_dan_cu": ["khu dân cư", "khu dan cu", "kdc"],
+    "khu_do_thi": ["khu đô thị", "khu do thi", "kdt"],
+    "van_phong": ["văn phòng", "van phong", "vp", "office"],
+    "nha_pho": ["nhà phố", "nha pho", "shophouse"],
+    "biet_thu": ["biệt thự", "biet thu", "bt", "villa"],
+    "block": ["block", "lô", "tòa"]
+  },
+  "patterns": {
+    "apartment": "(?:chung\\s*c[ưu]|cc|apartment|apt)",
+    "building": "(?:t[òo]a\\s*nh[àa]|tower|building)",
+    "highrise": "(?:cao\\s*[ốo]c|high-?rise)",
+    "residential": "(?:khu\\s*d[âa]n\\s*c[ưu]|kdc)",
+    "urban": "(?:khu\\s*[đd][ôo]\\s*th[ịi]|kdt)",
+    "office": "(?:v[ăa]n\\s*ph[òo]ng|vp|office)",
+    "townhouse": "(?:nh[àa]\\s*ph[ốo]|shophouse)",
+    "villa": "(?:bi[ệe]t\\s*th[ựu]|bt|villa)",
+    "block": "(?:block|l[ôo]|t[òo]a)"
+  }
+}

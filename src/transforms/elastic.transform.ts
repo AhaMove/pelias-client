@@ -1,5 +1,5 @@
 import * as _ from "lodash/fp";
-import { extract } from "src/format/vietnam";
+import { extract, format } from "src/format/vietnam";
 import { AddressParts } from "src/models/address-parts.model";
 import { CountModel } from "src/models/count.model";
 import { NearbyParams } from "src/resources/nearby.params";
@@ -809,7 +809,10 @@ export class ElasticTransform {
 
   static createGeocodeBody(params: GeocodeParams): Record<string, any> {
     const { text, addressParts } = params;
-    const { venue, number, street } = extract(text);
+
+    // Apply format before extraction for consistent processing
+    const formattedText = format(text);
+    const { venue, number, street } = extract(formattedText);
 
     const mustClauses: Record<string, any>[] = [];
 
@@ -835,7 +838,7 @@ export class ElasticTransform {
       });
     } else {
       mustClauses.push({
-        match_phrase: {
+        match: {
           "name.default": {
             query: text,
           },
@@ -843,12 +846,13 @@ export class ElasticTransform {
       });
     }
 
-    // Add address number matching with intervals
+    // Add address number matching with regex pattern
     if (number) {
       mustClauses.push({
-        match_phrase: {
-          "address_parts.number": {
-            query: number,
+        regexp: {
+          "address_parts.number.keyword": {
+            value: `${number}([\\/\\-].*)?`,
+            flags: "ALL",
           },
         },
       });
@@ -877,19 +881,10 @@ export class ElasticTransform {
     }
 
     if (addressParts?.county) {
-      let countyQuery = addressParts.county;
-
-      // Map old districts to Thu Duc City
-      const thuDucRegex =
-        /(Quận\s*2|Q\.?\s*2|Quan\s*2|Quận\s*9|Q\.?\s*9|Quan\s*9|Quận\s*Thủ\s*Đức|Q\.?\s*T\.?\s*D|Q\.?\s*TD|QTD|Q\s*Thu\s*Duc|Q\s*Thủ\s*Đức|Quan\s*Thu\s*Duc|Quan\s*Thủ\s*Đức|Thủ\s*Đức|Thu\s*Duc)/i;
-      if (countyQuery.match(thuDucRegex)) {
-        countyQuery = "Thành Phố Thủ Đức";
-      }
-
       mustClauses.push({
         match_phrase: {
           "parent.county": {
-            query: countyQuery,
+            query: addressParts.county,
           },
         },
       });
@@ -917,13 +912,29 @@ export class ElasticTransform {
   }
 }
 
+interface SortConfig {
+  [key: string]: {
+    order?: "asc" | "desc";
+    mode?: "min" | "max" | "sum" | "avg" | "median";
+    [key: string]: unknown;
+  };
+}
+
+interface TopHitsConfig {
+  size: number;
+  track_scores: boolean;
+  sort: SortConfig | SortConfig[];
+  _source: boolean;
+  script_fields?: Record<string, unknown>;
+}
+
 function buildMultiIndexAggregations(
   aggregations: Record<string, MultiIndexAggregationConfig> | null,
-  sort: any,
-  scriptFields?: Record<string, any>
-) {
+  sort: SortConfig | SortConfig[],
+  scriptFields?: Record<string, unknown>
+): Record<string, unknown> {
   // Initialize empty aggregations object
-  const aggs: Record<string, any> = {};
+  const aggs: Record<string, unknown> = {};
   // Return empty object if aggregations is null
   if (!aggregations) {
     return aggs;
@@ -933,7 +944,7 @@ function buildMultiIndexAggregations(
     // Skip if configuration is empty
     if (!aggConfig) continue;
 
-    const topHitsConfig: any = {
+    const topHitsConfig: TopHitsConfig = {
       size: aggConfig.size,
       track_scores: true,
       sort: sort,

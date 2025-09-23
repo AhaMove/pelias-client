@@ -16,7 +16,7 @@ import { ElasticTransform } from "src/transforms/elastic.transform";
 import { AdminAreas, PeliasTransform } from "src/transforms/pelias.transform";
 
 import { extract, format } from "./format/vietnam";
-import deaccents from "./format/vietnam/deaccents.js";
+import deaccents from "./format/vietnam/deaccents";
 
 interface ClientConfig extends ClientOptions {
   /**

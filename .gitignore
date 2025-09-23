@@ -12,4 +12,5 @@ sample-config
 CLAUDE.md
 .claude
 repomix-output.xml
-src/data/vietnam/
+src/data/vietnam/districts
+src/data/vietnam/old_admins

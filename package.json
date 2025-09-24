@@ -40,7 +40,6 @@
     "typedoc": "^0.26.11",
     "typescript": "^5.9.2"
   },
-  "type": "module",
   "scripts": {
     "prepare": "pnpm build",
     "prepublishOnly": "pnpm lint",

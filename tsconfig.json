@@ -10,16 +10,20 @@
     "noImplicitAny": true,
     "resolveJsonModule": true,
     "allowJs": true,
-    "target": "es2017",
+    "target": "es2018",
+    "lib": ["es2018"],
     "sourceMap": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "outDir": "./lib",
     "baseUrl": ".",
     "incremental": true,
     "paths": {
       "src/*": ["src/*"]
     },
-    "allowSyntheticDefaultImports": true
+    "moduleResolution": "node",
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
   },
   "typedocOptions": {
     "out": "docs",

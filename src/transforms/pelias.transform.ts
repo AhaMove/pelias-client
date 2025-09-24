@@ -35,7 +35,7 @@ export class PeliasTransform {
   static filterHits<T extends DocumentModel>(
     hits: Array<ResponseModel<T>>,
     geocode = false,
-    adminAreas?: AdminAreas
+    adminAreas?: AdminAreas,
   ): Array<ResponseModel<T>> {
     if (geocode) {
       if (!adminAreas) {
@@ -78,7 +78,7 @@ export class PeliasTransform {
     hits: Array<ResponseModel<T>>,
     opts: FeatureOps = {
       points: undefined,
-    }
+    },
   ): PeliasFeatureModel[] {
     return hits.map((value) => {
       const score = value._score;

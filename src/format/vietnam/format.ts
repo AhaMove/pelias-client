@@ -1,4 +1,4 @@
-import * as _ from "lodash/fp";
+import _ from "lodash/fp.js";
 import abbreviations from "src/data/vietnam/abbreviations.json";
 import dictionary from "src/data/vietnam/dictionary.json";
 import regex from "src/data/vietnam/regex.json";

@@ -920,7 +920,7 @@ export class ElasticTransform {
 function buildMultiIndexAggregations(
   aggregations: Record<string, MultiIndexAggregationConfig> | null,
   sort: any,
-  scriptFields?: Record<string, any>
+  scriptFields?: Record<string, any>,
 ) {
   // Initialize empty aggregations object
   const aggs: Record<string, any> = {};

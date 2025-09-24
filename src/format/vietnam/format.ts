@@ -88,11 +88,11 @@ const cleanAddress = _.flow([
   _.replace(/(;|\s\/\s)/g, " , "), // replace ; and / with ,
   _.replace(
     /^\s*(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)\s+([A-Z]?[0-9])/i,
-    "$2"
+    "$2",
   ),
   _.replace(
     /(?<=^|\W)(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)([0-9])/gi,
-    "$1 $2"
+    "$1 $2",
   ),
   _.replace(/(\s+trên\s+)(\d+)/gi, "/$2"), // 2 trên 3 -> 2/3
   _.replace(/^\s*([A-Z]?[0-9][A-Z\-/0-9]*)(?![\w.])[\s,]*/i, "$1 "), // xoá dấu , kề sau số nhà

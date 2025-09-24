@@ -1,6 +1,6 @@
 import * as turf from "@turf/turf";
 import { Position } from "@turf/turf";
-import * as _ from "lodash/fp";
+import _ from "lodash/fp.js";
 import { removeCountyPrefix, removeLocalityPrefix } from "src/format/vietnam";
 import deaccents from "src/format/vietnam/deaccents";
 import { DocumentModel } from "src/models/document.model";
@@ -35,7 +35,7 @@ export class PeliasTransform {
   static filterHits<T extends DocumentModel>(
     hits: Array<ResponseModel<T>>,
     geocode = false,
-    adminAreas?: AdminAreas
+    adminAreas?: AdminAreas,
   ): Array<ResponseModel<T>> {
     if (geocode) {
       if (!adminAreas) {
@@ -78,7 +78,7 @@ export class PeliasTransform {
     hits: Array<ResponseModel<T>>,
     opts: FeatureOps = {
       points: undefined,
-    }
+    },
   ): PeliasFeatureModel[] {
     return hits.map((value) => {
       const score = value._score;

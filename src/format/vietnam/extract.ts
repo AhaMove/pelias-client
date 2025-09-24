@@ -213,7 +213,7 @@ export const isAddress = (text: string): RegExpMatchArray | null => {
   firstPart = firstPart
     .replace(
       /^(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)\s+([A-Z]?[0-9])/i,
-      "$2"
+      "$2",
     )
     .trim();
 

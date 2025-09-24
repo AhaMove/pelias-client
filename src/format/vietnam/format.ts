@@ -1,4 +1,4 @@
-import * as _ from "lodash/fp";
+import _ from "lodash/fp.js";
 import abbreviations from "src/data/vietnam/abbreviations.json";
 import dictionary from "src/data/vietnam/dictionary.json";
 import regex from "src/data/vietnam/regex.json";
@@ -88,11 +88,11 @@ const cleanAddress = _.flow([
   _.replace(/(;|\s\/\s)/g, " , "), // replace ; and / with ,
   _.replace(
     /^\s*(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)\s+([A-Z]?[0-9])/i,
-    "$2"
+    "$2",
   ),
   _.replace(
     /(?<=^|\W)(ngõ|ngo|ngách|ngach|hẻm|hem|số|sô|so|số nhà|sô nha|so nha|sn|nhà số|nha sô|nha so)([0-9])/gi,
-    "$1 $2"
+    "$1 $2",
   ),
   _.replace(/(\s+trên\s+)(\d+)/gi, "/$2"), // 2 trên 3 -> 2/3
   _.replace(/^\s*([A-Z]?[0-9][A-Z\-/0-9]*)(?![\w.])[\s,]*/i, "$1 "), // xoá dấu , kề sau số nhà
@@ -158,7 +158,7 @@ const sanitizeBuildingPrefix = (text: string) => {
     const firstComponent = components[0];
     const isPureBuilding =
       /^(chung\s*c[ưu]|cc|t[òo]a\s*nh[àa]|cao\s*[ốo]c|khu\s*d[âa]n\s*c[ưu]|kdc|khu\s*[đd][ôo]\s*th[ịi]|kdt|v[ăa]n\s*ph[òo]ng|vp|nh[àa]\s*ph[ốo]|bi[ệe]t\s*th[ựu]|bt|block|l[ôo])\s+[A-Z]/gi.test(
-        firstComponent
+        firstComponent,
       );
 
     if (isPureBuilding) {

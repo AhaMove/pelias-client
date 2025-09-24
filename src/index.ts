@@ -38,7 +38,7 @@ export class PeliasClient<
   TModel extends DocumentModel,
   TResponse extends HitsModel<TModel>,
   TCountResponse extends CountModel,
-  TContext = Context
+  TContext = Context,
 > {
   private esClient: Client;
   private format = format;
@@ -85,7 +85,7 @@ export class PeliasClient<
     geocode: boolean,
     adminMatch: boolean,
     alias = "pelias",
-    userId = ""
+    userId = "",
   ): Promise<PeliasResponse> {
     const { text, size = 10, count_terminate_after = 500 } = params;
 
@@ -321,7 +321,7 @@ export class PeliasClient<
           region?: string;
           locality?: string;
         }
-      | undefined = undefined
+      | undefined = undefined,
   ): Promise<TModel | undefined> {
     const body = ElasticTransform.createGeocodeBody({
       text,

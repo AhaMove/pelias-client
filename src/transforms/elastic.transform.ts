@@ -1,4 +1,4 @@
-import * as _ from "lodash/fp";
+import _ from "lodash/fp.js";
 import { extract, format } from "src/format/vietnam";
 import { AddressParts } from "src/models/address-parts.model";
 import { CountModel } from "src/models/count.model";
@@ -931,7 +931,7 @@ interface TopHitsConfig {
 function buildMultiIndexAggregations(
   aggregations: Record<string, MultiIndexAggregationConfig> | null,
   sort: SortConfig | SortConfig[],
-  scriptFields?: Record<string, unknown>
+  scriptFields?: Record<string, unknown>,
 ): Record<string, unknown> {
   // Initialize empty aggregations object
   const aggs: Record<string, unknown> = {};

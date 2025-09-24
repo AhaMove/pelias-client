@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "ES2022",
     "declaration": true,
     "removeComments": true,
     "skipLibCheck": true,
@@ -10,16 +10,20 @@
     "noImplicitAny": true,
     "resolveJsonModule": true,
     "allowJs": true,
-    "target": "es2017",
+    "target": "ES2022",
+    "lib": ["ES2022"],
     "sourceMap": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "outDir": "./lib",
     "baseUrl": ".",
     "incremental": true,
     "paths": {
       "src/*": ["src/*"]
     },
-    "allowSyntheticDefaultImports": true
+    "moduleResolution": "node",
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
   },
   "typedocOptions": {
     "out": "docs",

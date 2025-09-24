@@ -1,4 +1,6 @@
-import { flow, replace } from "lodash/fp";
+import fp from "lodash/fp.js";
+
+const { flow, replace } = fp;
 
 const deaccents = flow([
   replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g, "a"),

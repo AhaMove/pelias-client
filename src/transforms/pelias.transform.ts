@@ -1,6 +1,6 @@
 import * as turf from "@turf/turf";
 import { Position } from "@turf/turf";
-import * as _ from "lodash/fp";
+import _ from "lodash/fp.js";
 import { removeCountyPrefix, removeLocalityPrefix } from "src/format/vietnam";
 import deaccents from "src/format/vietnam/deaccents";
 import { DocumentModel } from "src/models/document.model";

@@ -1,4 +1,4 @@
-import * as _ from "lodash/fp";
+import _ from "lodash/fp.js";
 import { extract } from "src/format/vietnam";
 import { AddressParts } from "src/models/address-parts.model";
 import { CountModel } from "src/models/count.model";

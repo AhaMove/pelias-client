@@ -97,7 +97,7 @@ const cleanAddress = _.flow([
   _.replace(/(\s+trên\s+)(\d+)/gi, "/$2"), // 2 trên 3 -> 2/3
   _.replace(/^\s*([A-Z]?[0-9][A-Z\-/0-9]*)(?![\w.])[\s,]*/i, "$1 "), // xoá dấu , kề sau số nhà
   _.replace(/(?<=^|\W)Gần .*?(?=$|,)/gi, " "), // xoá "gần ..."
-  _.replace(/(Đường\s)(số\s)?(\d+)(\s|,)/i, "Đường số $3, "),
+  _.replace(/(Đường\s)(số\s)?(\d+)(?=\s*,|\s*$)/i, "Đường số $3"),
 
   // _.replace(
   //   /^([a-z0-9]*)(\s?-\s?)([a-z0-9]*)(,?\s)([a-z0-9]*)(\s?-\s?)([a-z0-9]*)/i,
@@ -148,7 +148,7 @@ const sanitizeRegion = _.flow([
   sanitizeWithoutFirst(/(?<=^|\W)Province(?=$|\W)/gi, ","),
   sanitizeWithoutFirst(/(?<=^|\W)(Thành Phố\s|Thanh Pho\s)/gi, ", Thành Phố "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(Tp\s|Tp\.)/gi, ", Thành Phố "),
-  sanitizeWithoutFirst(/(?<=^|\W)(Tỉnh\s)/gi, ", Tỉnh "),
+  sanitizeWithoutFirst(/(?<!Đường\s)(?<=^|\W)(Tỉnh\s)/gi, ", Tỉnh "),
   sanitizeWithoutFirst(/(?<=^|,|\s)(T\s|T\.)/gi, ", Tỉnh "),
 ]);
 

@@ -1,4 +1,4 @@
-import { extractAddress } from "./index";
+import { extractAddress, formatAddress } from "./index";
 
 // const client = new PeliasClient({
 //   node: process.env.PELIAS_URL,
@@ -785,58 +785,70 @@ import { extractAddress } from "./index";
 //   })
 // })
 
-// describe("test formatAddress", () => {
-//   test.each([
-//     [
-//       "07/28 Thành Thái",
-//       "7/28 Thành Thái",
-//     ], [
-//       "Số      1101     Đường Tạ Quang Bửu,    Phường 6, Quận 8, HCM",
-//       "1101 Đường Tạ Quang Bửu, Phường 6, Quận 8, Hồ Chí Minh, Việt Nam",
-//     ], [
-//       "Số 0000101 Đường Tạ Quang Bửu, Phường 6, Quận 8, HCM",
-//       "101 Đường Tạ Quang Bửu, Phường 6, Quận 8, Hồ Chí Minh, Việt Nam",
-//     ], [
-//       "61 - 63, Liên phường , Phường Phú Hữu, Thành phố Thủ Đức, Thành phố Hồ Chí Minh",
-//       "61 - 63, Liên Phường, Phường Phú Hữu, Thành Phố Thủ Đức, Hồ Chí Minh, Việt Nam"
-//     ], [
-//       "103/09/09 đường số 11, Phường Linh Xuân, Quận Thủ Đức, TP Hồ Chí Minh",
-//       "103/9/9 Đường Số 11, Phường Linh Xuân, Quận Thủ Đức, Hồ Chí Minh, Việt Nam"
-//     ], [
-//       "028 lô K cư xá Thanh Đa, Phường 27, Quận Bình Thạnh, TP Hồ Chí Minh",
-//       "28 Lô K Cư Xá Thanh Đa, Phường 27, Quận Bình Thạnh, Hồ Chí Minh, Việt Nam"
-//     ], [
-//       "019/038 hồ bá phấn, Phường Phước Long A, Quận 9, TP Hồ Chí Minh",
-//       "19/38 Hồ Bá Phấn, Phường Phước Long A, Quận 9, Hồ Chí Minh, Việt Nam"
-//     ], [
-//       "125 Đ. Liên Phường, Phước Long B,      Quận 9,    Hồ Chí Minh 700000, Việt Nam",
-//       "125 Đường Liên Phường, Phước Long B, Quận 9, Hồ Chí Minh, Việt Nam"
-//     ], [
-//       "125 Đ. Liên Phường    ,    phường Phước Long B, Quận 9, Hồ Chí Minh 700000, Việt Nam",
-//       "125 Đường Liên Phường, Phường Phước Long B, Quận 9, Hồ Chí Minh, Việt Nam"
-//     ], [
-//       "46 Đ. Nguyễn Thái Bình, Phường Nguyễn Thái Bình, Quận 1, Hồ Chí Minh 71010, Vietnam",
-//       "46 Đường Nguyễn Thái Bình, Phường Nguyễn Thái Bình, Quận 1, Hồ Chí Minh, Việt Nam"
-//     ], [
-//       "44 P.Phạm Ngọc Thạch, Phương Liên, Đống Đa, Hà Nội",
-//       "44 Phố Phạm Ngọc Thạch, Phương Liên, Đống Đa, Hà Nội, Việt Nam"
-//     ], [
-//       "87 Đường Số 06, Phường Bình Trưng Tây, Thành phố Thủ Đức, Thành phố Hồ Chí Minh, Việt Nam",
-//       "87 Đường Số 6, Phường Bình Trưng Tây, Thành Phố Thủ Đức, Hồ Chí Minh, Việt Nam"
-//     ], [
-//       "06 Thới An 06 Khu phố 7, Phường Hiệp Thành, Quận 12, Hồ Chí Minh",
-//       "6 Thới An 6 Khu Phố 7, Phường Hiệp Thành, Quận 12, Hồ Chí Minh, Việt Nam"
-//     ], [
-//       "07 quốc lộ 1a tổ 3 khu phố 6 , Phường Linh Trung, Thành phố Thủ Đức, Hồ Chí Minh",
-//       "7 Quốc Lộ 1a Tổ 3 Khu Phố 6, Phường Linh Trung, Thành Phố Thủ Đức, Hồ Chí Minh, Việt Nam"
-//     ], [
-//       "s6.02 tiệm nail Petuny, chung cư Vinhomes, Phường Long Thạnh Mỹ, Quận 9, Hồ Chí Minh",
-//       "S6.02 Tiệm Nail Petuny, Chung Cư Vinhomes, Phường Long Thạnh Mỹ, Quận 9, Hồ Chí Minh, Việt Nam"
-//     ]
-//   ])("formatAddress should return as expected: '%s'", async (text, expected) => {
-//     expect(formatAddress(text)).toBe(expected)
-//   })
-// })
+describe("test formatAddress", () => {
+  test.each([
+    [
+      "07/28 Thành Thái",
+      "7/28 Thành Thái",
+    ], [
+      "Số      1101     Đường Tạ Quang Bửu,    Phường 6, Quận 8, HCM",
+      "1101 Đường Tạ Quang Bửu, Phường 6, Quận 8, Hồ Chí Minh, Việt Nam",
+    ], [
+      "Số 0000101 Đường Tạ Quang Bửu, Phường 6, Quận 8, HCM",
+      "101 Đường Tạ Quang Bửu, Phường 6, Quận 8, Hồ Chí Minh, Việt Nam",
+    ], [
+      "61 - 63, Liên phường , Phường Phú Hữu, Thành phố Thủ Đức, Thành phố Hồ Chí Minh",
+      "61 - 63, Liên Phường, Phường Phú Hữu, Thành Phố Thủ Đức, Hồ Chí Minh, Việt Nam"
+    ], [
+      "103/09/09 đường số 11, Phường Linh Xuân, Quận Thủ Đức, TP Hồ Chí Minh",
+      "103/9/9 Đường Số 11, Phường Linh Xuân, Quận Thủ Đức, Hồ Chí Minh, Việt Nam"
+    ], [
+      "028 lô K cư xá Thanh Đa, Phường 27, Quận Bình Thạnh, TP Hồ Chí Minh",
+      "28 Lô K Cư Xá Thanh Đa, Phường 27, Quận Bình Thạnh, Hồ Chí Minh, Việt Nam"
+    ], [
+      "019/038 hồ bá phấn, Phường Phước Long A, Quận 9, TP Hồ Chí Minh",
+      "19/38 Hồ Bá Phấn, Phường Phước Long A, Quận 9, Hồ Chí Minh, Việt Nam"
+    ], [
+      "125 Đ. Liên Phường, Phước Long B,      Quận 9,    Hồ Chí Minh 700000, Việt Nam",
+      "125 Đường Liên Phường, Phước Long B, Quận 9, Hồ Chí Minh, Việt Nam"
+    ], [
+      "125 Đ. Liên Phường    ,    phường Phước Long B, Quận 9, Hồ Chí Minh 700000, Việt Nam",
+      "125 Đường Liên Phường, Phường Phước Long B, Quận 9, Hồ Chí Minh, Việt Nam"
+    ], [
+      "46 Đ. Nguyễn Thái Bình, Phường Nguyễn Thái Bình, Quận 1, Hồ Chí Minh 71010, Vietnam",
+      "46 Đường Nguyễn Thái Bình, Phường Nguyễn Thái Bình, Quận 1, Hồ Chí Minh, Việt Nam"
+    ], [
+      "44 P.Phạm Ngọc Thạch, Phương Liên, Đống Đa, Hà Nội",
+      "44 Phố Phạm Ngọc Thạch, Phương Liên, Đống Đa, Hà Nội, Việt Nam"
+    ], [
+      "87 Đường Số 06, Phường Bình Trưng Tây, Thành phố Thủ Đức, Thành phố Hồ Chí Minh, Việt Nam",
+      "87 Đường Số 6, Phường Bình Trưng Tây, Thành Phố Thủ Đức, Hồ Chí Minh, Việt Nam"
+    ], [
+      "06 Thới An 06 Khu phố 7, Phường Hiệp Thành, Quận 12, Hồ Chí Minh",
+      "6 Thới An 6 Khu Phố 7, Phường Hiệp Thành, Quận 12, Hồ Chí Minh, Việt Nam"
+    ], [
+      "07 quốc lộ 1a tổ 3 khu phố 6 , Phường Linh Trung, Thành phố Thủ Đức, Hồ Chí Minh",
+      "7 Quốc Lộ 1a Tổ 3 Khu Phố 6, Phường Linh Trung, Thành Phố Thủ Đức, Hồ Chí Minh, Việt Nam"
+    ], [
+      "s6.02 tiệm nail Petuny, chung cư Vinhomes, Phường Long Thạnh Mỹ, Quận 9, Hồ Chí Minh",
+      "S6.02 Tiệm Nail Petuny, Chung Cư Vinhomes, Phường Long Thạnh Mỹ, Quận 9, Hồ Chí Minh, Việt Nam"
+    ], [
+      "132 Đường 3 Tháng 2, Quận 11, Hồ Chí Minh, Việt Nam",
+      "132 Đường 3 Tháng 2, Quận 11, Hồ Chí Minh, Việt Nam"
+    ], [
+      "Nhà Nghỉ Thanh Bình, Đường Tỉnh 351, Nam Sơn, An Dương, Hải Phòng, Việt Nam",
+      "Nhà Nghỉ Thanh Bình, Đường Tỉnh 351, Nam Sơn, An Dương, Hải Phòng, Việt Nam"
+    ], [
+      "Nhà Đất Sơn Mỹ, Đường Tỉnh 744, Phú An, Bến Cát, Bình Dương, Việt Nam",
+      "Nhà Đất Sơn Mỹ, Đường Tỉnh 744, Phú An, Bến Cát, Bình Dương, Việt Nam"
+    ], [
+      "1007/3C Đường 30 Tháng 4, Phường 11, Thành Phố Vũng Tàu, Bà Rịa-Vũng Tàu",
+      "1007/3C Đường 30 Tháng 4, Phường 11, Thành Phố Vũng Tàu, Bà Rịa-Vũng Tàu"
+    ]
+  ])("formatAddress should return as expected: '%s'", async (text, expected) => {
+    expect(formatAddress(text)).toBe(expected)
+  })
+})
 
 describe("extractAddress", () => {
   test.each([

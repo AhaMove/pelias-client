@@ -362,4 +362,4 @@ export function removeVietnameseAccents(text: string): string {
   return deaccents(text);
 }
 
-export { calculateSimilarity, sortBySimilarity } from "./utils/string-sort";
+export { calculateSimilarity, sortBySimilarity } from "./utils/string-sort.js";

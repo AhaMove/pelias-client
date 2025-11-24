@@ -1,81 +1,28 @@
 import _ from "lodash/fp.js";
 import { extract } from "src/format/vietnam";
-import { AddressParts } from "src/models/address-parts.model";
-import { CountModel } from "src/models/count.model";
 import { NearbyParams } from "src/resources/nearby.params";
 
 import deaccents from "../format/vietnam/deaccents";
-
-export interface MultiIndexOptions {
-  extraFilters?: Array<any>;
-  extraFunctions?: Array<any>;
-  aggregations?: Record<string, MultiIndexAggregationConfig> | null;
-  overwriteHits?: boolean;
-}
-
-export interface MultiIndexAggregationConfig {
-  filter: any;
-  size: number;
-}
-
-interface CreateSearchBody {
-  text: string;
-  size: number;
-  lat?: number;
-  lon?: number;
-  countFunc: (queryBody: Record<string, any>) => Promise<CountModel>;
-  geocode: boolean;
-  multiIndexOpts?: MultiIndexOptions | null;
-  userId: string;
-}
-
-interface CreateShouldClauses {
-  parsedText: AddressParts;
-  formatted: string;
-}
-
-interface CreateQuery {
-  parsedText: AddressParts;
-  formatted: string;
-}
-
-interface RescoreQuery {
-  query: Record<string, any>;
-  venueName: string;
-  parsedText: AddressParts;
-}
-
-interface CreateSort {
-  sortScore: boolean;
-  lat?: number;
-  lon?: number;
-}
-
-interface RescoreFunction {
-  script_score: {
-    script: {
-      source: string;
-      params?: Record<string, any>;
-    };
-  };
-}
-
-interface GeocodeParams {
-  text: string;
-  addressParts?: {
-    number?: string;
-    street?: string;
-    region?: string;
-    locality?: string;
-    county?: string;
-  };
-}
+import {
+  CreateQuery,
+  CreateSearchBody,
+  CreateShouldClauses,
+  CreateSort,
+  ElasticBoolQuery,
+  ElasticFunctionScoreQuery,
+  ElasticQuery,
+  GeocodeParams,
+  MultiIndexAggregationConfig,
+  MultiIndexOptions,
+  RescoreFunction,
+  RescoreQuery,
+} from "../types/elastic.types";
 
 export class ElasticTransform {
   static createShouldClauses({ parsedText, formatted }: CreateShouldClauses) {
     const componentClauses = _.flow([
       _.toPairs,
-      _.map(([key, value]: [string, any]) => {
+      _.map(([key, value]: [string, string]) => {
         let newKey;
         switch (key) {
           case "region":
@@ -186,8 +133,8 @@ export class ElasticTransform {
     return [nameDefaultClause, entrancesClause, ...componentClauses];
   }
 
-  static createQuery({ parsedText, formatted }: CreateQuery): Record<string, any> {
-    const result: any = {
+  static createQuery({ parsedText, formatted }: CreateQuery): ElasticBoolQuery {
+    const result: ElasticBoolQuery = {
       bool: {
         must: [],
         should: ElasticTransform.createShouldClauses({ parsedText, formatted }),
@@ -206,7 +153,7 @@ export class ElasticTransform {
     }
 
     if (parsedText.venue) {
-      const shouldClauses: any = [
+      const shouldClauses: Array<Record<string, unknown>> = [
         {
           intervals: {
             "name.default": {
@@ -238,7 +185,7 @@ export class ElasticTransform {
     return result;
   }
 
-  static rescoreQuery({ query, venueName, parsedText }: RescoreQuery): Record<string, any> {
+  static rescoreQuery({ query, venueName, parsedText }: RescoreQuery): ElasticFunctionScoreQuery {
     const functions: RescoreFunction[] = [
       {
         script_score: {
@@ -316,7 +263,7 @@ export class ElasticTransform {
   }
 
   static createSort({ sortScore: _sortScore, lat, lon }: CreateSort) {
-    const result: any = [
+    const result: Array<Record<string, unknown>> = [
       {
         _score: "desc",
       },
@@ -377,13 +324,11 @@ export class ElasticTransform {
 
     const multiIndexOpts = userId ? buildMultiIndexSearchOpts(userId) : null;
     // create query
-    let query = ElasticTransform.createQuery({ parsedText, formatted });
+    let query: ElasticQuery = ElasticTransform.createQuery({ parsedText, formatted });
     // if multiIndexOpts is provided, add extra filters
-    if (multiIndexOpts) {
-      if (multiIndexOpts.extraFilters) {
-        query.bool.filter = query.bool.filter || [];
-        query.bool.filter.push(...multiIndexOpts.extraFilters);
-      }
+    if (multiIndexOpts?.extraFilters && "bool" in query) {
+      query.bool.filter = query.bool.filter || [];
+      query.bool.filter.push(...multiIndexOpts.extraFilters);
     }
     // count the number of records that match the query. If return terminated_early == true, we won't recalculate the score
     const countResult = await countFunc({
@@ -422,8 +367,8 @@ export class ElasticTransform {
     // }
 
     // if multiIndexOpts is provided, add extra scoring functions
-    if (multiIndexOpts && multiIndexOpts.extraFunctions) {
-      if (!query.function_score) {
+    if (multiIndexOpts?.extraFunctions) {
+      if (!("function_score" in query)) {
         query = {
           function_score: {
             query: query,
@@ -436,7 +381,7 @@ export class ElasticTransform {
     }
 
     // Add distance-based scoring when coordinates are available
-    if (lat !== undefined && lon !== undefined && query.function_score) {
+    if (lat !== undefined && lon !== undefined && "function_score" in query) {
       const nearbyDistanceScore = [
         {
           filter: {
@@ -729,7 +674,7 @@ export class ElasticTransform {
       },
     };
 
-    const body: Record<string, any> = {
+    const body: Record<string, unknown> = {
       query: query,
       size: size,
       track_scores: true,
@@ -738,7 +683,7 @@ export class ElasticTransform {
     };
 
     // Add script field for sorted entrances if we have a search term
-    let scriptFields: Record<string, any> | undefined;
+    let scriptFields: Record<string, unknown> | undefined;
     if (parsedText.venue || parsedText.address) {
       scriptFields = {
         sorted_entrances: sortedEntrancesScript,
@@ -761,7 +706,16 @@ export class ElasticTransform {
 
   static createNearByBody(params: NearbyParams) {
     const size = params.size ?? "10";
-    const nearByBody: any = {
+    const nearByBody: {
+      query: {
+        bool: {
+          filter: Record<string, unknown>;
+          must: Array<Record<string, unknown>>;
+        };
+      };
+      size: number;
+      sort: Record<string, unknown>;
+    } = {
       query: {
         bool: {
           filter: {
@@ -807,11 +761,11 @@ export class ElasticTransform {
     return nearByBody;
   }
 
-  static createGeocodeBody(params: GeocodeParams): Record<string, any> {
+  static createGeocodeBody(params: GeocodeParams): Record<string, unknown> {
     const { text, addressParts } = params;
     const { venue, number, street } = extract(text);
 
-    const mustClauses: Record<string, any>[] = [];
+    const mustClauses: Array<Record<string, unknown>> = [];
 
     if (venue) {
       mustClauses.push({
@@ -919,11 +873,11 @@ export class ElasticTransform {
 
 function buildMultiIndexAggregations(
   aggregations: Record<string, MultiIndexAggregationConfig> | null,
-  sort: any,
-  scriptFields?: Record<string, any>,
+  sort: Array<Record<string, unknown>>,
+  scriptFields?: Record<string, unknown>,
 ) {
   // Initialize empty aggregations object
-  const aggs: Record<string, any> = {};
+  const aggs: Record<string, unknown> = {};
   // Return empty object if aggregations is null
   if (!aggregations) {
     return aggs;
@@ -933,7 +887,7 @@ function buildMultiIndexAggregations(
     // Skip if configuration is empty
     if (!aggConfig) continue;
 
-    const topHitsConfig: any = {
+    const topHitsConfig: Record<string, unknown> = {
       size: aggConfig.size,
       track_scores: true,
       sort: sort,

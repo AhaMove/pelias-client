@@ -1,11 +1,11 @@
 import * as turf from "@turf/turf";
 import { Position } from "@turf/turf";
 import _ from "lodash/fp.js";
-import { removeCountyPrefix, removeLocalityPrefix } from "src/format/vietnam";
-import deaccents from "src/format/vietnam/deaccents";
-import { DocumentModel } from "src/models/document.model";
-import { PeliasFeatureModel } from "src/models/pelias-feature.model";
-import { ResponseModel } from "src/models/response.model";
+import { removeCountyPrefix, removeLocalityPrefix } from "../format/vietnam/index.js";
+import deaccents from "../format/vietnam/deaccents.js";
+import { DocumentModel } from "../models/document.model.js";
+import { PeliasFeatureModel } from "../models/pelias-feature.model.js";
+import { ResponseModel } from "../models/response.model.js";
 
 type FeatureOps = {
   points?: Position;

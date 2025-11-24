@@ -1,5 +1,5 @@
-import { AddressParts } from "src/models/address-parts.model";
-import { CountModel } from "src/models/count.model";
+import { AddressParts } from "../models/address-parts.model.js";
+import { CountModel } from "../models/count.model.js";
 
 export interface MultiIndexOptions {
   extraFilters?: Array<Record<string, unknown>>;

@@ -1,5 +1,5 @@
-import { AddressParts } from "src/models/address-parts.model";
-import { PeliasFeatureModel } from "src/models/pelias-feature.model";
+import { AddressParts } from "../models/address-parts.model.js";
+import { PeliasFeatureModel } from "../models/pelias-feature.model.js";
 
 export interface PeliasQuery {
   text: string;

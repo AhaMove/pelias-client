@@ -1,4 +1,4 @@
-import { UpdateParams } from "src/resources/update.params";
+import { UpdateParams } from "../resources/update.params.js";
 
 export class DocumentTransform {
   static docBuilder(data: UpdateParams) {

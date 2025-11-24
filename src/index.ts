@@ -2,21 +2,21 @@ import { Client, ClientOptions } from "@elastic/elasticsearch";
 import * as RequestParams from "@elastic/elasticsearch/api/requestParams";
 import { ApiResponse, Context, TransportRequestPromise } from "@elastic/elasticsearch/lib/Transport";
 import * as crypto from "crypto";
-import { AddressParts } from "src/models/address-parts.model";
-import { CountModel } from "src/models/count.model";
-import { DocumentModel } from "src/models/document.model";
-import { HitsModel } from "src/models/hits.model";
-import { CreateParams } from "src/resources/create.params";
-import { NearbyParams } from "src/resources/nearby.params";
-import { PeliasResponse } from "src/resources/pelias.resouce";
-import { SearchByNameParams, SearchParams } from "src/resources/search.params";
-import { UpdateParams } from "src/resources/update.params";
-import { DocumentTransform } from "src/transforms/document.transform";
-import { ElasticTransform } from "src/transforms/elastic.transform";
-import { AdminAreas, PeliasTransform } from "src/transforms/pelias.transform";
+import { AddressParts } from "./models/address-parts.model.js";
+import { CountModel } from "./models/count.model.js";
+import { DocumentModel } from "./models/document.model.js";
+import { HitsModel } from "./models/hits.model.js";
+import { CreateParams } from "./resources/create.params.js";
+import { NearbyParams } from "./resources/nearby.params.js";
+import { PeliasResponse } from "./resources/pelias.resouce.js";
+import { SearchByNameParams, SearchParams } from "./resources/search.params.js";
+import { UpdateParams } from "./resources/update.params.js";
+import { DocumentTransform } from "./transforms/document.transform.js";
+import { ElasticTransform } from "./transforms/elastic.transform.js";
+import { AdminAreas, PeliasTransform } from "./transforms/pelias.transform.js";
 
-import { extract, format } from "./format/vietnam";
-import deaccents from "./format/vietnam/deaccents";
+import { extract, format } from "./format/vietnam/index.js";
+import deaccents from "./format/vietnam/deaccents.js";
 
 interface ClientConfig extends ClientOptions {
   /**

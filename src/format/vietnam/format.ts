@@ -1,8 +1,8 @@
 import _ from "lodash/fp.js";
-import abbreviations from "src/data/vietnam/abbreviations.json";
-import dictionary from "src/data/vietnam/dictionary.json";
-import regex from "src/data/vietnam/regex.json";
-import deaccents from "src/format/vietnam/deaccents";
+import abbreviations from "../../data/vietnam/abbreviations.json";
+import dictionary from "../../data/vietnam/dictionary.json";
+import regex from "../../data/vietnam/regex.json";
+import deaccents from "./deaccents.js";
 
 const dedupSpaces = _.replace(/\s+/g, " ");
 

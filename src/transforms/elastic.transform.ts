@@ -1,7 +1,7 @@
 import _ from "lodash/fp.js";
-import deaccents from "src/format/vietnam/deaccents";
-import { extract } from "src/format/vietnam/extract";
-import { NearbyParams } from "src/resources/nearby.params";
+import deaccents from "../format/vietnam/deaccents.js";
+import { extract } from "../format/vietnam/extract.js";
+import { NearbyParams } from "../resources/nearby.params.js";
 import {
   CreateQuery,
   CreateSearchBody,
@@ -15,7 +15,7 @@ import {
   MultiIndexOptions,
   RescoreFunction,
   RescoreQuery,
-} from "src/types/elastic.types";
+} from "../types/elastic.types.js";
 
 export class ElasticTransform {
   static createShouldClauses({ parsedText, formatted }: CreateShouldClauses) {

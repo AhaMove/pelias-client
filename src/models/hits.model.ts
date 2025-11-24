@@ -1,4 +1,4 @@
-import { ResponseModel } from "src/models/response.model";
+import { ResponseModel } from "./response.model.js";
 
 export interface HitsModel<T> {
   hits: {

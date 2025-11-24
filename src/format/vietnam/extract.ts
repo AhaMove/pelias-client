@@ -1,4 +1,4 @@
-import { AddressParts } from "src/models/address-parts.model";
+import { AddressParts } from "../../models/address-parts.model.js";
 
 const hasCountry = (text: string) => {
   return /Việt Nam/gi.test(text);

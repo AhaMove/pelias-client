@@ -1,7 +1,7 @@
 import levenshteinDistance from "fast-levenshtein";
 import { bigram, nGram } from "n-gram";
 
-import deaccents from "../format/vietnam/deaccents";
+import deaccents from "../format/vietnam/deaccents.js";
 
 interface SimilarityScore {
   text: string;

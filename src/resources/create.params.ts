@@ -1,3 +1,3 @@
-import { DocumentModel } from "src/models/document.model";
+import { DocumentModel } from "../models/document.model.js";
 
 export type CreateParams = DocumentModel;

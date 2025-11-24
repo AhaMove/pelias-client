@@ -1,3 +1,3 @@
-import { CreateParams } from "src/resources/create.params";
+import { CreateParams } from "./create.params.js";
 
 export type UpdateParams = Partial<CreateParams>;

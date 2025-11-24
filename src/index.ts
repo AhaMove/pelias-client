@@ -2,6 +2,9 @@ import { Client, ClientOptions } from "@elastic/elasticsearch";
 import * as RequestParams from "@elastic/elasticsearch/api/requestParams";
 import { ApiResponse, Context, TransportRequestPromise } from "@elastic/elasticsearch/lib/Transport";
 import * as crypto from "crypto";
+
+import deaccents from "./format/vietnam/deaccents.js";
+import { extract, format } from "./format/vietnam/index.js";
 import { AddressParts } from "./models/address-parts.model.js";
 import { CountModel } from "./models/count.model.js";
 import { DocumentModel } from "./models/document.model.js";
@@ -14,9 +17,6 @@ import { UpdateParams } from "./resources/update.params.js";
 import { DocumentTransform } from "./transforms/document.transform.js";
 import { ElasticTransform } from "./transforms/elastic.transform.js";
 import { AdminAreas, PeliasTransform } from "./transforms/pelias.transform.js";
-
-import { extract, format } from "./format/vietnam/index.js";
-import deaccents from "./format/vietnam/deaccents.js";
 
 interface ClientConfig extends ClientOptions {
   /**

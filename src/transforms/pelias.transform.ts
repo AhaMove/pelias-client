@@ -1,14 +1,14 @@
 import * as turf from "@turf/turf";
-import { Position } from "@turf/turf";
 import _ from "lodash/fp.js";
-import { removeCountyPrefix, removeLocalityPrefix } from "../format/vietnam/index.js";
+
 import deaccents from "../format/vietnam/deaccents.js";
+import { removeCountyPrefix, removeLocalityPrefix } from "../format/vietnam/index.js";
 import { DocumentModel } from "../models/document.model.js";
 import { PeliasFeatureModel } from "../models/pelias-feature.model.js";
 import { ResponseModel } from "../models/response.model.js";
 
 type FeatureOps = {
-  points?: Position;
+  points?: number[];
 };
 
 export interface AdminAreas {
@@ -21,7 +21,7 @@ export class PeliasTransform {
     return `whosonfirst:region:${value}`;
   }
 
-  static getDistance(startPosition: Position, endPosition: Position): number {
+  static getDistance(startPosition: number[], endPosition: number[]): number {
     if (!Array.isArray(startPosition) || !Array.isArray(endPosition)) {
       return 0;
     }

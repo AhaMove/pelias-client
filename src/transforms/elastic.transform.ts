@@ -1,8 +1,7 @@
 import _ from "lodash/fp.js";
-import { extract } from "src/format/vietnam";
+import deaccents from "src/format/vietnam/deaccents";
+import { extract } from "src/format/vietnam/extract";
 import { NearbyParams } from "src/resources/nearby.params";
-
-import deaccents from "../format/vietnam/deaccents";
 import {
   CreateQuery,
   CreateSearchBody,
@@ -16,7 +15,7 @@ import {
   MultiIndexOptions,
   RescoreFunction,
   RescoreQuery,
-} from "../types/elastic.types";
+} from "src/types/elastic.types";
 
 export class ElasticTransform {
   static createShouldClauses({ parsedText, formatted }: CreateShouldClauses) {
@@ -419,26 +418,30 @@ export class ElasticTransform {
       script: {
         source: `
         try {
+          // Early exit for non-pelias indices
           if (params._index == 'favorite_location' || params._index == 'recent_location') {
             return [];
           }
 
-          if (!params._source.containsKey('addendum') || 
-              !params._source.addendum.containsKey('geometry') || 
+          // Validate entrances exist
+          if (!params._source.containsKey('addendum') ||
+              !params._source.addendum.containsKey('geometry') ||
               !params._source.addendum.geometry.containsKey('entrances')) {
             return [];
           }
-          
+
           def entrances = params._source.addendum.geometry.entrances;
           if (!(entrances instanceof List) || entrances.isEmpty()) {
             return [];
           }
-          
+
+          // Early exit if no search term
           String searchTerm = params.searchTerm.toLowerCase().trim();
           if (searchTerm.isEmpty()) {
             return entrances;
           }
-          
+
+          // Tokenize search term once
           def searchTokens = [];
           if (searchTerm.contains(' ')) {
             def parts = searchTerm.splitOnToken(' ');
@@ -451,219 +454,139 @@ export class ElasticTransform {
           } else {
             searchTokens.add(searchTerm);
           }
-          
-          def fullMatchEntrances = [];
-          def partialMatchEntrances = [];  
-          def noMatchEntrances = [];
-          
-          for (def entrance : entrances) {
-            if (entrance.containsKey('name')) {
-              String entranceName = entrance.name.toLowerCase();
-              
-              def entranceWords = [];
-              if (entranceName.contains(' ')) {
-                def parts = entranceName.splitOnToken(' ');
-                for (def part : parts) {
-                  String trimmedPart = part.trim();
-                  if (!trimmedPart.isEmpty()) {
-                    entranceWords.add(trimmedPart);
-                  }
+
+          int searchSize = searchTokens.size();
+
+          // Create scored entrance list with index tracking
+          def scoredEntrances = [];
+
+          for (int idx = 0; idx < entrances.size(); idx++) {
+            def entrance = entrances[idx];
+
+            if (!entrance.containsKey('name')) {
+              // Entrance without name - no match, score 0
+              scoredEntrances.add(['index': idx, 'score': 0.0, 'matched': 0]);
+              continue;
+            }
+
+            String entranceName = entrance.name.toLowerCase();
+
+            // Tokenize entrance name
+            def entranceWords = [];
+            if (entranceName.contains(' ')) {
+              def parts = entranceName.splitOnToken(' ');
+              for (def part : parts) {
+                String trimmedPart = part.trim();
+                if (!trimmedPart.isEmpty()) {
+                  entranceWords.add(trimmedPart);
                 }
-              } else {
-                entranceWords.add(entranceName);
-              }
-              
-              def allTokenMatches = [];
-              for (int i = 0; i < searchTokens.size(); i++) {
-                String searchToken = searchTokens[i];
-                def tokenPositions = [];
-                
-                for (int j = 0; j < entranceWords.size(); j++) {
-                  String entranceWord = entranceWords[j];
-                  if (entranceWord.contains(searchToken)) {
-                    def matchInfo = [:];
-                    matchInfo['searchIndex'] = i;
-                    matchInfo['entranceIndex'] = j;
-                    matchInfo['token'] = searchToken;
-                    matchInfo['word'] = entranceWord;
-                    tokenPositions.add(matchInfo);
-                  }
-                }
-                
-                if (!tokenPositions.isEmpty()) {
-                  allTokenMatches.add(tokenPositions);
-                }
-              }
-              
-              def entranceCopy = [:];
-              for (def key : entrance.keySet()) {
-                entranceCopy[key] = entrance[key];
-              }
-              
-              int matchedTokens = allTokenMatches.size();
-              
-              if (matchedTokens == 0) {
-                noMatchEntrances.add(entranceCopy);
-                continue;
-              }
-              
-              def bestCombination = [];
-              double bestScore = -1.0;
-              
-              if (allTokenMatches.size() == 1) {
-                bestCombination = [allTokenMatches[0][0]];
-                bestScore = 1.0;
-              } else if (allTokenMatches.size() == 2) {
-                def firstTokenOptions = allTokenMatches[0];
-                def secondTokenOptions = allTokenMatches[1];
-                
-                for (def first : firstTokenOptions) {
-                  for (def second : secondTokenOptions) {
-                    def combination = [first, second];
-                    
-                    combination.sort((a, b) -> {
-                      int posA = (int)a['entranceIndex'];
-                      int posB = (int)b['entranceIndex'];
-                      return posA - posB;
-                    });
-                    
-                    int pos1 = (int)combination[0]['entranceIndex'];
-                    int pos2 = (int)combination[1]['entranceIndex'];
-                    
-                    int distance = pos2 - pos1;
-                    if (distance < 0) {
-                      distance = -distance;
-                    }
-                    
-                    double score = 1.0;
-                    if (distance == 1) {
-                      score = 4.0;
-                    } else if (distance == 2) {
-                      score = 2.5;
-                    } else if (distance <= 4) {
-                      score = 1.5;
-                    } else {
-                      score = 0.5;
-                    }
-                    
-                    if (score > bestScore) {
-                      bestScore = score;
-                      bestCombination = [first, second];
-                    }
-                  }
-                }
-              } else if (allTokenMatches.size() == 3) {
-                def firstTokenOptions = allTokenMatches[0];
-                def secondTokenOptions = allTokenMatches[1];
-                def thirdTokenOptions = allTokenMatches[2];
-                
-                for (def first : firstTokenOptions) {
-                  for (def second : secondTokenOptions) {
-                    for (def third : thirdTokenOptions) {
-                      def combination = [first, second, third];
-                      
-                      combination.sort((a, b) -> {
-                        int posA = (int)a['entranceIndex'];
-                        int posB = (int)b['entranceIndex'];
-                        return posA - posB;
-                      });
-                      
-                      double totalScore = 0.0;
-                      int consecutiveBonus = 0;
-                      
-                      for (int k = 0; k < combination.size() - 1; k++) {
-                        int pos1 = (int)combination[k]['entranceIndex'];
-                        int pos2 = (int)combination[k + 1]['entranceIndex'];
-                        int distance = pos2 - pos1;
-                        
-                        if (distance == 1) {
-                          totalScore += 4.0;
-                          consecutiveBonus++;
-                        } else if (distance == 2) {
-                          totalScore += 2.5;
-                        } else if (distance <= 4) {
-                          totalScore += 1.5;
-                        } else {
-                          totalScore += 0.5;
-                        }
-                      }
-                      
-                      if (consecutiveBonus > 0) {
-                        totalScore += consecutiveBonus * 1.0;
-                      }
-                      
-                      int pairCount = combination.size() - 1;
-                      if (pairCount < 1) {
-                        pairCount = 1;
-                      }
-                      double score = totalScore / pairCount;
-                      
-                      if (score > bestScore) {
-                        bestScore = score;
-                        bestCombination = [first, second, third];
-                      }
-                    }
-                  }
-                }
-              } else {
-                for (def tokenOptions : allTokenMatches) {
-                  bestCombination.add(tokenOptions[0]);
-                }
-                bestScore = 1.0;
-              }
-              
-              if (matchedTokens == searchTokens.size()) {
-                entranceCopy['_proximityScore'] = bestScore;
-                fullMatchEntrances.add(entranceCopy);
-              } else {
-                double combinedScore = matchedTokens + (bestScore * 0.5);
-                entranceCopy['_combinedScore'] = combinedScore;
-                partialMatchEntrances.add(entranceCopy);
               }
             } else {
-              def entranceCopy = [:];
-              for (def key : entrance.keySet()) {
-                entranceCopy[key] = entrance[key];
-              }
-              noMatchEntrances.add(entranceCopy);
+              entranceWords.add(entranceName);
             }
-          }
-          
-          if (!fullMatchEntrances.isEmpty()) {
-            fullMatchEntrances.sort((a, b) -> {
-              double scoreA = a.containsKey('_proximityScore') ? (double)a['_proximityScore'] : 0.0;
-              double scoreB = b.containsKey('_proximityScore') ? (double)b['_proximityScore'] : 0.0;
-              return Double.compare(scoreB, scoreA);
-            });
 
-            for (def entrance : fullMatchEntrances) {
-              if (entrance.containsKey('_proximityScore')) {
-                entrance.remove('_proximityScore');
+            // Find all token matches with positions
+            def allTokenMatches = [];
+            for (int i = 0; i < searchSize; i++) {
+              String searchToken = searchTokens[i];
+              def tokenPositions = [];
+
+              for (int j = 0; j < entranceWords.size(); j++) {
+                if (entranceWords[j].contains(searchToken)) {
+                  tokenPositions.add(j);
+                }
+              }
+
+              if (!tokenPositions.isEmpty()) {
+                allTokenMatches.add(tokenPositions);
               }
             }
-          }
-          
-          if (!partialMatchEntrances.isEmpty()) {
-            partialMatchEntrances.sort((a, b) -> {
-              double scoreA = a.containsKey('_combinedScore') ? (double)a['_combinedScore'] : 0.0;
-              double scoreB = b.containsKey('_combinedScore') ? (double)b['_combinedScore'] : 0.0;
-              return Double.compare(scoreB, scoreA);
-            });
-            
-            for (def entrance : partialMatchEntrances) {
-              if (entrance.containsKey('_combinedScore')) {
-                entrance.remove('_combinedScore');
-              }
+
+            int matchedTokens = allTokenMatches.size();
+
+            if (matchedTokens == 0) {
+              scoredEntrances.add(['index': idx, 'score': 0.0, 'matched': 0]);
+              continue;
             }
+
+            // Calculate best proximity score based on matched tokens
+            double proximityScore = 0.0;
+
+            if (matchedTokens == 1) {
+              proximityScore = 1.0;
+            } else if (matchedTokens == 2) {
+              def firstOptions = allTokenMatches[0];
+              def secondOptions = allTokenMatches[1];
+              double bestDist = 0.0;
+
+              for (def pos1 : firstOptions) {
+                for (def pos2 : secondOptions) {
+                  int dist = (pos2 > pos1) ? (pos2 - pos1) : (pos1 - pos2);
+                  double distScore = (dist == 1) ? 4.0 : (dist == 2) ? 2.5 : (dist <= 4) ? 1.5 : 0.5;
+                  if (distScore > bestDist) {
+                    bestDist = distScore;
+                  }
+                }
+              }
+              proximityScore = bestDist;
+            } else if (matchedTokens == 3) {
+              def firstOptions = allTokenMatches[0];
+              def secondOptions = allTokenMatches[1];
+              def thirdOptions = allTokenMatches[2];
+              double bestAvg = 0.0;
+
+              for (def pos1 : firstOptions) {
+                for (def pos2 : secondOptions) {
+                  for (def pos3 : thirdOptions) {
+                    // Sort positions
+                    def positions = [pos1, pos2, pos3];
+                    positions.sort();
+
+                    // Calculate average proximity
+                    int dist1 = positions[1] - positions[0];
+                    int dist2 = positions[2] - positions[1];
+
+                    double score1 = (dist1 == 1) ? 4.0 : (dist1 == 2) ? 2.5 : (dist1 <= 4) ? 1.5 : 0.5;
+                    double score2 = (dist2 == 1) ? 4.0 : (dist2 == 2) ? 2.5 : (dist2 <= 4) ? 1.5 : 0.5;
+
+                    double avgScore = (score1 + score2) / 2.0;
+                    if (dist1 == 1 && dist2 == 1) {
+                      avgScore += 1.0; // Consecutive bonus
+                    }
+
+                    if (avgScore > bestAvg) {
+                      bestAvg = avgScore;
+                    }
+                  }
+                }
+              }
+              proximityScore = bestAvg;
+            } else {
+              proximityScore = 1.0;
+            }
+
+            // Calculate final score: full match gets pure proximity, partial gets combined
+            double finalScore;
+            if (matchedTokens == searchSize) {
+              finalScore = 1000.0 + proximityScore; // Full match bucket
+            } else {
+              finalScore = (double)matchedTokens + (proximityScore * 0.5); // Partial match bucket
+            }
+
+            scoredEntrances.add(['index': idx, 'score': finalScore, 'matched': matchedTokens]);
           }
-          
+
+          // Sort by score descending (higher scores first)
+          scoredEntrances.sort((a, b) -> Double.compare((double)b['score'], (double)a['score']));
+
+          // Build result using original entrance objects in sorted order
           def result = [];
-          result.addAll(fullMatchEntrances);
-          result.addAll(partialMatchEntrances);
-          result.addAll(noMatchEntrances);
-          
+          for (def scored : scoredEntrances) {
+            result.add(entrances[(int)scored['index']]);
+          }
+
           return result;
-          
+
         } catch (Exception e) {
           return [];
         }

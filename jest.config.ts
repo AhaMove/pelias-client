@@ -34,6 +34,8 @@ export default {
 
   moduleNameMapper: {
     "^src/(.*)$": "<rootDir>/src/$1",
+    // Map .js extensions to .ts files for ESM imports
+    "^(\\.{1,2}/.*)\\.js$": "$1",
   },
 
   // Test patterns
@@ -50,7 +52,7 @@ export default {
     "^.+\\.ts$": ["ts-jest", {
       useESM: true,
       tsconfig: {
-        module: "ES2022"
+        module: "ESNext"
       }
     }]
   },

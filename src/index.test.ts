@@ -940,7 +940,6 @@ describe("extractAddress", () => {
     ]
   ])("should correctly parse '%s'", (text, expected) => {
     const result = extractAddress(text);
-    console.log(result)
     expect(result.number).toBe(expected.number);
     expect(result.street).toBe(expected.street);
     expect(result.address).toBe(expected.address);

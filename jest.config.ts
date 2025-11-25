@@ -38,10 +38,10 @@ export default {
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
 
-  // Test patterns
+  // Test patterns - only look in the test/ folder
   testMatch: [
-    "**/__tests__/**/*.[jt]s?(x)",
-    "**/?(*.)+(spec|test).[tj]s?(x)"
+    "<rootDir>/test/**/*.[jt]s?(x)",
+    "<rootDir>/test/**/?(*.)+(spec|test).[tj]s?(x)"
   ],
 
   // Setup

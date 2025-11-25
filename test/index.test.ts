@@ -1,4 +1,4 @@
-import { extractAddress, formatAddress } from "./index";
+import { extractAddress, formatAddress } from "../src/index.js";
 
 // const client = new PeliasClient({
 //   node: process.env.PELIAS_URL,

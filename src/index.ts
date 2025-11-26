@@ -17,6 +17,7 @@ import { UpdateParams } from "./resources/update.params.js";
 import { DocumentTransform } from "./transforms/document.transform.js";
 import { ElasticTransform } from "./transforms/elastic.transform.js";
 import { AdminAreas, PeliasTransform } from "./transforms/pelias.transform.js";
+import { removePlacePrefix } from "./utils/remove-place-prefix.js";
 
 interface ClientConfig extends ClientOptions {
   /**
@@ -360,6 +361,10 @@ export function extractAddress(address: string): AddressParts {
 
 export function removeVietnameseAccents(text: string): string {
   return deaccents(text);
+}
+
+export function removePlacePrefixFromAddress(text: string): string {
+  return removePlacePrefix(text);
 }
 
 export { calculateSimilarity, sortBySimilarity } from "./utils/string-sort.js";

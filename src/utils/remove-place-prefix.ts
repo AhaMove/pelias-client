@@ -42,16 +42,6 @@ const PLACE_PREFIXES = [
   "shop",
   "showroom",
 
-  // Healthcare
-  "bệnh viện",
-  "benh vien",
-  "bv",
-  "phòng khám",
-  "phong kham",
-  "pk",
-  "nhà thuốc",
-  "nha thuoc",
-
   // Food & Beverage
   "nhà hàng",
   "nha hang",
@@ -70,89 +60,6 @@ const PLACE_PREFIXES = [
   "bar",
   "pub",
   "restaurant",
-
-  // Education
-  "trường",
-  "truong",
-  "trường học",
-  "truong hoc",
-  "trường đại học",
-  "truong dai hoc",
-  "đại học",
-  "dai hoc",
-  "học viện",
-  "hoc vien",
-  "viện",
-  "vien",
-  "school",
-  "university",
-  "college",
-
-  // Religious
-  "chùa",
-  "chua",
-  "nhà thờ",
-  "nha tho",
-  "đền",
-  "den",
-  "đình",
-  "dinh",
-  "miếu",
-  "mieu",
-
-  // Transportation
-  "bến xe",
-  "ben xe",
-  "sân bay",
-  "san bay",
-  "ga",
-  "nhà ga",
-  "nha ga",
-  "cảng",
-  "cang",
-
-  // Entertainment
-  "rạp",
-  "rap",
-  "rạp chiếu phim",
-  "rap chieu phim",
-  "rạp hát",
-  "rap hat",
-  "sân vận động",
-  "san van dong",
-  "svđ",
-  "svd",
-  "công viên",
-  "cong vien",
-  "cv",
-  "khu vui chơi",
-  "khu vui choi",
-
-  // Industrial & Office
-  "khu công nghiệp",
-  "khu cong nghiep",
-  "kcn",
-  "nhà máy",
-  "nha may",
-  "xưởng",
-  "xuong",
-  "văn phòng",
-  "van phong",
-  "vp",
-  "office",
-  "tower",
-
-  // Government
-  "ủy ban",
-  "uy ban",
-  "ubnd",
-  "công an",
-  "cong an",
-  "ca",
-  "tòa án",
-  "toa an",
-  "bưu điện",
-  "buu dien",
 ] as const;
 
 // Sort by length descending to match longer prefixes first

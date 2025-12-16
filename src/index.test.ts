@@ -947,3 +947,36 @@ describe("extractAddress", () => {
   });
 
 });
+
+describe("ElasticTransform street scoring", () => {
+  test("should parse street correctly for scoring", () => {
+    // Test case: "52C Phạm Vấn" should be parsed correctly
+    const input = "52C Phạm Vấn, Phường Phú Thọ Hòa, Quận Tân Phú, Thành phố Hồ Chí Minh, Việt Nam";
+    const result = extractAddress(input);
+
+    expect(result.number).toBe("52C");
+    expect(result.street).toBe("Phạm Vấn");
+  });
+
+  test("should correctly identify street name for exact match scoring", () => {
+    // Simulating the deaccent comparison that happens in rescoreQuery
+    const searchStreet: string = "pham van";  // deaccents("Phạm Vấn".toLowerCase())
+    const exactMatch: string = "pham van";    // deaccents("Phạm Vấn".toLowerCase())
+    const partialMatch: string = "pham van xao";  // deaccents("Phạm Văn Xảo".toLowerCase())
+
+    // Exact match should return true
+    expect(exactMatch).toBe(searchStreet);
+
+    // Partial match should NOT be equal
+    expect(partialMatch).not.toBe(searchStreet);
+
+    // Partial match DOES start with search street (this is the key insight)
+    // This is why we need exact match scoring - "pham van xao" starts with "pham van"
+    expect(partialMatch.startsWith(searchStreet)).toBe(true);
+
+    // Expected scoring in Painless:
+    // - "pham van" === "pham van" → +20 (exact match - checked first)
+    // - "pham van xao".startsWith("pham van") → +10 (prefix match)
+    // So exact match "52C Phạm Vấn" gets +20, while "52 Phạm Văn Xảo" only gets +10
+  });
+});

@@ -252,6 +252,48 @@ export class ElasticTransform {
       },
     });
 
+    // Add street name exact match scoring
+    if (parsedText.street) {
+      functions.push({
+        script_score: {
+          script: {
+            source: `
+              try {
+                String searchStreet = params.street;
+                if (searchStreet == null || searchStreet.isEmpty()) {
+                  return 0;
+                }
+
+                // Check address_parts.street for exact/prefix match
+                if (params._source.containsKey('address_parts') &&
+                    params._source.address_parts.containsKey('street')) {
+                  String docStreet = params._source.address_parts.street.toLowerCase();
+                  // Exact match gets highest score
+                  if (docStreet.equals(searchStreet)) {
+                    return 20;
+                  }
+                  // Prefix match (doc street starts with search street)
+                  if (docStreet.startsWith(searchStreet)) {
+                    return 10;
+                  }
+                  // Reverse prefix match (search street starts with doc street)
+                  if (searchStreet.startsWith(docStreet)) {
+                    return 5;
+                  }
+                }
+                return 0;
+              } catch (Exception e) {
+                return 0;
+              }
+            `,
+            params: {
+              street: deaccents(parsedText.street?.toLowerCase() || ""),
+            },
+          },
+        },
+      });
+    }
+
     return {
       function_score: {
         query: query,

@@ -1,6 +1,8 @@
 import * as turf from "@turf/turf";
-import { Position } from "@turf/turf";
 import _ from "lodash/fp.js";
+
+// GeoJSON Position type: [longitude, latitude] or [longitude, latitude, altitude]
+type Position = number[];
 import { removeCountyPrefix, removeLocalityPrefix } from "src/format/vietnam";
 import deaccents from "src/format/vietnam/deaccents";
 import { DocumentModel } from "src/models/document.model";

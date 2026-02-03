@@ -141,16 +141,16 @@ export class ElasticTransform {
         minimum_should_match: "50%",
       },
     };
-    if (parsedText.number) {
-      result.bool.must.push({
-        regexp: {
-          "address_parts.number.keyword": {
-            value: `${parsedText.number}([\\/\\-].*)?`,
-            flags: "ALL",
-          },
-        },
-      });
-    }
+    // if (parsedText.number) {
+    //   result.bool.must.push({
+    //     regexp: {
+    //       "address_parts.number.keyword": {
+    //         value: `${parsedText.number}([\\/\\-].*)?`,
+    //         flags: "ALL",
+    //       },
+    //     },
+    //   });
+    // }
 
     if (parsedText.venue) {
       const shouldClauses: Array<Record<string, unknown>> = [
